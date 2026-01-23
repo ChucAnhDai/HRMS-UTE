@@ -1,8 +1,28 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Project Overview
+
+**Project Name:** cnkt_cnpm
+
+**Technology Stack:**
+- Framework FE-BE: Next.js
+- Library UI: Tailwind CSS
+- Database: Supabase (PostgreSQL)
+
+**Project Structure:**
+- `fe/`: Frontend code (Next.js pages, components)
+- `be/`: Backend configuration (Supabase config)
+- `app/`: Next.js app directory (pages and API routes)
+
 ## Getting Started
 
-First, run the development server:
+First, install dependencies:
+
+```bash
+npm install
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
@@ -19,6 +39,16 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Supabase Setup
+
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Get your project URL and anon key from the project settings
+3. Set environment variables in `.env.local`:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   ```
 
 ## Learn More
 
