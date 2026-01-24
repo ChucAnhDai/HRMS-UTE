@@ -12,6 +12,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 **Project Structure:**
 - `fe/`: Frontend code (Next.js pages, components)
 - `be/`: Backend configuration (Supabase config)
+- `ddl/`: Database schema scripts (SQL files)
 - `app/`: Next.js app directory (pages and API routes)
 
 ## Getting Started
@@ -38,6 +39,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+To test Supabase connection, visit [http://localhost:3000/instruments](http://localhost:3000/instruments) to see the instruments data.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Supabase Setup
@@ -49,6 +52,12 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
    NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    ```
+
+## Database Schema
+
+Run the SQL scripts in the `ddl/` folder in your Supabase SQL Editor to set up the database schema.
+
+Example: Execute `ddl/instruments.sql` to create the instruments table with sample data.
 
 ## Learn More
 
