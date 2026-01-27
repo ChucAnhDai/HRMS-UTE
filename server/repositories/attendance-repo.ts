@@ -1,6 +1,27 @@
 import { createClient } from '@/lib/supabase.server'
 
 export const attendanceRepo = {
+  // Lấy dữ liệu logs chấm công theo ngày cụ thể
+  async getAttendanceByDate(date: string) {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('attendances')
+      .select(`
+        *,
+        employees (
+          first_name,
+          last_name,
+          avatar,
+          department_id
+        )
+      `)
+      .eq('date', date)
+      .order('check_in_time', { ascending: true })
+
+    if (error) throw new Error(error.message)
+    return data
+  },
+
   // Lấy dữ liệu chấm công theo tháng (của tất cả nhân viên hoặc 1 người)
   async getAttendances(month: number, year: number, employeeId?: number) {
     const supabase = await createClient()
@@ -80,5 +101,32 @@ export const attendanceRepo = {
 
     if (error) throw new Error(error.message)
     return data
+  },
+
+  // Lấy thống kê chấm công theo tháng cho tính lương
+  async getMonthlyStats(employeeId: number, month: number, year: number) {
+    const supabase = await createClient()
+    const startDate = `${year}-${month.toString().padStart(2, '0')}-01`
+    // Xử lý ngày cuối tháng cho chính xác
+    const lastDay = new Date(year, month, 0).getDate()
+    const endDate = `${year}-${month.toString().padStart(2, '0')}-${lastDay}`
+
+    const { data, error } = await supabase
+      .from('attendances')
+      .select('status')
+      .eq('employee_id', employeeId)
+      .gte('date', startDate)
+      .lte('date', endDate)
+
+    if (error) throw new Error(error.message)
+
+    // Tính toán
+    const totalWorkDays = data.length
+    const totalLate = data.filter(a => a.status === 'Late').length
+
+    return {
+        work_days: totalWorkDays,
+        late_days: totalLate
+    }
   }
 }

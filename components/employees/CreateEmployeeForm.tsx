@@ -4,6 +4,7 @@ import { createEmployeeAction } from '@/server/actions/create-employee'
 import { useActionState } from 'react'
 import { UserPlus, Save, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import EmployeeFormSections from './EmployeeFormSections'
 
 interface Props {
   departments: any[]
@@ -37,57 +38,7 @@ export default function CreateEmployeeForm({ departments }: Props) {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700">Họ đệm <span className="text-red-500">*</span></label>
-                    <input type="text" name="last_name" required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" placeholder="Nguyễn Văn" />
-                </div>
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700">Tên <span className="text-red-500">*</span></label>
-                    <input type="text" name="first_name" required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" placeholder="A" />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700">Email <span className="text-red-500">*</span></label>
-                    <input type="email" name="email" required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" placeholder="example@company.com" />
-                </div>
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700">Số điện thoại</label>
-                    <input type="tel" name="phone" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" placeholder="0901234567" />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700">Phòng ban</label>
-                    <select name="department_id" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white transition-all focus:border-blue-500 text-black">
-                        <option value="">-- Chọn phòng ban --</option>
-                        {departments.map(dept => (
-                            <option key={dept.id} value={dept.id}>{dept.name}</option>
-                        ))}
-                    </select>
-                </div>
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700">Chức vụ (Job Title)</label>
-                    <input type="text" name="job_title" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" placeholder="VD: Software Engineer" />
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700">Ngày vào làm <span className="text-red-500">*</span></label>
-                    <input type="date" name="hire_date" required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" />
-                </div>
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700">Mã số thuế</label>
-                    <input type="text" name="tax_code" placeholder="VD: 123456789" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" />
-                </div>
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700">Người phụ thuộc</label>
-                    <input type="number" name="dependents" placeholder="0" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" />
-                </div>
-                
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700">Lương cơ bản (VND)</label>
-                    <input type="number" name="salary" placeholder="0" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" />
-                </div>
-            </div>
+            <EmployeeFormSections departments={departments} />
 
             <div className="flex justify-end pt-6 border-t border-gray-100">
                 <button 

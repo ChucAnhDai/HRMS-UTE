@@ -3,6 +3,7 @@ import { employeeService } from '@/server/services/employee-service'
 import { contractService } from '@/server/services/contract-service'
 import { payrollService } from '@/server/services/payroll-service'
 import { leaveService } from '@/server/services/leave-service'
+import { assetService } from '@/server/services/asset-service'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -15,11 +16,12 @@ export default async function EmployeeProfilePage({ params }: PageProps) {
   const { id } = await params
   const empId = Number(id)
 
-  const [employee, contracts, payrolls, leaves] = await Promise.all([
+  const [employee, contracts, payrolls, leaves, assets] = await Promise.all([
       employeeService.getEmployee(empId),
       contractService.getContracts(empId),
       payrollService.getPayrollsByEmployeeId(empId),
-      leaveService.getLeavesByEmployeeId(empId)
+      leaveService.getLeavesByEmployeeId(empId),
+      assetService.getAssetsByEmployeeId(empId)
   ])
 
   if (!employee) {
@@ -34,6 +36,7 @@ export default async function EmployeeProfilePage({ params }: PageProps) {
               contracts={contracts || []}
               payrolls={payrolls || []}
               leaves={leaves || []}
+              assets={assets || []}
           />
        </div>
     </div>

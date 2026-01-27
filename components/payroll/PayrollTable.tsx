@@ -1,104 +1,134 @@
-import { FileText, CheckCircle, Clock } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
+'use client'
 
-interface Payroll {
-  id: string
-  month: string
-  base_salary: number
-  work_days: number
-  leave_days: number
-  total_salary: number
-  status: string
-  employees: {
-    first_name: string
-    last_name: string
-    avatar: string | null
-    departments: { name: string } | null
-  }
+import { useState } from 'react'
+import EditPayslipModal from './EditPayslipModal'
+import { Edit2, Eye, Printer } from 'lucide-react'
+import Link from 'next/link'
+import { Payslip } from '@/types'
+
+const formatMoney = (amount: number | string | undefined | null) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(amount) || 0)
 }
 
-export default function PayrollTable({ payrolls }: { payrolls: Payroll[] }) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
+interface Props {
+  payslips: Payslip[]
+}
+
+export default function PayrollTable({ payslips }: Props) {
+  const [editingPayslip, setEditingPayslip] = useState<Payslip | null>(null)
+
+  if (!payslips || payslips.length === 0) {
+      return (
+          <div className="p-8 text-center text-gray-500 bg-white rounded-xl border border-gray-200 mt-4">
+              Chưa có dữ liệu lương cho tháng này. Vui lòng bấm &quot;Tính lương&quot; để tạo.
+          </div>
+      )
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nhân viên</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Lương cơ bản</th>
-              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Ngày công</th>
-              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Nghỉ phép</th>
-              <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Tổng thực nhận</th>
-              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
-              <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {payrolls.length === 0 ? (
-                <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500 text-sm">
-                        Chưa có dữ liệu lương cho tháng này. <br/>
-                        Vui lòng nhấn nút &quot;Tính lương&quot; để tạo bảng lương.
-                    </td>
-                </tr>
-            ) : payrolls.map((item: Payroll) => (
-              <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-3">
-                    <div className="relative w-9 h-9 rounded-full overflow-hidden border border-gray-200">
-                       <Image 
-                          src={item.employees.avatar || `https://ui-avatars.com/api/?name=${item.employees.first_name}+${item.employees.last_name}&background=random`} 
-                          alt="Avatar" 
-                          fill 
-                          className="object-cover"
-                       />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm text-gray-900">{item.employees.last_name} {item.employees.first_name}</p>
-                      <p className="text-xs text-gray-500">{item.employees.departments?.name || 'Chưa phân phòng'}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {formatCurrency(item.base_salary)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-gray-700">
-                  {item.work_days}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
-                  {item.leave_days}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900">
-                  {formatCurrency(item.total_salary)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-center">
-                   <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${
-                       item.status === 'Paid' 
-                        ? 'bg-green-50 text-green-700 border-green-200' 
-                        : 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                   }`}>
-                       {item.status === 'Paid' ? <CheckCircle className="w-3 h-3"/> : <Clock className="w-3 h-3"/>}
-                       {item.status === 'Paid' ? 'Đã thanh toán' : 'Bản nháp'}
-                   </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <Link 
-                        href={`/payroll/${item.id}`} 
-                        className="text-gray-400 hover:text-blue-600 transition-colors inline-block p-1"
-                    >
-                        <FileText className="w-4 h-4" />
-                    </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-4 overflow-hidden">
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                    <thead className="bg-gray-50 border-b border-gray-100 text-gray-600 font-bold uppercase text-xs">
+                        <tr>
+                            <th className="px-4 py-4 min-w-[200px]">Nhân viên</th>
+                            <th className="px-4 py-4 text-right min-w-[120px]">Lương cơ bản</th>
+                            <th className="px-4 py-4 text-center min-w-[80px]">Giờ OT</th>
+                            <th className="px-4 py-4 text-right text-blue-600 min-w-[100px]">Tiền OT</th>
+                            <th className="px-4 py-4 text-right text-green-600 min-w-[100px]">Thưởng</th>
+                            <th className="px-4 py-4 text-right text-red-600 min-w-[100px]">Tạm ứng</th>
+                            <th className="px-4 py-4 text-right text-red-600 min-w-[100px]">Phạt</th>
+                            <th className="px-4 py-4 text-left text-red-600 min-w-[150px]">Thuế + BHXH</th>
+                            <th className="px-4 py-4 text-right text-green-600 font-black min-w-[120px]">Thực nhận (NET)</th>
+                            <th className="px-4 py-4 text-center min-w-[100px]">Trạng thái</th>
+                            <th className="px-4 py-4 text-right min-w-[120px]">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {payslips.map((ps) => (
+                            <tr key={ps.id} className="hover:bg-gray-50/50 transition-colors">
+                                <td className="px-4 py-4 font-medium text-gray-900">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs uppercase shrink-0">
+                                            {ps.employees?.first_name?.[0]}
+                                        </div>
+                                        <div>
+                                            <div className='font-bold whitespace-nowrap'>{ps.employees?.last_name} {ps.employees?.first_name}</div>
+                                            <div className="text-xs text-gray-500">MNV: #{ps.employee_id}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-4 py-4 text-right text-gray-600">
+                                    {formatMoney(ps.salary)}
+                                </td>
+                                <td className="px-4 py-4 text-center text-gray-600">
+                                    {ps.ot_hours}h
+                                </td>
+                                <td className="px-4 py-4 text-right text-blue-600 font-medium">
+                                    +{formatMoney(ps.ot_salary)}
+                                </td>
+                                <td className="px-4 py-4 text-right text-green-600 font-medium">
+                                    {Number(ps.bonus) > 0 ? '+' : ''}{formatMoney(ps.bonus)}
+                                </td>
+                                <td className="px-4 py-4 text-right text-red-500">
+                                    {Number(ps.advance_amount) > 0 ? '-' : ''}{formatMoney(ps.advance_amount)}
+                                </td>
+                                <td className="px-4 py-4 text-right text-red-500">
+                                    {Number(ps.penalties) > 0 ? '-' : ''}{formatMoney(ps.penalties)}
+                                </td>
+                                <td className="px-4 py-4 text-xs">
+                                    <div className="text-red-500 whitespace-nowrap">Tax: {formatMoney(ps.tax)}</div>
+                                    <div className="text-red-500 whitespace-nowrap">BHXH: {formatMoney(ps.social_insurance)}</div>
+                                </td>
+                                <td className="px-4 py-4 text-right font-bold text-green-700 text-base">
+                                    {formatMoney(ps.net_pay)}
+                                </td>
+                                <td className="px-4 py-4 text-center">
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                        ps.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                    }`}>
+                                        {ps.status === 'Paid' ? 'Paid' : 'Generated'}
+                                    </span>
+                                </td>
+                                <td className="px-4 py-4 text-right">
+                                    <div className="flex items-center justifying-end gap-2">
+                                        <Link 
+                                            href={`/print/payslip/${ps.id}`}
+                                            target="_blank"
+                                            className="inline-flex items-center justify-center p-1.5 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                            title="In phiếu lương"
+                                        >
+                                            <Printer className="w-4 h-4" />
+                                        </Link>
+                                        <button 
+                                            onClick={() => setEditingPayslip(ps)}
+                                            className="inline-flex items-center justify-center p-1.5 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                                            title="Chỉnh sửa"
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                        </button>
+                                        <button 
+                                            className="inline-flex items-center justify-center p-1.5 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                            title="Xem chi tiết"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {editingPayslip && (
+            <EditPayslipModal 
+                payslip={editingPayslip} 
+                onClose={() => setEditingPayslip(null)} 
+            />
+        )}
+    </>
   )
 }

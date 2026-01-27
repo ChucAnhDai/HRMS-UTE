@@ -18,8 +18,9 @@ interface Employee {
   job_title: string | null
   department_id: number | null
   departments: { name: string } | null
-  status?: string // Có thể thêm state status sau này
-  employee_code?: string // Nếu có mã nhân viên
+  employment_status: string | null
+  hire_date: string | null
+  employee_code?: string
 }
 
 export default function EmployeeTableView({ employees }: { employees: any[] }) {
@@ -103,12 +104,14 @@ export default function EmployeeTableView({ employees }: { employees: any[] }) {
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Chức vụ</th>
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Phòng ban</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Ngày vào làm</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Trạng thái</th>
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
                 </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                 {filteredEmployees.length === 0 ? (
-                    <tr><td colSpan={6} className="text-center py-8 text-gray-500">Không tìm thấy nhân viên nào</td></tr>
+                    <tr><td colSpan={8} className="text-center py-8 text-gray-500">Không tìm thấy nhân viên nào</td></tr>
                 ) : filteredEmployees.map((emp) => (
                     <tr key={emp.id} className="hover:bg-gray-50 transition-colors group">
                     <td className="px-6 py-4">
@@ -133,6 +136,25 @@ export default function EmployeeTableView({ employees }: { employees: any[] }) {
                     <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
                         {emp.departments?.name || 'Chưa phân phòng'}
+                        </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                        {emp.hire_date ? new Date(emp.hire_date).toLocaleDateString('vi-VN') : '---'}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                        <span className={cn(
+                            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold",
+                            emp.employment_status === 'Active' ? "bg-green-100 text-green-700" :
+                            emp.employment_status === 'Probation' ? "bg-yellow-100 text-yellow-700" :
+                            emp.employment_status === 'Resigned' ? "bg-red-100 text-red-700" :
+                            emp.employment_status === 'On Leave' ? "bg-orange-100 text-orange-700" :
+                            "bg-gray-100 text-gray-700"
+                        )}>
+                            {emp.employment_status === 'Active' ? 'Đang làm' :
+                             emp.employment_status === 'Probation' ? 'Thử việc' :
+                             emp.employment_status === 'Resigned' ? 'Đã nghỉ' :
+                             emp.employment_status === 'On Leave' ? 'Nghỉ phép' :
+                             emp.employment_status || '---'}
                         </span>
                     </td>
                     <td className="px-6 py-4 text-right">

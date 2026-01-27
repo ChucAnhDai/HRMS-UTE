@@ -1,25 +1,38 @@
-import { payrollService } from '@/server/services/payroll-service'
 import PayrollHeader from '@/components/payroll/PayrollHeader'
 import PayrollTable from '@/components/payroll/PayrollTable'
+import { payrollService } from '@/server/services/payroll-service'
+import { requireRoleForPage } from '@/lib/auth-helpers'
 
-interface PageProps {
-  searchParams: Promise<{ month?: string; year?: string }>
+export const dynamic = 'force-dynamic'
+
+interface Props {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export default async function PayrollPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  const currentDate = new Date()
-  const month = params.month ? parseInt(params.month) : currentDate.getMonth() + 1
-  const year = params.year ? parseInt(params.year) : currentDate.getFullYear()
+export default async function PayrollPage({ searchParams }: Props) {
+  // Check permission
+  await requireRoleForPage(['ADMIN', 'MANAGER'])
+  
+  const { month, year } = await searchParams
+  
+  const currentMonth = Number(month) || new Date().getMonth() + 1
+  const currentYear = Number(year) || new Date().getFullYear()
 
-  const payrolls = await payrollService.getPayrollByMonth(month, year)
+  // Fetch data
+  const payslips = await payrollService.getPayrollList(currentMonth, currentYear)
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <PayrollHeader month={month} year={year} />
-        <PayrollTable payrolls={payrolls || []} />
-      </div>
+    <div className="p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
+       <div className="max-w-7xl mx-auto">
+          <div className="mb-6">
+              <h1 className="text-2xl font-black text-gray-900 tracking-tight">Quản lý Lương</h1>
+              <p className="text-gray-500 text-sm mt-1">Tính toán và quản lý phiếu lương hàng tháng cho nhân viên.</p>
+          </div>
+
+          <PayrollHeader />
+          
+          <PayrollTable payslips={payslips || []} />
+       </div>
     </div>
   )
 }

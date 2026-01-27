@@ -50,12 +50,16 @@ export const leaveService = {
     })
   },
 
-  // Duyệt / Từ chối
-  async approveLeave(id: number) {
-    return await leaveRepo.updateLeaveStatus(id, 'Approved')
+  // Duyệt đơn nghỉ phép
+  async approveLeave(id: number, actionByEmployeeId?: number) {
+    return await leaveRepo.updateLeaveStatus(id, 'Approved', actionByEmployeeId)
   },
 
-  async rejectLeave(id: number) {
-    return await leaveRepo.updateLeaveStatus(id, 'Rejected')
+  // Từ chối đơn nghỉ phép (bắt buộc phải có lý do)
+  async rejectLeave(id: number, rejectionReason: string, actionByEmployeeId?: number) {
+    if (!rejectionReason || rejectionReason.trim().length === 0) {
+      throw new Error('Vui lòng nhập lý do từ chối')
+    }
+    return await leaveRepo.updateLeaveStatus(id, 'Rejected', actionByEmployeeId, rejectionReason)
   }
 }

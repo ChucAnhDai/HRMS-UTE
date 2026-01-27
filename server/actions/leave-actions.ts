@@ -2,6 +2,7 @@
 
 import { leaveService } from '@/server/services/leave-service'
 import { revalidatePath } from 'next/cache'
+import { requireRole, getCurrentUser } from '@/lib/auth-helpers'
 
 export type ActionState = {
     success?: boolean
@@ -13,28 +14,54 @@ export async function createLeaveRequestAction(prevState: ActionState, formData:
   try {
     await leaveService.submitLeaveRequest(formData)
     revalidatePath('/leave')
+    revalidatePath('/profile')
     return { success: true, message: 'Gửi đơn xin nghỉ thành công!' }
-  } catch (error: any) {
-    return { error: error.message || 'Lỗi khi gửi đơn' }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Lỗi khi gửi đơn'
+    return { error: message }
   }
 }
 
 export async function approveLeaveAction(id: number) {
   try {
-    await leaveService.approveLeave(id)
+    // Kiểm tra quyền: Chỉ ADMIN, MANAGER mới được duyệt đơn
+    await requireRole(['ADMIN', 'MANAGER'])
+    
+    // Lấy thông tin người duyệt
+    const currentUser = await getCurrentUser()
+    const actionByEmployeeId = currentUser?.employeeId || undefined
+    
+    await leaveService.approveLeave(id, actionByEmployeeId)
     revalidatePath('/leave')
+    revalidatePath('/profile')
     return { success: true, message: 'Đã duyệt đơn' }
-  } catch (error: any) {
-    return { error: error.message }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Lỗi khi duyệt đơn'
+    return { error: message }
   }
 }
 
-export async function rejectLeaveAction(id: number) {
+export async function rejectLeaveAction(id: number, rejectionReason: string) {
   try {
-    await leaveService.rejectLeave(id)
+    // Kiểm tra quyền: Chỉ ADMIN, MANAGER mới được từ chối đơn
+    await requireRole(['ADMIN', 'MANAGER'])
+    
+    // Validate lý do từ chối
+    if (!rejectionReason || rejectionReason.trim().length === 0) {
+      return { error: 'Vui lòng nhập lý do từ chối' }
+    }
+    
+    // Lấy thông tin người từ chối
+    const currentUser = await getCurrentUser()
+    const actionByEmployeeId = currentUser?.employeeId || undefined
+    
+    await leaveService.rejectLeave(id, rejectionReason, actionByEmployeeId)
     revalidatePath('/leave')
+    revalidatePath('/profile')
     return { success: true, message: 'Đã từ chối đơn' }
-  } catch (error: any) {
-    return { error: error.message }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Lỗi khi từ chối đơn'
+    return { error: message }
   }
 }
+

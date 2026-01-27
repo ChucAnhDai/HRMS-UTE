@@ -8,7 +8,7 @@ export const leaveRepo = {
       .from('leave_requests')
       .select(`
         *,
-        employees (
+        employees!leave_requests_employee_id_fkey (
           first_name,
           last_name,
           avatar
@@ -42,11 +42,38 @@ export const leaveRepo = {
   },
 
   // Cập nhật trạng thái đơn (Duyệt / Từ chối)
-  async updateLeaveStatus(id: number, status: 'Approved' | 'Rejected', managerId?: number) {
+  async updateLeaveStatus(
+    id: number, 
+    status: 'Approved' | 'Rejected', 
+    actionByEmployeeId?: number,
+    rejectionReason?: string
+  ) {
     const supabase = await createClient()
+    
+    // Chuẩn bị dữ liệu cập nhật
+    const updateData: Record<string, unknown> = { 
+      status,
+      action_at: new Date().toISOString()
+    }
+    
+    // Nếu có người duyệt, lưu lại (dùng ID của employee)
+    if (actionByEmployeeId) {
+      updateData.action_by_employee_id = actionByEmployeeId
+    }
+    
+    // Nếu từ chối, lưu lý do từ chối
+    if (status === 'Rejected' && rejectionReason) {
+      updateData.rejection_reason = rejectionReason
+    }
+    
+    // Nếu duyệt, xóa lý do từ chối cũ (nếu có)
+    if (status === 'Approved') {
+      updateData.rejection_reason = null
+    }
+    
     const { data, error } = await supabase
       .from('leave_requests')
-      .update({ status }) // Đáng lẽ lưu thêm approved_by nhưng bảng hiện tại chưa có cột này, tạm bỏ qua
+      .update(updateData)
       .eq('id', id)
       .select()
       .single()

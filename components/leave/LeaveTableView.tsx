@@ -7,6 +7,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { approveLeaveAction, rejectLeaveAction } from "@/server/actions/leave-actions";
 import { useRouter } from "next/navigation";
+import LeaveRequestForm from "@/components/leave/LeaveRequestForm";
 
 interface LeaveRequest {
   id: number
@@ -15,6 +16,7 @@ interface LeaveRequest {
   end_date: string
   reason: string | null
   status: string
+  rejection_reason: string | null
   employees: {
      first_name: string
      last_name: string
@@ -22,22 +24,74 @@ interface LeaveRequest {
   }
 }
 
-export default function LeaveTableView({ leaves }: { leaves: any[] }) {
+interface Props {
+  leaves: any[]
+  employees?: any[]
+  currentUser?: {
+    employeeId: number | null
+    role: string
+    employeeData?: any
+  } | null
+}
+
+export default function LeaveTableView({ leaves, employees = [], currentUser = null }: Props) {
   const router = useRouter()
   const [loadingId, setLoadingId] = useState<number | null>(null)
+  
+  // State cho modal từ chối
+  const [rejectModalOpen, setRejectModalOpen] = useState(false)
+  const [rejectingLeaveId, setRejectingLeaveId] = useState<number | null>(null)
+  const [rejectionReason, setRejectionReason] = useState('')
+  const [rejectError, setRejectError] = useState('')
+
+  // Kiểm tra quyền duyệt đơn - Chỉ ADMIN, MANAGER mới được duyệt/từ chối
+  const canApprove = currentUser?.role && ['ADMIN', 'MANAGER'].includes(currentUser.role)
 
   const handleApprove = async (id: number) => {
+      if (!canApprove) {
+        alert('Bạn không có quyền duyệt đơn nghỉ phép!')
+        return
+      }
       setLoadingId(id)
       await approveLeaveAction(id)
       setLoadingId(null)
       router.refresh()
   }
 
-  const handleReject = async (id: number) => {
-      if(!confirm('Bạn có chắc chắn muốn từ chối đơn này?')) return;
-      setLoadingId(id)
-      await rejectLeaveAction(id)
+  // Mở modal từ chối
+  const openRejectModal = (id: number) => {
+      if (!canApprove) {
+        alert('Bạn không có quyền từ chối đơn nghỉ phép!')
+        return
+      }
+      setRejectingLeaveId(id)
+      setRejectionReason('')
+      setRejectError('')
+      setRejectModalOpen(true)
+  }
+
+  // Xử lý từ chối đơn
+  const handleReject = async () => {
+      if (!rejectingLeaveId) return
+      
+      if (!rejectionReason.trim()) {
+        setRejectError('Vui lòng nhập lý do từ chối')
+        return
+      }
+      
+      setLoadingId(rejectingLeaveId)
+      const result = await rejectLeaveAction(rejectingLeaveId, rejectionReason)
       setLoadingId(null)
+      
+      if (result.error) {
+        setRejectError(result.error)
+        return
+      }
+      
+      // Đóng modal và refresh
+      setRejectModalOpen(false)
+      setRejectingLeaveId(null)
+      setRejectionReason('')
       router.refresh()
   }
 
@@ -124,13 +178,13 @@ export default function LeaveTableView({ leaves }: { leaves: any[] }) {
                     <div className="flex items-center gap-3">
                         <div className="relative w-10 h-10 rounded-full overflow-hidden border border-gray-200">
                             <Image 
-                                src={leave.employees.avatar || `https://ui-avatars.com/api/?name=${leave.employees.first_name}+${leave.employees.last_name}&background=random`} 
+                                src={leave.employees?.avatar || `https://ui-avatars.com/api/?name=${leave.employees?.first_name || 'U'}+${leave.employees?.last_name || 'N'}&background=random`} 
                                 alt="avatar" 
                                 fill
                                 className="object-cover"
                             />
                         </div>
-                        <span className="text-sm font-bold text-gray-800">{leave.employees.last_name} {leave.employees.first_name}</span>
+                        <span className="text-sm font-bold text-gray-800">{leave.employees?.last_name || ''} {leave.employees?.first_name || 'Unknown'}</span>
                     </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 font-medium">{leave.leave_type}</td>
@@ -139,16 +193,28 @@ export default function LeaveTableView({ leaves }: { leaves: any[] }) {
                     <td className="px-6 py-4 text-sm text-gray-800 font-bold text-center">{calculateDays(leave.start_date, leave.end_date)}</td>
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-[150px] truncate" title={leave.reason || ''}>{leave.reason || '---'}</td>
                     <td className="px-6 py-4 text-center">
-                    <span className={cn(
-                        "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider inline-block",
-                        leave.status === "Approved" ? "bg-green-100 text-green-700" : 
-                        leave.status === "Pending" ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
-                    )}>
-                        {leave.status === 'Approved' ? 'Đã duyệt' : leave.status === 'Pending' ? 'Chờ duyệt' : 'Từ chối'}
-                    </span>
+                    <div className="flex flex-col items-center gap-1">
+                      <span className={cn(
+                          "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider inline-block",
+                          leave.status === "Approved" ? "bg-green-100 text-green-700" : 
+                          leave.status === "Pending" ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
+                      )}>
+                          {leave.status === 'Approved' ? 'Đã duyệt' : leave.status === 'Pending' ? 'Chờ duyệt' : 'Từ chối'}
+                      </span>
+                      {/* Hiển thị lý do từ chối nếu có */}
+                      {leave.status === 'Rejected' && leave.rejection_reason && (
+                        <span 
+                          className="text-xs text-red-600 max-w-[120px] truncate cursor-help" 
+                          title={leave.rejection_reason}
+                        >
+                          {leave.rejection_reason}
+                        </span>
+                      )}
+                    </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                        {leave.status === 'Pending' ? (
+                        {/* Chỉ ADMIN, MANAGER mới thấy nút duyệt/từ chối */}
+                        {canApprove && leave.status === 'Pending' ? (
                             <div className="flex items-center justify-end gap-2">
                                 <button 
                                     onClick={() => handleApprove(leave.id)}
@@ -158,17 +224,20 @@ export default function LeaveTableView({ leaves }: { leaves: any[] }) {
                                     {loadingId === leave.id ? <Loader2 className="w-4 h-4 animate-spin"/> : <Check className="w-4 h-4" />}
                                 </button>
                                 <button 
-                                    onClick={() => handleReject(leave.id)}
+                                    onClick={() => openRejectModal(leave.id)}
                                     disabled={loadingId === leave.id}
                                     className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 disabled:opacity-50" title="Từ chối"
                                 >
                                     {loadingId === leave.id ? <Loader2 className="w-4 h-4 animate-spin"/> : <X className="w-4 h-4" />}
                                 </button>
                             </div>
-                        ) : (
+                        ) : canApprove ? (
                             <button className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
                                 <MoreHorizontal className="h-4 w-4" />
                             </button>
+                        ) : (
+                            // Nhân viên thường chỉ thấy trạng thái, không có nút thao tác
+                            <span className="text-xs text-gray-400">---</span>
                         )}
                     </td>
                 </tr>
@@ -177,6 +246,73 @@ export default function LeaveTableView({ leaves }: { leaves: any[] }) {
             </table>
         </div>
       </div>
+      
+      {/* Modal tạo đơn nghỉ */}
+      <LeaveRequestForm employees={employees} currentUser={currentUser} />
+      
+      {/* Modal từ chối đơn nghỉ */}
+      {rejectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md m-4 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-red-50/30">
+              <h3 className="font-bold text-gray-800 flex items-center gap-2 text-lg">
+                <X className="w-5 h-5 text-red-600" />
+                Từ chối đơn nghỉ phép
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">Vui lòng nhập lý do từ chối để nhân viên biết</p>
+            </div>
+            
+            <div className="p-6">
+              {rejectError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                  {rejectError}
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Lý do từ chối <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="VD: Không đủ điều kiện nghỉ phép, cần làm việc trong thời gian này..."
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none bg-white text-gray-900 placeholder:text-gray-400"
+                />
+              </div>
+              
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRejectModalOpen(false)
+                    setRejectingLeaveId(null)
+                    setRejectionReason('')
+                    setRejectError('')
+                  }}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReject}
+                  disabled={loadingId !== null}
+                  className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-70 flex items-center gap-2"
+                >
+                  {loadingId !== null ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <X className="w-4 h-4" />
+                  )}
+                  Từ chối đơn
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

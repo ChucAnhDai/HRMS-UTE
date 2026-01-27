@@ -22,6 +22,16 @@ export const attendanceService = {
     }))
   },
 
+  // Lấy logs chấm công theo ngày specific
+  async getLogsByDate(date: string) {
+    const rawData = await attendanceRepo.getAttendanceByDate(date)
+    return rawData?.map(att => ({
+        ...att,
+        employeeName: `${att.employees?.last_name} ${att.employees?.first_name}`,
+        avatar: att.employees?.avatar
+    }))
+  },
+
   // Xử lý logic Check-in
   async performCheckIn(employeeId: number) {
     const now = new Date()
@@ -29,7 +39,6 @@ export const attendanceService = {
     const time = now.toTimeString().split(' ')[0] // HH:mm:ss
 
     // Logic tính đi muộn (Ví dụ: Quy định 8:30 là muộn)
-    // Tạm thời bỏ qua logic phức tạp, cứ lưu vào đã
     
     return await attendanceRepo.checkIn(employeeId, date, time)
   },

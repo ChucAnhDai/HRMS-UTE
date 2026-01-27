@@ -11,6 +11,10 @@ export type ActionState = {
 
 export async function createContractAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    // Kiểm tra quyền: Chỉ Admin và Manager mới được tạo hợp đồng
+    const { requireRole } = await import('@/lib/auth-helpers')
+    await requireRole(['ADMIN', 'MANAGER'])
+    
     await contractService.createContract(formData)
     
     // Refresh lại trang hiện tại (dựa trên employee_id gửi lên)

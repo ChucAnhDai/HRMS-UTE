@@ -6,6 +6,11 @@ import { Calendar, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-reac
 
 interface Props {
   employees: any[]
+  currentUser?: {
+    employeeId: number | null
+    role: string
+    employeeData?: any
+  } | null
 }
 
 const initialState = {
@@ -14,8 +19,11 @@ const initialState = {
   message: ''
 }
 
-export default function LeaveRequestForm({ employees }: Props) {
+export default function LeaveRequestForm({ employees, currentUser }: Props) {
   const [state, formAction, isPending] = useActionState(createLeaveRequestAction, initialState)
+  
+  const isEmployee = currentUser?.role === 'EMPLOYEE'
+  const currentEmployeeId = currentUser?.employeeId
 
   return (
     <div id="leave-form-modal" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden backdrop-blur-sm">
@@ -51,19 +59,24 @@ export default function LeaveRequestForm({ employees }: Props) {
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Nhân viên gửi đơn <span className="text-red-500">*</span></label>
-                        <select 
-                            name="employee_id" 
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900"
-                        >
-                            <option value="">-- Chọn nhân viên --</option>
-                            {employees?.map(emp => (
-                                <option key={emp.id} value={emp.id}>{emp.first_name} {emp.last_name}</option>
-                            ))}
-                        </select>
-                    </div>
+                    {/* Employee Selection - Only for Admin/Manager */}
+                    {isEmployee ? (
+                        <input type="hidden" name="employee_id" value={currentEmployeeId || ''} />
+                    ) : (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Nhân viên gửi đơn <span className="text-red-500">*</span></label>
+                            <select 
+                                name="employee_id" 
+                                required
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900"
+                            >
+                                <option value="">-- Chọn nhân viên --</option>
+                                {employees?.map(emp => (
+                                    <option key={emp.id} value={emp.id}>{emp.first_name} {emp.last_name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Loại nghỉ <span className="text-red-500">*</span></label>

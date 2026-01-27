@@ -1,19 +1,25 @@
 'use client'
 
 import React, { useState } from "react";
-import { Edit, Mail, Phone, MapPin, Calendar, Briefcase, User, Shield, FileText, DollarSign, Clock } from "lucide-react";
+import { Edit, Mail, Phone, MapPin, Calendar, Briefcase, User, Shield, FileText, DollarSign, Clock, Monitor } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import ContractList from "@/components/contracts/ContractList";
 import PayrollTable from "@/components/payroll/PayrollTable";
 import LeaveTableView from "@/components/leave/LeaveTableView";
+import EmployeeAssetList from "@/components/assets/EmployeeAssetList";
+import GrantAccountButton from "@/components/employees/GrantAccountButton";
+import RoleManager from "@/components/employees/RoleManager";
 
 interface Props {
   employee: any
   contracts: any[]
   payrolls: any[]
   leaves: any[]
+  assets: any[]
+  isOwnProfile?: boolean // Nếu true, đang xem profile của chính mình
+  currentUserRole?: string // Role của user đang đăng nhập
 }
 
 const profileTabs = [
@@ -21,9 +27,10 @@ const profileTabs = [
   { id: "documents", name: "Hợp đồng", icon: FileText },
   { id: "payroll", name: "Lương thưởng", icon: DollarSign },
   { id: "timeoff", name: "Nghỉ phép", icon: Clock },
+  { id: "assets", name: "Tài sản", icon: Monitor },
 ];
 
-export default function EmployeeProfileView({ employee, contracts, payrolls, leaves }: Props) {
+export default function EmployeeProfileView({ employee, contracts, payrolls, leaves, assets, isOwnProfile = false, currentUserRole = 'EMPLOYEE' }: Props) {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
@@ -66,11 +73,25 @@ export default function EmployeeProfileView({ employee, contracts, payrolls, lea
                 {employee.job_title || 'Chưa có chức vụ'} - {employee.departments?.name || 'Chưa phân phòng'}
               </p>
             </div>
-            <div className="flex gap-3 pb-2 w-full md:w-auto justify-center">
-              <Link href={`/employees/${employee.id}/edit`} className="px-6 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-blue-700 transition-colors flex items-center gap-2">
-                <Edit className="w-4 h-4" /> Sửa hồ sơ
-              </Link>
-              <a href={`mailto:${employee.email}`} className="p-2.5 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="flex gap-3 pb-2 w-full md:w-auto justify-center items-center">
+              {!isOwnProfile && (
+                <>
+                  <RoleManager 
+                    employeeId={employee.id}
+                    currentRole={employee.role || 'EMPLOYEE'}
+                    employeeName={`${employee.last_name} ${employee.first_name}`}
+                  />
+                  <GrantAccountButton 
+                      employeeId={employee.id} 
+                      email={employee.email} 
+                      hasAccount={!!employee.auth_user_id} 
+                  />
+                  <Link href={`/employees/${employee.id}/edit`} className="px-6 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-blue-700 transition-colors flex items-center gap-2 h-fit">
+                    <Edit className="w-4 h-4" /> Sửa hồ sơ
+                  </Link>
+                </>
+              )}
+              <a href={`mailto:${employee.email}`} className="p-2 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors h-fit bg-white">
                 <Mail className="h-5 w-5" />
               </a>
             </div>
@@ -170,7 +191,7 @@ export default function EmployeeProfileView({ employee, contracts, payrolls, lea
                     <h4 className="text-lg font-bold text-gray-900">Danh sách hợp đồng</h4>
                     <Link href="/contracts/create" className="text-sm text-blue-600 hover:underline font-medium">Tạo hợp đồng mới</Link>
                 </div>
-                <ContractList contracts={contracts} />
+                <ContractList employeeId={employee.id} contracts={contracts} />
             </div>
         )}
 
@@ -184,7 +205,22 @@ export default function EmployeeProfileView({ employee, contracts, payrolls, lea
         {activeTab === 'timeoff' && (
              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h4 className="text-lg font-bold text-gray-900 mb-6">Lịch sử nghỉ phép</h4>
-                <LeaveTableView leaves={leaves} />
+                <LeaveTableView 
+                  leaves={leaves}
+                  employees={[employee]}
+                  currentUser={isOwnProfile ? {
+                    employeeId: employee.id,
+                    role: currentUserRole,
+                    employeeData: employee
+                  } : null}
+                />
+            </div>
+        )}
+        
+        {activeTab === 'assets' && (
+             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h4 className="text-lg font-bold text-gray-900 mb-6">Tài sản đang sử dụng</h4>
+                <EmployeeAssetList assets={assets} employeeId={employee.id} />
             </div>
         )}
       </div>

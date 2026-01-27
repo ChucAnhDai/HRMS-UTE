@@ -26,5 +26,31 @@ export const contractRepo = {
 
     if (error) throw new Error(error.message)
     return data
+  },
+
+  // Cập nhật hợp đồng
+  async updateContract(contractId: number, contractData: any) {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('contracts')
+      .update(contractData)
+      .eq('id', contractId)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+    return data
+  },
+
+  // Xóa hợp đồng
+  async deleteContract(contractId: number) {
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from('contracts')
+      .delete()
+      .eq('id', contractId)
+
+    if (error) throw new Error(error.message)
+    return true
   }
 }

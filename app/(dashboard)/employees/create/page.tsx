@@ -1,9 +1,13 @@
 import CreateEmployeeForm from '@/components/employees/CreateEmployeeForm'
 import { employeeService } from '@/server/services/employee-service'
+import { requireRoleForPage } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
 export default async function CreateEmployeePage() {
+  // Kiểm tra quyền: Chỉ Admin và Manager mới được tạo nhân viên
+  await requireRoleForPage(['ADMIN', 'MANAGER'])
+  
   // Lấy danh sách phòng ban để chọn khi tạo nhân viên
   const departments = await employeeService.getDepartments()
 
