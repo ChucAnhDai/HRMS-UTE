@@ -16,7 +16,8 @@ import {
   LogOut,
   X,
   ChevronRight,
-  CreditCard
+  CreditCard,
+  Clock
 } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ const menuItems = [
   { name: "Instruments", icon: ChevronRight, href: "/instruments", roles: ['ADMIN', 'MANAGER'] as UserRole[] },
   { name: "Calendar", icon: Calendar, href: "/calendar", roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] as UserRole[] },
   { name: "Leave", icon: Briefcase, href: "/leave", roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] as UserRole[] },
+  { name: "Overtime", icon: Clock, href: "/overtime", roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] as UserRole[] },
   { name: "Payroll", icon: CreditCard, href: "/payroll", roles: ['ADMIN', 'MANAGER'] as UserRole[] },
   { name: "Review", icon: Star, href: "/review", roles: ['ADMIN', 'MANAGER'] as UserRole[] },
   { name: "Report", icon: FileText, href: "/report", roles: ['ADMIN'] as UserRole[] },
@@ -40,8 +42,9 @@ const menuItems = [
 ];
 
 export default function Sidebar() {
-  const { isOpen, isCollapsed, toggleCollapse, close } = useSidebar();
+  const { isOpen, isCollapsed, close } = useSidebar();
   const pathname = usePathname();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
@@ -77,12 +80,12 @@ export default function Sidebar() {
         )}
       >
         <div className={cn(
-          "flex h-16 items-center px-6 transition-all duration-300 flex-shrink-0",
+          "flex h-16 items-center px-6 transition-all duration-300 shrink-0",
           isCollapsed ? "justify-center" : "justify-between"
         )}>
           <Link href="/" className="flex items-center gap-2 overflow-hidden">
             {/* Logo */}
-            <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+            <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shrink-0">
                 C
             </div>
             {!isCollapsed && <span className="font-bold text-xl text-gray-800">Crextio</span>}
@@ -97,7 +100,7 @@ export default function Sidebar() {
         {/* User Profile Summary (New Feature) */}
         {!isCollapsed && user && (
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-             <div className="relative w-10 h-10 rounded-full overflow-hidden border border-gray-100 flex-shrink-0">
+             <div className="relative w-10 h-10 rounded-full overflow-hidden border border-gray-100 shrink-0">
                 <Image 
                    src={user.avatar || `https://ui-avatars.com/api/?name=${user.last_name}+${user.first_name}&background=random`} 
                    alt="User" 
@@ -130,7 +133,7 @@ export default function Sidebar() {
                     )}
                     title={isCollapsed ? item.name : ""}
                   >
-                    <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive ? "text-white" : "text-gray-500")} />
+                    <item.icon className={cn("h-5 w-5 shrink-0", isActive ? "text-white" : "text-gray-500")} />
                     {!isCollapsed && <span className="whitespace-nowrap opacity-100 transition-opacity duration-300">{item.name}</span>}
                   </Link>
                 </li>
@@ -140,7 +143,7 @@ export default function Sidebar() {
         </nav>
 
         {/* Footer Actions */}
-        <div className={cn("p-4 border-t border-gray-100 mt-auto flex-shrink-0", isCollapsed ? 'items-center flex flex-col gap-2' : '')}>
+        <div className={cn("p-4 border-t border-gray-100 mt-auto shrink-0", isCollapsed ? 'items-center flex flex-col gap-2' : '')}>
              {/* Profile Link */}
              <Link
                 href={`/employees/${user?.id}`}
@@ -163,7 +166,7 @@ export default function Sidebar() {
               )}
               title={isCollapsed ? "Log out" : ""}
             >
-              <LogOut className="h-5 w-5 flex-shrink-0" />
+              <LogOut className="h-5 w-5 shrink-0" />
               {!isCollapsed && <span className="whitespace-nowrap">Log out</span>}
             </button>
         </div>

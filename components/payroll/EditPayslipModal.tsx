@@ -123,10 +123,19 @@ export default function EditPayslipModal({ payslip, onClose }: Props) {
                 )}
 
                 {/* Section: Thông tin nhân viên (Read only) */}
-                <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700">Nhân viên:</label>
-                    <div className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-700 font-medium select-none">
-                        {payslip.employees?.last_name} {payslip.employees?.first_name} <span className="text-gray-500 font-normal">(MNV: #{payslip.employee_id})</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700">Nhân viên:</label>
+                        <div className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-700 font-medium select-none text-sm">
+                            {payslip.employees?.last_name} {payslip.employees?.first_name} <span className="text-gray-500 font-normal">(MNV: #{payslip.employee_id})</span>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700">Bộ phận:</label>
+                        <div className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-700 font-medium select-none text-sm">
+                            {/* @ts-ignore */}
+                            {payslip.employees?.departments?.name || '---'}
+                        </div>
                     </div>
                 </div>
 

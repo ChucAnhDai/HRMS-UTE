@@ -61,7 +61,8 @@ export default async function PayslipPrintPage({ params }: { params: Promise<{ i
                     </div>
                     <div className="flex border-b border-dotted border-black/30 pb-1">
                         <span className="font-bold w-32">Bộ phận:</span>
-                        <span>{emp?.department_id || 'N/A'}</span>
+                        {/* @ts-ignore */}
+                        <span>{emp?.departments?.name || emp?.department_id || 'N/A'}</span>
                     </div>
                     <div className="flex border-b border-dotted border-black/30 pb-1">
                         <span className="font-bold w-32">Họ và tên:</span>

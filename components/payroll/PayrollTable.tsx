@@ -33,6 +33,7 @@ export default function PayrollTable({ payslips }: Props) {
                     <thead className="bg-gray-50 border-b border-gray-100 text-gray-600 font-bold uppercase text-xs">
                         <tr>
                             <th className="px-4 py-4 min-w-[200px]">Nhân viên</th>
+                            <th className="px-4 py-4 min-w-[120px]">Bộ phận</th>
                             <th className="px-4 py-4 text-right min-w-[120px]">Lương cơ bản</th>
                             <th className="px-4 py-4 text-center min-w-[80px]">Giờ OT</th>
                             <th className="px-4 py-4 text-right text-blue-600 min-w-[100px]">Tiền OT</th>
@@ -58,6 +59,11 @@ export default function PayrollTable({ payslips }: Props) {
                                             <div className="text-xs text-gray-500">MNV: #{ps.employee_id}</div>
                                         </div>
                                     </div>
+                                </td>
+                                <td className="px-4 py-4 text-gray-600">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        {ps.employees?.departments?.name || '---'}
+                                    </span>
                                 </td>
                                 <td className="px-4 py-4 text-right text-gray-600">
                                     {formatMoney(ps.salary)}
@@ -109,6 +115,7 @@ export default function PayrollTable({ payslips }: Props) {
                                             <Edit2 className="w-4 h-4" />
                                         </button>
                                         <button 
+                                            onClick={() => setEditingPayslip(ps)}
                                             className="inline-flex items-center justify-center p-1.5 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                                             title="Xem chi tiết"
                                         >

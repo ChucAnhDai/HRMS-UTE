@@ -57,3 +57,14 @@ export async function getPayslipDetailAction(id: number): Promise<{ success: tru
         return handleError(error)
     }
 }
+
+export async function markPayrollAsPaidAction(month: number, year: number): Promise<{ success: true } | { success: false; error: string }> {
+    try {
+        await requireRole(['ADMIN', 'MANAGER'])
+        await payrollService.markPayrollAsPaid(month, year)
+        revalidatePath('/payroll')
+        return { success: true }
+    } catch (error) {
+        return handleError(error)
+    }
+}

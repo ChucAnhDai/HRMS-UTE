@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { generatePayrollAction } from '@/server/actions/payroll-actions'
+import { generatePayrollAction, markPayrollAsPaidAction } from '@/server/actions/payroll-actions'
 import { Loader2, Calculator } from 'lucide-react'
 
 export default function PayrollHeader() {
@@ -16,15 +16,16 @@ export default function PayrollHeader() {
   const [month, setMonth] = useState(currentMonth)
   const [year, setYear] = useState(currentYear)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isPaying, setIsPaying] = useState(false)
 
   // Xử lý filter
   const handleFilter = () => {
     router.push(`/payroll?month=${month}&year=${year}`)
   }
 
-  // Xử lý tính lương
+  // Xử lý tính lương (Tạo phiếu)
   const handleGenerate = async () => {
-    if (!confirm(`Bạn có chắc chắn muốn TÍNH LẠI lương tháng ${month}/${year}? Dữ liệu cũ của tháng này sẽ bị ghi đè.`)) {
+    if (!confirm(`Bạn có chắc chắn muốn TẠO LẠI phiếu lương tháng ${month}/${year}? Dữ liệu cũ (nếu chưa thanh toán) sẽ bị ghi đè.`)) {
         return
     }
 
@@ -34,6 +35,24 @@ export default function PayrollHeader() {
 
     if (res.success) {
         alert(res.message)
+        router.refresh()
+    } else {
+        alert(res.error)
+    }
+  }
+
+  // Xử lý thanh toán
+  const handlePay = async () => {
+    if (!confirm(`Xác nhận THANH TOÁN toàn bộ lương tháng ${month}/${year}? \n\nLƯU Ý: Trạng thái sẽ chuyển sang 'Paid' và KHÔNG THỂ CHỈNH SỬA nữa.`)) {
+        return
+    }
+
+    setIsPaying(true)
+    const res = await markPayrollAsPaidAction(month, year)
+    setIsPaying(false)
+
+    if (res.success) {
+        alert("Đã cập nhật trạng thái đã thanh toán thành công!")
         router.refresh()
     } else {
         alert(res.error)
@@ -74,14 +93,28 @@ export default function PayrollHeader() {
         </div>
       </div>
 
-      <button
-        onClick={handleGenerate}
-        disabled={isGenerating}
-        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-70 shadow-lg shadow-blue-600/20"
-      >
-        {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calculator className="w-4 h-4" />}
-        {isGenerating ? 'Đang tính toán...' : 'Tính lương tháng này'}
-      </button>
+      <div className="flex gap-3">
+        {/* Nút Thanh Toán */}
+        <button
+            onClick={handlePay}
+            disabled={isPaying || isGenerating}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-70 shadow-lg shadow-green-600/20"
+        >
+            {isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calculator className="w-4 h-4" />} 
+            {/* Note: Icon could be changed, but keeping simple for now. Let's assume CreditCard is handled via imports correction later if needed, or stick to existing icons to avoid import errors */}
+            {isPaying ? 'Đang xử lý...' : 'Thanh toán lương'}
+        </button>
+
+        {/* Nút Tạo Phiếu */}
+        <button
+            onClick={handleGenerate}
+            disabled={isGenerating || isPaying}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-70 shadow-lg shadow-blue-600/20"
+        >
+            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calculator className="w-4 h-4" />}
+            {isGenerating ? 'Đang tạo...' : 'Tạo phiếu lương'}
+        </button>
+      </div>
     </div>
   )
 }

@@ -50,6 +50,7 @@ export interface Employee {
   
   // Relations
   department?: Department | null
+  departments?: Department | null // Supabase alias
   user?: User | null
 }
 
@@ -157,4 +158,20 @@ export interface PayslipUpdateDTO {
   advance_amount?: number
   penalties?: number
   note?: string
+}
+
+export interface OvertimeRequest {
+  id: number
+  employee_id: number
+  date: string
+  start_time: string
+  end_time: string
+  hours: number
+  reason: string
+  status: 'Pending' | 'Approved' | 'Rejected'
+  approved_by?: number | null
+  created_at?: string
+  
+  // Relations
+  employees?: Employee
 }

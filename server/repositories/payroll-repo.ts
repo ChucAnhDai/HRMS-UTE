@@ -13,7 +13,8 @@ export const payrollRepo = {
           first_name,
           last_name,
           department_id,
-          avatar
+          avatar,
+          departments ( name )
         )
       `)
       .eq('month', month)
@@ -40,7 +41,8 @@ export const payrollRepo = {
           job_title,
           hire_date,
           tax_code,
-          dependents
+          dependents,
+          departments ( name )
         )
       `)
       .eq('id', id)
@@ -111,6 +113,19 @@ export const payrollRepo = {
       .neq('status', 'Paid') // Không cho sửa nếu đã thanh toán
 
     if (error) throw new Error(error.message)
+  },
+
+  // Cập nhật trạng thái cho toàn bộ bảng lương tháng
+  async updateMonthStatus(month: number, year: number, status: 'Generated' | 'Pending' | 'Paid') {
+      const supabase = await createClient()
+      const { error } = await supabase
+          .from('payslips')
+          .update({ status })
+          .eq('month', month)
+          .eq('year', year)
+          .neq('status', status) // Chỉ update cái chưa đúng status
+
+      if (error) throw new Error(error.message)
   },
 
   // Lấy lịch sử lương của nhân viên

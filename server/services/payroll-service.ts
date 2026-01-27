@@ -1,6 +1,7 @@
 import { employeeRepo } from '../repositories/employee-repo'
 import { payrollRepo } from '../repositories/payroll-repo'
 import { attendanceRepo } from '../repositories/attendance-repo'
+import { overtimeRepo } from '../repositories/overtime-repo'
 import { Payslip, PayslipUpdateDTO } from '../../types'
 
 export const payrollService = {
@@ -32,9 +33,12 @@ export const payrollService = {
         const actualWorkDays = attendanceStats.work_days
         const lateCount = attendanceStats.late_days
         
-        // TODO: Tích hợp OT (Lấy từ Overtime Requests - chưa có repo)
-        const otHours = 0
-        const otSalary = 0 
+        // Tích hợp OT (Lấy từ Overtime Requests đã duyệt)
+        const otHours = await overtimeRepo.getMonthlyApprovedHours(emp.id, month, year)
+        
+        // Tính tiền OT: (L lương ngày / 8h) * 1.5 * Số giờ OT
+        const hourlyRate = dailySalary / 8
+        const otSalary = Math.round(hourlyRate * 1.5 * otHours)
         
         const bonus = 0 
         
@@ -187,5 +191,12 @@ export const payrollService = {
   // Lấy chi tiết phiếu lương
   async getPayslipById(id: number): Promise<Payslip | null> {
       return await payrollRepo.getPayslipById(id)
+  },
+
+  // Đánh dấu bảng lương đã thanh toán
+  async markPayrollAsPaid(month: number, year: number) {
+      // Có thể thêm validation rule ở đây (VD: chỉ cho phép khi đã generate xong)
+      // Nhưng tạm thời cứ update status
+      await payrollRepo.updateMonthStatus(month, year, 'Paid')
   }
 }

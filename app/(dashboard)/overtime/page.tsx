@@ -1,0 +1,22 @@
+import { getCurrentUser } from '@/lib/auth-helpers'
+import { overtimeRepo } from '@/server/repositories/overtime-repo'
+import OvertimeClientView from '@/components/overtime/OvertimeClientView'
+
+export default async function OvertimePage() {
+    const user = await getCurrentUser()
+    if (!user) return <div className="p-8 text-center text-red-500">Bạn chưa đăng nhập</div>
+
+    const isAdmin = ['ADMIN', 'MANAGER'].includes(user.role)
+    const filters = isAdmin ? undefined : { employee_id: Number(user.employeeId) }
+    
+    // Fetch requests
+    const requests = await overtimeRepo.getRequests(filters)
+
+    return <div className="p-8 max-w-[1600px] mx-auto">
+        <OvertimeClientView 
+            initialRequests={requests || []} 
+            isAdmin={isAdmin} 
+            userId={user.id} 
+        />
+    </div>
+}
