@@ -17,7 +17,7 @@ function DashboardLayoutContent({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar />
+      <Sidebar user={user} />
       <Header user={user} />
       <main
         className={cn(

@@ -39,6 +39,7 @@ export default async function DashboardLayout({
     avatar: employee?.avatar || currentUser.avatar || null,
     role: currentUser.role,
     job_title: employee?.job_title || undefined,
+    id: employee?.id || currentUser.employeeId || undefined,
   };
 
   return (

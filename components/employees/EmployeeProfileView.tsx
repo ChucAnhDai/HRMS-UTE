@@ -57,6 +57,8 @@ export default function EmployeeProfileView({
   currentUserRole = "EMPLOYEE",
 }: Props) {
   const [activeTab, setActiveTab] = useState("overview");
+  const isManager =
+    currentUserRole === "ADMIN" || currentUserRole === "MANAGER";
 
   return (
     <div className="space-y-6">
@@ -111,7 +113,7 @@ export default function EmployeeProfileView({
               </p>
             </div>
             <div className="flex gap-3 pb-2 w-full md:w-auto justify-center items-center">
-              {!isOwnProfile && (
+              {isManager && (
                 <>
                   <RoleManager
                     employeeId={employee.id}

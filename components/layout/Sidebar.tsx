@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -22,11 +22,9 @@ import {
 } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
-import {
-  getCurrentUserAction,
-  logoutAction,
-} from "@/server/actions/auth-actions";
+import { logoutAction } from "@/server/actions/auth-actions";
 import Image from "next/image";
+import { HeaderUserProps } from "./Header";
 
 type UserRole = "ADMIN" | "MANAGER" | "EMPLOYEE";
 
@@ -105,23 +103,13 @@ const menuItems = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ user }: { user: HeaderUserProps | null }) {
   const { isOpen, isCollapsed, close } = useSidebar();
   const pathname = usePathname();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    async function fetchUser() {
-      const userProfile = await getCurrentUserAction();
-      setUser(userProfile);
-    }
-    fetchUser();
-  }, []);
 
   // Lọc menu theo quyền
   const visibleMenuItems = menuItems.filter((item) => {
-    if (!user?.role) return true; // Hiển thị tất cả nếu chưa load user
+    if (!user?.role) return false;
     return item.roles.includes(user.role as UserRole);
   });
 
@@ -172,7 +160,7 @@ export default function Sidebar() {
               <Image
                 src={
                   user.avatar ||
-                  `https://ui-avatars.com/api/?name=${user.last_name}+${user.first_name}&background=random`
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`
                 }
                 alt="User"
                 fill
@@ -181,7 +169,7 @@ export default function Sidebar() {
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-bold text-gray-900 truncate">
-                {user.last_name} {user.first_name}
+                {user.name}
               </p>
               <p className="text-xs text-gray-500 font-medium truncate">
                 {user.role || "Employee"}

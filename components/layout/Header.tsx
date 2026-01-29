@@ -17,6 +17,8 @@ export interface HeaderUserProps {
   name: string;
   avatar: string | null;
   role: string | null;
+  id?: string | number;
+  job_title?: string;
 }
 
 export default function Header({ user }: { user: HeaderUserProps | null }) {
