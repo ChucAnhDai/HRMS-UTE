@@ -55,7 +55,7 @@ export const attendanceRepo = {
   },
 
   // Check-in (Tạo bản ghi mới)
-  async checkIn(employeeId: number, date: string, time: string) {
+  async checkIn(employeeId: number, date: string, time: string, status: 'Present' | 'Late' = 'Present') {
     const supabase = await createClient()
     
     // Kiểm tra xem hôm nay đã check-in chưa
@@ -76,7 +76,7 @@ export const attendanceRepo = {
         employee_id: employeeId,
         date: date,
         check_in_time: time,
-        status: 'Present' // Tạm thời set là có mặt, service sẽ tính late sau
+        status: status
       })
       .select()
       .single()

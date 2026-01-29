@@ -1,4 +1,6 @@
 import { employeeRepo } from '@/server/repositories/employee-repo'
+import fs from 'fs/promises'
+import path from 'path'
 
 export const employeeService = {
   // Lấy danh sách nhân viên để hiển thị UI
@@ -88,6 +90,38 @@ export const employeeService = {
     const annual_leave_quota = formData.get('annual_leave_quota') ? Number(formData.get('annual_leave_quota')) : 12
     const sick_leave_quota = formData.get('sick_leave_quota') ? Number(formData.get('sick_leave_quota')) : 5
     const other_leave_quota = formData.get('other_leave_quota') ? Number(formData.get('other_leave_quota')) : 5
+    
+    // Handle Avatar Upload
+    const avatarFile = formData.get('avatarFile') as File | null
+    let avatar = formData.get('avatar') as string || null
+
+    if (avatarFile && avatarFile.size > 0 && avatarFile.name !== 'undefined') {
+        try {
+            const bytes = await avatarFile.arrayBuffer()
+            const buffer = Buffer.from(bytes)
+
+            // Ensure directory exists
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'avatars')
+            try {
+                await fs.access(uploadDir)
+            } catch {
+                await fs.mkdir(uploadDir, { recursive: true })
+            }
+
+            // Generate unique filename: empID-timestamp.ext
+            const ext = path.extname(avatarFile.name) || '.jpg'
+            const filename = `${id}-${Date.now()}${ext}`
+            const filepath = path.join(uploadDir, filename)
+
+            await fs.writeFile(filepath, buffer)
+            
+            // Set public URL
+            avatar = `/uploads/avatars/${filename}`
+        } catch (error) {
+            console.error("Error uploading avatar:", error)
+            // Keep previous avatar or null if failed, or throw? better to log and continue with old one if possible, but here we just ignore update
+        }
+    }
 
     const updateData = {
         first_name,
@@ -105,7 +139,8 @@ export const employeeService = {
         termination_date,
         annual_leave_quota,
         sick_leave_quota,
-        other_leave_quota
+        other_leave_quota,
+        avatar
     }
 
     return await employeeRepo.updateEmployee(id, updateData)

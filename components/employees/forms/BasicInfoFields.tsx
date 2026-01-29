@@ -1,12 +1,20 @@
-import { User } from 'lucide-react'
-import { Employee } from '@/types'
+import { User } from "lucide-react";
+import { Employee } from "@/types";
 
 interface Props {
-  defaultValues?: Partial<Employee>
+  defaultValues?: Partial<Employee>;
 }
 
 export default function BasicInfoFields({ defaultValues = {} }: Props) {
-  const val = (key: keyof Employee, fallback: any = '') => defaultValues?.[key] ?? fallback
+  const val = (
+    key: keyof Employee,
+    fallback: string | number = "",
+  ): string | number => {
+    const value = defaultValues?.[key];
+    if (value === null || value === undefined) return fallback;
+    if (typeof value === "object") return "";
+    return value as string | number;
+  };
 
   return (
     <div className="mb-8">
@@ -16,22 +24,83 @@ export default function BasicInfoFields({ defaultValues = {} }: Props) {
       </h4>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-700">Họ đệm <span className="text-red-500">*</span></label>
-            <input type="text" name="last_name" defaultValue={val('last_name')} required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" placeholder="Nguyễn Văn" />
+          <label className="text-sm font-bold text-gray-700">
+            Họ đệm <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="last_name"
+            defaultValue={val("last_name") as string}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
+            placeholder="Nguyễn Văn"
+          />
         </div>
         <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-700">Tên <span className="text-red-500">*</span></label>
-            <input type="text" name="first_name" defaultValue={val('first_name')} required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" placeholder="A" />
+          <label className="text-sm font-bold text-gray-700">
+            Tên <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="first_name"
+            defaultValue={val("first_name") as string}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
+            placeholder="A"
+          />
         </div>
         <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-700">Email <span className="text-red-500">*</span></label>
-            <input type="email" name="email" defaultValue={val('email')} required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" placeholder="example@company.com" />
+          <label className="text-sm font-bold text-gray-700">
+            Email <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="email"
+            name="email"
+            defaultValue={val("email") as string}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
+            placeholder="example@company.com"
+          />
         </div>
         <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-700">Số điện thoại</label>
-            <input type="tel" name="phone" defaultValue={val('phone')} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black" placeholder="0901234567" />
+          <label className="text-sm font-bold text-gray-700">
+            Số điện thoại
+          </label>
+          <input
+            type="tel"
+            name="phone"
+            defaultValue={val("phone") as string}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
+            placeholder="0901234567"
+          />
+        </div>
+        <div className="space-y-2 col-span-1 md:col-span-2">
+          <label className="text-sm font-bold text-gray-700">
+            Ảnh đại diện
+          </label>
+          <div className="flex items-center gap-4">
+            {val("avatar") && (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={val("avatar") as string}
+                  alt="Current Avatar"
+                  className="w-12 h-12 rounded-full object-cover border border-gray-200"
+                />
+              </>
+            )}
+            <input
+              type="file"
+              name="avatarFile"
+              accept="image/*"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+          </div>
+          <p className="text-xs text-gray-500 italic">
+            Hỗ trợ: JPG, PNG, GIF. (Để trống nếu không thay đổi)
+          </p>
         </div>
       </div>
     </div>
-  )
+  );
 }

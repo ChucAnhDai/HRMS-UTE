@@ -175,3 +175,20 @@ export interface OvertimeRequest {
   // Relations
   employees?: Employee
 }
+
+export interface SalaryAdvance {
+  id: number
+  employee_id: number
+  amount: number
+  request_date: string
+  reason: string | null
+  status: 'Pending' | 'Approved' | 'Rejected'
+  approved_by?: number | null
+  approved_at?: string | null
+  rejection_reason?: string | null
+  created_at?: string
+  
+  // Relations
+  employees?: Employee
+  approver?: User
+}

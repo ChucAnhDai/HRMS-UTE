@@ -2,7 +2,10 @@ import { employeeRepo } from '../repositories/employee-repo'
 import { payrollRepo } from '../repositories/payroll-repo'
 import { attendanceRepo } from '../repositories/attendance-repo'
 import { overtimeRepo } from '../repositories/overtime-repo'
-import { Payslip, PayslipUpdateDTO } from '../../types'
+import { leaveRepo } from '../repositories/leave-repo'
+import { settingRepo } from '../repositories/setting-repo'
+import { rewardPenaltyRepo } from '../repositories/reward-penalty-repo'
+import { Payslip, PayslipUpdateDTO, LeaveRequest } from '../../types'
 
 export const payrollService = {
   // Hàm chính: Tính lương cho toàn bộ nhân viên trong tháng
@@ -15,64 +18,136 @@ export const payrollService = {
         throw new Error('Không có nhân viên nào để tính lương')
     }
 
-    // 2. Xóa dữ liệu lương cũ của tháng này
+    // 2. Fetch Global Settings & Data
     await payrollRepo.deleteMonthlyPayroll(month, year)
+    const settings = await settingRepo.getSettings()
+    
+    // Parse settings
+    // Parse settings
+    const insurancePercent = parseFloat(settings['insurance_percent'] || '10.5') / 100
+    const standardWorkDays = parseInt(settings['standard_work_days'] || '22')
+    const personalDeduction = parseInt(settings['personal_deduction'] || '11000000')
+    const dependentDeductionVal = parseInt(settings['dependent_deduction'] || '4400000')
+    
+    // Penalties settings
+    const penaltyLateAmount = parseInt(settings['penalty_late'] || '50000')
+
+    // Tax Brackets
+    let taxBrackets = [
+        { limit: 5000000, rate: 5 },
+        { limit: 10000000, rate: 10 },
+        { limit: 18000000, rate: 15 },
+        { limit: 32000000, rate: 20 },
+        { limit: 52000000, rate: 25 },
+        { limit: 80000000, rate: 30 },
+        { limit: 0, rate: 35 }
+    ]
+    try {
+        if (settings['tax_brackets']) {
+            taxBrackets = JSON.parse(settings['tax_brackets'])
+        }
+    } catch (e) {
+        console.error('Error parsing tax brackets', e)
+    }
+
+    // Helper calculate Tax
+    const calculateTax = (income: number) => {
+        if (income <= 0) return 0
+        let tax = 0
+        let previousLimit = 0
+        
+        for (const bracket of taxBrackets) {
+            const limit = bracket.limit
+            const rate = bracket.rate / 100
+            
+            if (limit === 0) { // Infinite bracket
+                tax += (income - previousLimit) * rate
+                break
+            }
+            
+            if (income > limit) {
+                tax += (limit - previousLimit) * rate
+                previousLimit = limit
+            } else {
+                tax += (income - previousLimit) * rate
+                break
+            }
+        }
+        return tax
+    }
 
     const payslips: Partial<Payslip>[] = []
 
     // 3. Loop qua từng nhân viên để tính toán
     for (const emp of activeEmployees) {
-        // Lấy thông tin cơ bản
         const salaryBase = Number(emp.salary) || 0
-        const standardWorkDays = 22 // Chuẩn làm việc 22 ngày/tháng
         const dailySalary = salaryBase / standardWorkDays
 
         // --- A. Thu nhập ---
-        // Tích hợp Attendance thực tế
+        // 1. Attendance
         const attendanceStats = await attendanceRepo.getMonthlyStats(emp.id, month, year)
         const actualWorkDays = attendanceStats.work_days
         const lateCount = attendanceStats.late_days
         
-        // Tích hợp OT (Lấy từ Overtime Requests đã duyệt)
+        // 2. Approved Leaves
+        const approvedLeaves = await leaveRepo.getApprovedLeaves(month, year, emp.id)
+        let paidLeaveDays = 0
+        if (approvedLeaves && approvedLeaves.length > 0) {
+             (approvedLeaves as LeaveRequest[]).forEach((leave: LeaveRequest) => {
+                const start = new Date(leave.start_date)
+                const end = new Date(leave.end_date)
+                const diffTime = Math.abs(end.getTime() - start.getTime())
+                const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 
+                paidLeaveDays += days
+            })
+        }
+
+        // 3. Overtime
         const otHours = await overtimeRepo.getMonthlyApprovedHours(emp.id, month, year)
-        
-        // Tính tiền OT: (L lương ngày / 8h) * 1.5 * Số giờ OT
         const hourlyRate = dailySalary / 8
         const otSalary = Math.round(hourlyRate * 1.5 * otHours)
         
-        const bonus = 0 
+        // 4. Rewards & Penalties (NEW)
+        const rewardsPenalties = await rewardPenaltyRepo.getByEmployeeAndMonth(emp.id, month, year)
+        const totalRewards = rewardsPenalties
+            ?.filter(rp => rp.type === 'Reward' && rp.status !== 'Pending') 
+            .reduce((sum, rp) => sum + Number(rp.amount), 0) || 0
+            
+        const totalSpecificPenalties = rewardsPenalties
+            ?.filter(rp => rp.type === 'Penalty') 
+            .reduce((sum, rp) => sum + Number(rp.amount), 0) || 0
+
+        // Bonus = Total Rewards
+        const bonus = totalRewards
         
-        // Tính lương thực tế dựa trên ngày công
-        // Nếu làm đủ 22 ngày -> Full lương. Nếu nghỉ -> Trừ tiền.
-        // Công thức: Lương thực = (Lương cơ bản / 22) * Số ngày đi làm thực tế
-        const grossSalaryByWorkDays = dailySalary * actualWorkDays
+        // Income Calculation
+        const totalBillableDays = actualWorkDays + paidLeaveDays
+        const grossSalaryByWorkDays = dailySalary * totalBillableDays
 
         // --- B. Khấu trừ ---
-        // Bảo hiểm (BHXH, BHYT, BHTN): Tạm tính 10.5% trên lương cơ bản (Theo luật thường tính trên lương hợp đồng, k phụ thuộc ngày công nếu nghỉ ít)
-        // Tuy nhiên để đơn giản, ta tính trên lương cơ bản cố định.
-        const socialInsurance = salaryBase * 0.105
+        // Bảo hiểm
+        const socialInsurance = salaryBase * insurancePercent
         
-        // Phạt đi muộn (Ví dụ: 50.000 VND / lần)
-        const latePenalty = lateCount * 50000
-        const penalties = latePenalty
-        const advanceAmount = 0 
+        // Phạt đi muộn (Dynamic setting)
+        const latePenalty = lateCount * penaltyLateAmount
+        
+        // Tổng phạt = Phạt đi muộn + Phạt riêng (kỷ luật, vv)
+        const penalties = latePenalty + totalSpecificPenalties
+        
+        // 5. Salary Advances (NEW)
+        const advanceAmount = await salaryAdvanceRepo.getTotalApprovedAdvances(emp.id, month, year)
 
-        // Thuế TNCN (Tính đơn giản: (Tổng thu nhập - 11tr - Người phụ thuộc * 4.4tr) * Thuế suất 5%)
-        const totalIncome = grossSalaryByWorkDays + otSalary + bonus // Thu nhập chịu thuế (Gross thực tế)
-        const personalDeduction = 11_000_000
-        const dependentDeduction = (emp.dependents || 0) * 4_400_000
+        // Thuế TNCN
+        const totalIncome = grossSalaryByWorkDays + otSalary + bonus 
+        const dependentDeduction = (emp.dependents || 0) * dependentDeductionVal
         const taxableIncome = Math.max(0, totalIncome - socialInsurance - personalDeduction - dependentDeduction)
         
-        let tax = 0
-        if (taxableIncome > 0) {
-            tax = taxableIncome * 0.05 
-        }
+        const tax = calculateTax(taxableIncome)
 
         // --- C. Thực lĩnh ---
         const totalDeductions = socialInsurance + tax + penalties + advanceAmount
         const netPay = totalIncome - totalDeductions
 
-        // Tạo object Payslip
         payslips.push({
             employee_id: emp.id,
             month,
@@ -87,10 +162,10 @@ export const payrollService = {
             advance_amount: advanceAmount,
             net_pay: netPay,
             status: 'Pending', 
-            notes: `Lương tháng ${month}/${year}. Công: ${actualWorkDays}/${standardWorkDays}. Trễ: ${lateCount}`
+            notes: `Công: ${actualWorkDays}/${standardWorkDays}. Nghỉ: ${paidLeaveDays}. Trễ: ${lateCount}. ${advanceAmount > 0 ? `Tạm ứng: ${advanceAmount.toLocaleString('vi-VN')}đ.` : ''}`
         })
     }
-
+    
     // 4. Lưu xuống DB
     if (payslips.length > 0) {
         return (await payrollRepo.createPayslips(payslips)) as Payslip[]
@@ -105,9 +180,54 @@ export const payrollService = {
   },
 
   // Cập nhật phiếu lương và tính lại các số liệu
+  // Cập nhật phiếu lương và tính lại các số liệu
   async updatePayslip(id: number, data: PayslipUpdateDTO) {
       const current = await payrollRepo.getPayslipById(id)
       if (!current) throw new Error('Không tìm thấy phiếu lương')
+
+      // Fetch settings
+      const settings = await settingRepo.getSettings()
+      const insurancePercent = parseFloat(settings['insurance_percent'] || '10.5') / 100
+      const standardWorkDays = parseInt(settings['standard_work_days'] || '22')
+      const personalDeduction = parseInt(settings['personal_deduction'] || '11000000')
+      const dependentDeductionVal = parseInt(settings['dependent_deduction'] || '4400000')
+
+      // Tax Brackets
+      let taxBrackets = [
+          { limit: 5000000, rate: 5 },
+          { limit: 10000000, rate: 10 },
+          { limit: 18000000, rate: 15 },
+          { limit: 32000000, rate: 20 },
+          { limit: 52000000, rate: 25 },
+          { limit: 80000000, rate: 30 },
+          { limit: 0, rate: 35 }
+      ]
+      try {
+          if (settings['tax_brackets']) {
+              taxBrackets = JSON.parse(settings['tax_brackets'])
+          }
+      } catch (e) {
+          console.error('Error parsing tax brackets', e)
+      }
+
+      const calculateTax = (income: number) => {
+          if (income <= 0) return 0
+          let tax = 0
+          let previousLimit = 0
+          for (const bracket of taxBrackets) {
+              const limit = bracket.limit
+              const rate = bracket.rate / 100
+              if (limit === 0) { tax += (income - previousLimit) * rate; break; }
+              if (income > limit) {
+                  tax += (limit - previousLimit) * rate
+                  previousLimit = limit
+              } else {
+                  tax += (income - previousLimit) * rate
+                  break
+              }
+          }
+          return tax
+      }
       
       // Convert all inputs to number strictly
       const safeNum = (val: number | string | null | undefined) => val ? Number(val) : 0
@@ -117,7 +237,7 @@ export const payrollService = {
       const newOtHours = data.ot_hours !== undefined ? Number(data.ot_hours) : safeNum(current.ot_hours)
       
       // Auto calculate OT Salary based on formula to ensure integrity
-      const hourlyRate = newSalaryBase / 22 / 8
+      const hourlyRate = newSalaryBase / standardWorkDays / 8
       const newOtSalary = Math.round(hourlyRate * 1.5 * newOtHours)
 
       const newBonus = data.bonus !== undefined ? Number(data.bonus) : safeNum(current.bonus)
@@ -126,8 +246,8 @@ export const payrollService = {
       const newNote = data.note !== undefined ? data.note : current.notes
 
       // Tính lại các chỉ số dẫn xuất
-      // 1. BHXH (10.5% lương cơ bản mới)
-      const socialInsurance = newSalaryBase * 0.105
+      // 1. BHXH 
+      const socialInsurance = newSalaryBase * insurancePercent
 
       // 2. Thu nhập từ công (Recalculate logic)
       // GrossFromWorkOld = NetOld + DedOld - OtOld - BonusOld
@@ -150,17 +270,13 @@ export const payrollService = {
       const totalIncome = newGrossFromWork + newOtSalary + newBonus
       
       // 3. Thuế
-      const personalDeduction = 11_000_000
       // Lấy dependents từ relation employees
       const dependents = Number(current.employees?.dependents) || 0
-      const dependentDeduction = dependents * 4_400_000
+      const dependentDeduction = dependents * dependentDeductionVal
       
       const taxableIncome = Math.max(0, totalIncome - socialInsurance - personalDeduction - dependentDeduction)
       
-      let tax = 0
-       if (taxableIncome > 0) {
-            tax = taxableIncome * 0.05 
-        }
+      const tax = calculateTax(taxableIncome)
 
       // 4. Net Pay
       const totalDeductions = socialInsurance + tax + newPenalties + newAdvance

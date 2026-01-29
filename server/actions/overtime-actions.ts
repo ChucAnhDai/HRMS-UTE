@@ -24,8 +24,11 @@ export async function createOvertimeRequestAction(data: Partial<OvertimeRequest>
             data.employee_id = Number(currentUser.employeeId)
             data.status = 'Pending' // Luôn pending
         } else {
-             // Admin/Manager tạo hộ thì có thể auto approve hoặc pending
-             // Tạm thời để Pending, hoặc assign đúng employee_id gửi lên
+             // Admin/Manager tạo hộ
+             if (!data.employee_id) {
+                 return { success: false, error: 'Vui lòng chọn nhân viên' }
+             }
+             data.status = 'Pending' // Vẫn cần duyệt hoặc auto approve tùy ý. Để Pending cho an toàn.
         }
 
         const res = await overtimeRepo.createRequest(data)

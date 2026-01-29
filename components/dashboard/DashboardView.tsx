@@ -1,7 +1,7 @@
 'use client'
 
 import React from "react";
-import { Users, Building2, Briefcase, DollarSign, ChevronRight, MoreHorizontal, Trash2 as Trash2Icon, Edit3 as Edit3Icon, Clock } from "lucide-react";
+import { Users, Building2, Briefcase, ChevronRight, MoreHorizontal, Trash2 as Trash2Icon, Edit3 as Edit3Icon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
   PieChart, Pie, Cell, ResponsiveContainer,
@@ -15,27 +15,22 @@ interface DashboardProps {
     totalEmployees: number
     attendanceCount: number
     pendingLeaves: number
-    newEmployees: any[]
-    departmentStats: any[]
-    upcomingLeaves: any[]
+    newEmployees: {
+        id: number
+        first_name: string
+        last_name: string
+        avatar: string | null
+        departments: { name: string } | null
+    }[]
+    departmentStats: { name: string; value: number; color: string }[]
+    upcomingLeaves: {
+        id: number
+        start_date: string
+        employees: { first_name: string; last_name: string } | null
+    }[]
+    salaryData: { name: string; received: number; pending: number }[]
   }
 }
-
-// Dữ liệu mẫu cho biểu đồ lương (vì chưa có lịch sử)
-const salaryData = [
-  { name: 'Jan', received: 65, pending: 25 },
-  { name: 'Feb', received: 150, pending: 45 },
-  { name: 'Mar', received: 80, pending: 35 },
-  { name: 'Apr', received: 180, pending: 28 },
-  { name: 'May', received: 150, pending: 45 },
-  { name: 'Jun', received: 175, pending: 25 },
-  { name: 'Jul', received: 200, pending: 18 },
-  { name: 'Aug', received: 60, pending: 32 },
-  { name: 'Sep', received: 200, pending: 25 },
-  { name: 'Oct', received: 120, pending: 22 },
-  { name: 'Nov', received: 190, pending: 12 },
-  { name: 'Dec', received: 160, pending: 15 },
-];
 
 export default function DashboardView({ stats }: DashboardProps) {
   const statCards = [
@@ -114,7 +109,7 @@ export default function DashboardView({ stats }: DashboardProps) {
                       verticalAlign="bottom" 
                       height={36} 
                       iconType="circle"
-                      formatter={(value, entry: any) => <span className="text-sm font-medium text-gray-600 ml-2">{value}</span>}
+                      formatter={(value) => <span className="text-sm font-medium text-gray-600 ml-2">{value}</span>}
                    />
                 </PieChart>
              </ResponsiveContainer>
@@ -132,7 +127,7 @@ export default function DashboardView({ stats }: DashboardProps) {
           <div className="flex-1 w-full">
              <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                   data={salaryData}
+                   data={stats.salaryData}
                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                    barSize={12}
                 >
@@ -207,7 +202,7 @@ export default function DashboardView({ stats }: DashboardProps) {
           <div className="space-y-6">
             {[1, 2, 3, 4].map((_, idx) => (
               <div key={idx} className="flex gap-4">
-                 <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-200 flex-shrink-0 bg-gray-100">
+                 <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-200 shrink-0 bg-gray-100">
                      {/* Placeholder avatar */}
                  </div>
                 <div className="space-y-1">
@@ -233,7 +228,7 @@ export default function DashboardView({ stats }: DashboardProps) {
           <div className="space-y-3">
             {stats.upcomingLeaves.length === 0 ? (
                 <p className="text-sm text-gray-500">Không có ai sắp nghỉ.</p>
-            ) : stats.upcomingLeaves.map((leave: any) => (
+            ) : stats.upcomingLeaves.map((leave) => (
               <div key={leave.id} className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
                   <Briefcase className="h-4 w-4" />

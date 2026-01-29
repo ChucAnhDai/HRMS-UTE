@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase.server'
+import { payrollRepo } from '../repositories/payroll-repo'
 
 export const dashboardService = {
   async getStats() {
@@ -56,13 +57,31 @@ export const dashboardService = {
       .limit(5)
       .order('start_date', { ascending: true })
 
+    // 7. Thống kê lương theo tháng (Real-time)
+    const currentYear = new Date().getFullYear()
+    const yearlyPayslips = await payrollRepo.getYearlyStats(currentYear)
+    
+    const salaryData = Array.from({ length: 12 }, (_, i) => {
+        const monthIndex = i + 1
+        return {
+            name: new Date(0, i).toLocaleString('en-US', { month: 'short' }),
+            received: yearlyPayslips
+                ?.filter(p => p.month === monthIndex && p.status === 'Paid')
+                .reduce((sum, p) => sum + (p.net_pay || 0), 0) || 0,
+            pending: yearlyPayslips
+                ?.filter(p => p.month === monthIndex && p.status !== 'Paid')
+                .reduce((sum, p) => sum + (p.net_pay || 0), 0) || 0,
+        }
+    })
+
     return {
       totalEmployees: totalEmployees || 0,
       attendanceCount: checkInCount || 0,
       pendingLeaves: pendingLeaves || 0,
       newEmployees: newEmployees || [],
       departmentStats,
-      upcomingLeaves: upcomingLeaves || []
+      upcomingLeaves: upcomingLeaves || [],
+      salaryData 
     }
   }
 }

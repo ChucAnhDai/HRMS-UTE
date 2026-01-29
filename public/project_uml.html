@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Architecture & UML Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .diagram-container {
+            background: #fff;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        .legend {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏗️ System Architecture & UML Documentation</h1>
+        <p>Generated automatically based on the current source code and database schema.</p>
+
+        <!-- 1. Database ER Diagram -->
+        <h2>1. Entity Relationship Diagram (Database Schema)</h2>
+        <div class="legend">Displays the structure of the Supabase (PostgreSQL) database, including tables, columns, and relationships (FK).</div>
+        <div class="diagram-container">
+            <pre class="mermaid">
+erDiagram
+    DEPARTMENTS ||--o{ EMPLOYEES : "has"
+    USERS ||--o{ EMPLOYEES : "linked_to"
+    EMPLOYEES ||--o{ CONTRACTS : "has"
+    EMPLOYEES ||--o{ ATTENDANCES : "logs"
+    EMPLOYEES ||--o{ LEAVE_REQUESTS : "requests"
+    EMPLOYEES ||--o{ OVERTIME_REQUESTS : "requests"
+    EMPLOYEES ||--o{ PAYSLIPS : "receives"
+    EMPLOYEES ||--o{ ASSET_ASSIGNMENTS : "assigned"
+    ASSETS ||--o{ ASSET_ASSIGNMENTS : "allocated_in"
+    JOB_OPENINGS ||--o{ CANDIDATES : "has"
+    DEPARTMENTS ||--o{ JOB_OPENINGS : "posts"
+
+    DEPARTMENTS {
+        bigint id PK
+        text name
+    }
+
+    USERS {
+        bigint id PK
+        text name
+        text email
+        text role "admin|manager|employee"
+        text status
+    }
+
+    EMPLOYEES {
+        bigint id PK
+        bigint department_id FK
+        bigint user_id FK
+        text first_name
+        text last_name
+        text email
+        decimal salary
+        int annual_leave_quota
+        text employment_status
+    }
+
+    OVERTIME_REQUESTS {
+        bigint id PK
+        bigint employee_id FK
+        date date
+        time start_time
+        time end_time
+        decimal hours
+        text status "Pending|Approved|Rejected"
+        bigint approved_by FK
+    }
+
+    PAYSLIPS {
+        bigint id PK
+        bigint employee_id FK
+        int month
+        int year
+        decimal salary
+        decimal ot_hours
+        decimal ot_salary
+        decimal net_pay
+        text status
+    }
+
+    ATTENDANCES {
+        bigint id PK
+        bigint employee_id FK
+        date date
+        time check_in_time
+        time check_out_time
+        text status
+    }
+
+    LEAVE_REQUESTS {
+        bigint id PK
+        bigint employee_id FK
+        text leave_type
+        date start_date
+        date end_date
+        text status
+    }
+
+    ASSETS {
+        bigint id PK
+        text name
+        text asset_tag
+        decimal purchase_cost
+        text status
+    }
+            </pre>
+        </div>
+
+        <!-- 2. System Class Diagram -->
+        <h2>2. Class Diagram (Backend Architecture)</h2>
+        <div class="legend">Illustrates the interaction between Services, Repositories, and Data Entities in the backend.</div>
+        <div class="diagram-container">
+            <pre class="mermaid">
+classDiagram
+    %% Relationships
+    PayrollService ..> PayrollRepo : uses
+    PayrollService ..> OvertimeRepo : uses
+    PayrollService ..> AttendanceRepo : uses
+    PayrollService ..> EmployeeRepo : uses
+    OvertimeActions ..> OvertimeRepo : uses
+    
+    %% Services
+    class PayrollService {
+        +generateMonthlyPayroll(month, year)
+        +getPayrollList(month, year)
+        +updatePayslip(id, data)
+        +markPayrollAsPaid(month, year)
+    }
+
+    class OvertimeActions {
+        +createOvertimeRequestAction(data)
+        +approveOvertimeRequestAction(id)
+        +rejectOvertimeRequestAction(id)
+    }
+
+    %% Repositories
+    class PayrollRepo {
+        +createPayslips(data[])
+        +getPayslips(month, year)
+        +updatePayslip(id, data)
+    }
+
+    class OvertimeRepo {
+        +createRequest(data)
+        +getRequests(filters)
+        +updateStatus(id, status, approverId)
+        +getMonthlyApprovedHours(empId, month, year)
+    }
+
+    class EmployeeRepo {
+        +getEmployees()
+        +getEmployeeById(id)
+    }
+
+    %% Entities (Types)
+    class Payslip {
+        +number id
+        +number employee_id
+        +number salary
+        +number ot_hours
+        +number ot_salary
+        +number net_pay
+    }
+
+    class OvertimeRequest {
+        +number id
+        +number employee_id
+        +number hours
+        +string status
+        +string reason
+    }
+
+    PayrollService --> Payslip : manages
+    OvertimeRepo --> OvertimeRequest : manages
+            </pre>
+        </div>
+
+        <!-- 3. Sequence Diagram -->
+        <h2>3. Feature Flow: Monthly Payroll Calculation</h2>
+        <div class="legend">Sequence showing how Overtime data is integrated into Payroll generation.</div>
+        <div class="diagram-container">
+            <pre class="mermaid">
+sequenceDiagram
+    participant Admin
+    participant PayrollService
+    participant EmployeeRepo
+    participant AttendanceRepo
+    participant OvertimeRepo
+    participant PayrollRepo
+    participant Database
+
+    Admin->>PayrollService: generateMonthlyPayroll(Month, Year)
+    PayrollService->>EmployeeRepo: getActiveEmployees()
+    EmployeeRepo-->>PayrollService: List[Employees]
+
+    loop For Each Employee
+        PayrollService->>AttendanceRepo: getMonthlyStats(empId)
+        AttendanceRepo-->>PayrollService: WorkDays, LateDays
+
+        PayrollService->>OvertimeRepo: getMonthlyApprovedHours(empId)
+        OvertimeRepo-->>PayrollService: Total OT Hours
+
+        Note over PayrollService: Calculate Salary:<br/>Base + (OT * 1.5) - Deductions
+
+        PayrollService->>PayrollService: Create Payslip Object
+    end
+
+    PayrollService->>PayrollRepo: createPayslips(List[Payslips])
+    PayrollRepo->>Database: INSERT INTO payslips
+    Database-->>PayrollRepo: Success
+    PayrollRepo-->>PayrollService: Success
+    PayrollService-->>Admin: Done
+            </pre>
+        </div>
+
+        <!-- 4. Project Structure -->
+        <h2>4. Project Directory Structure</h2>
+        <div class="legend">Overview of the Next.js project organization, separating Frontend (App, Components) from Backend (Server Actions, Repositories).</div>
+        <div class="diagram-container">
+            <pre class="mermaid">
+graph TD
+    root[cnkt_cnpm]
+    
+    %% App Router (Frontend Pages)
+    root --> app[app/]
+    app --> dashboard[/(dashboard)]
+    dashboard --> emp_page[employees/]
+    dashboard --> ot_page[overtime/]
+    dashboard --> payroll_page[payroll/]
+    app --> api_routes[api/]
+
+    %% UI Components
+    root --> components[components/]
+    components --> ui_core[ui/]
+    components --> comp_emp[employees/]
+    components --> comp_ot[overtime/]
+    components --> comp_payroll[payroll/]
+    components --> layout[layout/]
+
+    %% Backend Logic (Server Side)
+    root --> server[server/]
+    server --> actions[actions/]
+    actions --> act_ot[overtime-actions.ts]
+    actions --> act_pay[payroll-actions.ts]
+    
+    server --> repos[repositories/]
+    repos --> repo_ot[overtime-repo.ts]
+    repos --> repo_pay[payroll-repo.ts]
+    repos --> repo_emp[employee-repo.ts]
+
+    server --> services[services/]
+    services --> serv_pay[payroll-service.ts]
+
+    %% Database & Config
+    root --> ddl[ddl/ (SQL Scripts)]
+    root --> types[types/ (Interfaces)]
+    root --> lib[lib/ (Utils/Supabase)]
+
+    %% Styling
+    style app fill:#e3f2fd,stroke:#2196f3
+    style server fill:#e8f5e9,stroke:#4caf50
+    style components fill:#fff3e0,stroke:#ff9800
+            </pre>
+        </div>
+
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+            }
+        });
+    </script>
+</body>
+</html>

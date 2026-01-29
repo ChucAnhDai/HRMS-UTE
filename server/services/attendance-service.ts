@@ -1,4 +1,5 @@
 import { attendanceRepo } from '@/server/repositories/attendance-repo'
+import { settingRepo } from '@/server/repositories/setting-repo'
 
 export const attendanceService = {
   // Lấy danh sách chấm công cho Calendar
@@ -38,9 +39,27 @@ export const attendanceService = {
     const date = now.toISOString().split('T')[0] // YYYY-MM-DD
     const time = now.toTimeString().split(' ')[0] // HH:mm:ss
 
-    // Logic tính đi muộn (Ví dụ: Quy định 8:30 là muộn)
+    // 1. Fetch Global Settings
+    const settings = await settingRepo.getSettings()
     
-    return await attendanceRepo.checkIn(employeeId, date, time)
+    // 2. Determine Late Status
+    // Default 08:00 if not set
+    const workStartTime = settings['work_start_time'] || '08:00' 
+    
+    // Simple comparison HH:mm:ss vs HH:mm
+    // To be precise, let's append :00 if needed or just string compare
+    // "08:15:00" > "08:00" => Late
+    // "08:00:59" > "08:00:00" => Technically late or allow grace period?
+    // Let's assume strict check for now: HH:mm compare.
+    const checkInTimeStr = time.slice(0, 5) // HH:mm
+    const workStartTimeStr = workStartTime // HH:mm
+    
+    let status: 'Present' | 'Late' = 'Present'
+    if (checkInTimeStr > workStartTimeStr) {
+        status = 'Late'
+    }
+    
+    return await attendanceRepo.checkIn(employeeId, date, time, status)
   },
 
   async performCheckOut(employeeId: number) {

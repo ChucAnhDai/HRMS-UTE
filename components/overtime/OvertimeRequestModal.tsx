@@ -8,10 +8,13 @@ interface Props {
   isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  employees?: any[]
 }
 
-export default function OvertimeRequestModal({ isOpen, onClose, onSuccess }: Props) {
+export default function OvertimeRequestModal({ isOpen, onClose, onSuccess, employees = [] }: Props) {
   const [formData, setFormData] = useState({
+    employee_id: 0,
     date: new Date().toISOString().split('T')[0],
     start_time: '17:00',
     end_time: '18:00',
@@ -60,6 +63,7 @@ export default function OvertimeRequestModal({ isOpen, onClose, onSuccess }: Pro
         onClose()
         // Reset form
         setFormData({
+            employee_id: 0,
             date: new Date().toISOString().split('T')[0],
             start_time: '17:00',
             end_time: '18:00',
@@ -83,6 +87,28 @@ export default function OvertimeRequestModal({ isOpen, onClose, onSuccess }: Pro
         
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
             {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg flex gap-2 border border-red-100"><div className="shrink-0">⚠️</div><div>{error}</div></div>}
+            
+            {/* Admin: Employee Selector */}
+            {employees.length > 0 && (
+                <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <span className="text-blue-500">👤</span> Chọn nhân viên
+                    </label>
+                    <select
+                        value={formData.employee_id || ''}
+                        onChange={e => setFormData({ ...formData, employee_id: Number(e.target.value) })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                        required
+                    >
+                        <option value="">-- Chọn nhân viên --</option>
+                        {employees.map((emp: any) => (
+                            <option key={emp.id} value={emp.id}>
+                                {emp.last_name} {emp.first_name} (MNV: {emp.id})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
             
             <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">

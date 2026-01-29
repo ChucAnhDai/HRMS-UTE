@@ -4,10 +4,13 @@ export type UserRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
 
 export interface CurrentUser {
   id: string
+  userId?: number
   email: string
   role: UserRole
   employeeId: number | null
-  employeeData?: any
+  employeeData?: Record<string, unknown>
+  name?: string
+  avatar?: string | null
 }
 
 /**
@@ -25,7 +28,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   // Lấy thông tin nhân viên từ bảng employees
   const { data: employee } = await supabase
     .from('employees')
-    .select('id, role, first_name, last_name, email, department_id, job_title')
+    .select('id, user_id, role, first_name, last_name, email, department_id, job_title')
     .eq('auth_user_id', user.id)
     .single()
 
@@ -35,8 +38,9 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   return {
     id: user.id,
+    userId: employee.user_id,
     email: user.email || '',
-    role: (employee.role || 'EMPLOYEE') as UserRole,
+    role: (employee.role ? employee.role.toUpperCase() : 'EMPLOYEE') as UserRole,
     employeeId: employee.id,
     employeeData: employee
   }

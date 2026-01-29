@@ -1,38 +1,47 @@
-'use client';
+import type { Metadata } from "next";
+import { getCurrentUser } from "@/lib/auth-helpers";
+import { employeeService } from "@/server/services/employee-service";
+import ClientLayoutWrapper from "@/components/layout/ClientLayoutWrapper";
+import { redirect } from "next/navigation";
+import React from "react";
 
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
-import { SidebarProvider, useSidebar } from '@/context/SidebarContext';
-import { cn } from '@/lib/utils';
-import React from 'react';
+export const metadata: Metadata = {
+  title: "Dashboard | Payroll System",
+  description: "HRM Dashboard",
+};
 
-function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
-  const { isCollapsed } = useSidebar();
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar />
-      <Header />
-      <main
-        className={cn(
-          "pt-20 px-4 pb-4 transition-all duration-300 min-h-screen",
-          isCollapsed ? "lg:ml-20" : "lg:ml-64"
-        )}
-      >
-        {children}
-      </main>
-    </div>
-  );
-}
-
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    redirect("/login");
+  }
+
+  // Fetch employee details to get avatar
+  let employee = null;
+  if (currentUser.employeeId) {
+    try {
+      employee = await employeeService.getEmployee(currentUser.employeeId);
+    } catch {
+      // Ignore error
+    }
+  }
+
+  const headerUser = {
+    name: employee
+      ? `${employee.last_name} ${employee.first_name}`
+      : currentUser.name || currentUser.email,
+    email: currentUser.email,
+    avatar: employee?.avatar || currentUser.avatar || null,
+    role: currentUser.role,
+    job_title: employee?.job_title || undefined,
+  };
+
   return (
-    <SidebarProvider>
-      <DashboardLayoutContent>{children}</DashboardLayoutContent>
-    </SidebarProvider>
+    <ClientLayoutWrapper user={headerUser}>{children}</ClientLayoutWrapper>
   );
 }

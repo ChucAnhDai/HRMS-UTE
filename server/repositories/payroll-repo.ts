@@ -140,5 +140,17 @@ export const payrollRepo = {
 
     if (error) throw new Error(error.message)
     return data
+  },
+
+  // Lấy thống kê lương theo năm (cho Dashboard)
+  async getYearlyStats(year: number) {
+      const supabase = await createClient()
+      const { data, error } = await supabase
+          .from('payslips')
+          .select('month, net_pay, status')
+          .eq('year', year)
+      
+      if (error) throw new Error(error.message)
+      return data
   }
 }

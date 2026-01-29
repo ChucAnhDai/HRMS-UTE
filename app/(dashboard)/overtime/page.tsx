@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/lib/auth-helpers'
 import { overtimeRepo } from '@/server/repositories/overtime-repo'
+import { employeeRepo } from '@/server/repositories/employee-repo'
 import OvertimeClientView from '@/components/overtime/OvertimeClientView'
 
 export default async function OvertimePage() {
@@ -12,11 +13,17 @@ export default async function OvertimePage() {
     // Fetch requests
     const requests = await overtimeRepo.getRequests(filters)
 
+    // Fetch employees for Admin selector
+    let employees: any[] = []
+    if (isAdmin) {
+        employees = await employeeRepo.getEmployees()
+    }
+
     return <div className="p-8 max-w-[1600px] mx-auto">
         <OvertimeClientView 
             initialRequests={requests || []} 
             isAdmin={isAdmin} 
-            userId={user.id} 
+            employees={employees}
         />
     </div>
 }

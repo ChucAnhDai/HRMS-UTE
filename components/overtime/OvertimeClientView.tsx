@@ -9,10 +9,11 @@ import OvertimeRequestModal from './OvertimeRequestModal'
 interface Props {
   initialRequests: OvertimeRequest[]
   isAdmin: boolean
-  userId: number | string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  employees?: any[]
 }
 
-export default function OvertimeClientView({ initialRequests, isAdmin }: Props) {
+export default function OvertimeClientView({ initialRequests, isAdmin, employees = [] }: Props) {
   const [requests] = useState<OvertimeRequest[]>(initialRequests)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [filterStatus, setFilterStatus] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All')
@@ -191,6 +192,7 @@ export default function OvertimeClientView({ initialRequests, isAdmin }: Props) 
             isOpen={isModalOpen} 
             onClose={() => setIsModalOpen(false)} 
             onSuccess={handleSuccess}
+            employees={employees}
         />
     </div>
   )
