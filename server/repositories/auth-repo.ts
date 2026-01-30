@@ -25,7 +25,7 @@ export const authRepo = {
   // Lấy user hiện tại (Server-side)
   async getCurrentUser() {
     const supabase = await createClient()
-    const { data: { user }, error } = await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
     
     // Không throw error ở đây vì việc không có user (null) là bình thường
     return user
@@ -34,7 +34,7 @@ export const authRepo = {
   // Lấy User profile đầy đủ (bao gồm thông tin nhân viên)
   async getUserProfile(userId: string) {
     const supabase = await createClient()
-    const { data, error } = await supabase
+    const { data } = await supabase
         .from('employees')
         .select('*')
         .eq('auth_user_id', userId)

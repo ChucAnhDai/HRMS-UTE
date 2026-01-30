@@ -35,8 +35,8 @@ export async function createSalaryAdvanceAction(prevState: { error?: string; suc
 
     revalidatePath('/salary-advances')
     return { success: true }
-  } catch (error: any) {
-    return { error: error.message }
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }
 
@@ -53,8 +53,8 @@ export async function approveSalaryAdvanceAction(requestId: number) {
         await salaryAdvanceRepo.updateStatus(requestId, 'Approved', user.userId)
         revalidatePath('/salary-advances')
         return { success: true }
-    } catch (error: any) {
-        return { error: error.message }
+    } catch (error: unknown) {
+        return { error: error instanceof Error ? error.message : 'Unknown error' }
     }
 }
 
@@ -71,7 +71,7 @@ export async function rejectSalaryAdvanceAction(requestId: number, reason: strin
         await salaryAdvanceRepo.updateStatus(requestId, 'Rejected', user.userId, reason)
         revalidatePath('/salary-advances')
         return { success: true }
-    } catch (error: any) {
-        return { error: error.message }
+    } catch (error: unknown) {
+        return { error: error instanceof Error ? error.message : 'Unknown error' }
     }
 }

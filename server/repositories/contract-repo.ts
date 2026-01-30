@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase.server'
 import { Database } from '@/types/database'
 
+
 export const contractRepo = {
   // Lấy danh sách hợp đồng của một nhân viên
   async getContractsByEmployeeId(employeeId: number) {
@@ -16,7 +17,7 @@ export const contractRepo = {
   },
 
   // Tạo hợp đồng mới
-  async createContract(contractData: any) {
+  async createContract(contractData: Database['public']['Tables']['contracts']['Insert']) {
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('contracts')
@@ -29,7 +30,7 @@ export const contractRepo = {
   },
 
   // Cập nhật hợp đồng
-  async updateContract(contractId: number, contractData: any) {
+  async updateContract(contractId: number, contractData: Database['public']['Tables']['contracts']['Update']) {
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('contracts')

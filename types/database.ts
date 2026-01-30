@@ -259,6 +259,8 @@ export interface Database {
           reason: string | null
           status: string
           action_by_user_id: number | null
+          action_by_employee_id: number | null
+          rejection_reason: string | null
           action_at: string | null
           created_at: string | null
           updated_at: string | null
@@ -272,6 +274,8 @@ export interface Database {
           reason?: string | null
           status?: string
           action_by_user_id?: number | null
+          action_by_employee_id?: number | null
+          rejection_reason?: string | null
           action_at?: string | null
           created_at?: string | null
           updated_at?: string | null
@@ -285,6 +289,8 @@ export interface Database {
           reason?: string | null
           status?: string
           action_by_user_id?: number | null
+          action_by_employee_id?: number | null
+          rejection_reason?: string | null
           action_at?: string | null
           created_at?: string | null
           updated_at?: string | null
@@ -298,6 +304,8 @@ export interface Database {
           purchase_date: string
           purchase_cost: number
           status: string
+          assigned_to: number | null
+          assigned_date: string | null
           created_at: string | null
           updated_at: string | null
         }
@@ -308,6 +316,8 @@ export interface Database {
           purchase_date: string
           purchase_cost: number
           status?: string
+          assigned_to?: number | null
+          assigned_date?: string | null
           created_at?: string | null
           updated_at?: string | null
         }
@@ -318,6 +328,8 @@ export interface Database {
           purchase_date?: string
           purchase_cost?: number
           status?: string
+          assigned_to?: number | null
+          assigned_date?: string | null
           created_at?: string | null
           updated_at?: string | null
         }

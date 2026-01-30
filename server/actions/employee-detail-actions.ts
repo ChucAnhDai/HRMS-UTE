@@ -78,7 +78,7 @@ export async function assignAssetAction(
     await requireRole(['ADMIN'])
     
     const asset_id = Number(formData.get('asset_id'))
-    const assigned_date = formData.get('assigned_date') as string || new Date().toISOString().split('T')[0]
+
     
     if (!asset_id) {
       return { error: 'Vui lòng chọn tài sản' }

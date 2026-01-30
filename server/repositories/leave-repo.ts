@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase.server'
+import { Database } from '@/types/database'
 
 export const leaveRepo = {
   // Lấy danh sách đơn nghỉ phép (Có thể lọc theo trạng thái)
@@ -26,7 +27,7 @@ export const leaveRepo = {
   },
 
   // Tạo đơn xin nghỉ mới
-  async createLeaveRequest(data: any) {
+  async createLeaveRequest(data: Database['public']['Tables']['leave_requests']['Insert']) {
     const supabase = await createClient()
     const { data: request, error } = await supabase
       .from('leave_requests')

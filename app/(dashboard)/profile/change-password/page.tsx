@@ -1,55 +1,73 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import { Lock, Eye, EyeOff, CheckCircle, XCircle, ArrowLeft } from 'lucide-react'
-import { changePasswordAction } from '@/server/actions/change-password'
-import Link from 'next/link'
+import React, { useState } from "react";
+import {
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  XCircle,
+  ArrowLeft,
+} from "lucide-react";
+import { changePasswordAction } from "@/server/actions/change-password";
+import Link from "next/link";
 
 export default function ChangePasswordPage() {
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [showCurrent, setShowCurrent] = useState(false)
-  const [showNew, setShowNew] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setMessage(null)
+    e.preventDefault();
+    setMessage(null);
 
     // Validate
     if (newPassword !== confirmPassword) {
-      setMessage({ type: 'error', text: 'Mật khẩu xác nhận không khớp' })
-      return
+      setMessage({ type: "error", text: "Mật khẩu xác nhận không khớp" });
+      return;
     }
 
-    setIsLoading(true)
-    const result = await changePasswordAction(currentPassword, newPassword)
-    setIsLoading(false)
+    setIsLoading(true);
+    const result = await changePasswordAction(currentPassword, newPassword);
+    setIsLoading(false);
 
     if (result.success) {
-      setMessage({ type: 'success', text: result.message || 'Đổi mật khẩu thành công!' })
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
+      setMessage({
+        type: "success",
+        text: result.message || "Đổi mật khẩu thành công!",
+      });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
     } else {
-      setMessage({ type: 'error', text: result.error || 'Có lỗi xảy ra' })
+      setMessage({ type: "error", text: result.error || "Có lỗi xảy ra" });
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 md:p-8">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Link href="/profile" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 mb-4">
+          <Link
+            href="/profile"
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 mb-4"
+          >
             <ArrowLeft className="w-4 h-4" />
             Quay lại Profile
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Đổi mật khẩu</h1>
-          <p className="text-gray-600 mt-2">Cập nhật mật khẩu của bạn để bảo mật tài khoản</p>
+          <p className="text-gray-600 mt-2">
+            Cập nhật mật khẩu của bạn để bảo mật tài khoản
+          </p>
         </div>
 
         {/* Form Card */}
@@ -64,10 +82,14 @@ export default function ChangePasswordPage() {
 
             {/* Message */}
             {message && (
-              <div className={`mb-6 p-4 rounded-lg flex items-start gap-3 ${
-                message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-              }`}>
-                {message.type === 'success' ? (
+              <div
+                className={`mb-6 p-4 rounded-lg flex items-start gap-3 ${
+                  message.type === "success"
+                    ? "bg-green-50 text-green-800"
+                    : "bg-red-50 text-red-800"
+                }`}
+              >
+                {message.type === "success" ? (
                   <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" />
                 ) : (
                   <XCircle className="w-5 h-5 shrink-0 mt-0.5" />
@@ -85,7 +107,7 @@ export default function ChangePasswordPage() {
                 </label>
                 <div className="relative">
                   <input
-                    type={showCurrent ? 'text' : 'password'}
+                    type={showCurrent ? "text" : "password"}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
@@ -97,7 +119,11 @@ export default function ChangePasswordPage() {
                     onClick={() => setShowCurrent(!showCurrent)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showCurrent ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showCurrent ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -109,7 +135,7 @@ export default function ChangePasswordPage() {
                 </label>
                 <div className="relative">
                   <input
-                    type={showNew ? 'text' : 'password'}
+                    type={showNew ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
@@ -122,10 +148,16 @@ export default function ChangePasswordPage() {
                     onClick={() => setShowNew(!showNew)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showNew ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showNew ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Mật khẩu phải có ít nhất 6 ký tự</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Mật khẩu phải có ít nhất 6 ký tự
+                </p>
               </div>
 
               {/* Confirm Password */}
@@ -135,7 +167,7 @@ export default function ChangePasswordPage() {
                 </label>
                 <div className="relative">
                   <input
-                    type={showConfirm ? 'text' : 'password'}
+                    type={showConfirm ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
@@ -147,7 +179,11 @@ export default function ChangePasswordPage() {
                     onClick={() => setShowConfirm(!showConfirm)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showConfirm ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -177,7 +213,9 @@ export default function ChangePasswordPage() {
 
           {/* Tips */}
           <div className="bg-gray-50 px-6 md:px-8 py-4 border-t border-gray-100">
-            <h3 className="text-sm font-bold text-gray-900 mb-2">💡 Mẹo bảo mật:</h3>
+            <h3 className="text-sm font-bold text-gray-900 mb-2">
+              💡 Mẹo bảo mật:
+            </h3>
             <ul className="text-xs text-gray-600 space-y-1">
               <li>• Sử dụng mật khẩu mạnh với ít nhất 8 ký tự</li>
               <li>• Kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt</li>
@@ -188,5 +226,5 @@ export default function ChangePasswordPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -24,11 +24,28 @@ export const dashboardService = {
       .eq('status', 'Pending')
 
     // 4. Lấy 5 nhân viên mới nhất
-    const { data: newEmployees } = await supabase
+    const { data: newEmployeesData } = await supabase
       .from('employees')
       .select('id, first_name, last_name, avatar, department_id, hire_date, departments(name)')
       .order('hire_date', { ascending: false })
       .limit(4)
+
+    const newEmployees = (newEmployeesData || []).map((emp) => {
+        const d = (emp as unknown as { departments: {name: string} | {name: string}[] }).departments
+        let dept: { name: string } | null = null
+        if (Array.isArray(d)) {
+            dept = d[0] || null
+        } else {
+            dept = d as { name: string } | null
+        }
+        return {
+          id: emp.id,
+          first_name: emp.first_name,
+          last_name: emp.last_name,
+          avatar: emp.avatar,
+          departments: dept
+        }
+    })
 
     // 5. Thống kê nhân viên theo phòng ban (cho Pie Chart)
     const { data: employees } = await supabase
@@ -36,11 +53,21 @@ export const dashboardService = {
       .select('department_id, departments(name)')
     
     // Group by department
-    const deptStatsVal = employees?.reduce((acc: any, curr) => {
-        const deptName = curr.departments?.name || 'Unknown'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const deptStatsVal = (employees || []).reduce((acc: Record<string, number>, curr: any) => {
+        // Handle explicit type issue where departments might be array or object
+        const dept = curr.departments
+        let deptName = 'Unknown'
+        
+        if (Array.isArray(dept)) {
+             deptName = dept[0]?.name || 'Unknown'
+        } else if (typeof dept === 'object' && dept !== null) {
+             deptName = (dept as { name?: string }).name || 'Unknown'
+        }
+        
         acc[deptName] = (acc[deptName] || 0) + 1
         return acc
-    }, {})
+    }, {} as Record<string, number>)
 
     const departmentStats = Object.keys(deptStatsVal || {}).map((key, index) => ({
         name: key,

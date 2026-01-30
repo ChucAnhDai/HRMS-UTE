@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase.server'
 import { Database } from '@/types/database'
 
-type Employee = Database['public']['Tables']['employees']['Row']
 
 export const employeeRepo = {
   // Lấy danh sách tất cả nhân viên kèm tên phòng ban
@@ -44,7 +43,7 @@ export const employeeRepo = {
   },
 
   // Tạo nhân viên mới
-  async createEmployee(employeeData: any) {
+  async createEmployee(employeeData: Database['public']['Tables']['employees']['Insert']) {
     const supabase = await createClient()
     
     // Convert keys from CamelCase (Form) to SnakeCase (DB) if needed
@@ -82,7 +81,7 @@ export const employeeRepo = {
   },
 
   // Cập nhật nhân viên
-  async updateEmployee(id: number, employeeData: any) {
+  async updateEmployee(id: number, employeeData: Database['public']['Tables']['employees']['Update']) {
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('employees')

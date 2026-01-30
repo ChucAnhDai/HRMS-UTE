@@ -1,29 +1,37 @@
-import { getCurrentUser } from '@/lib/auth-helpers'
-import { overtimeRepo } from '@/server/repositories/overtime-repo'
-import { employeeRepo } from '@/server/repositories/employee-repo'
-import OvertimeClientView from '@/components/overtime/OvertimeClientView'
+import { getCurrentUser } from "@/lib/auth-helpers";
+import { Employee } from "@/types";
+import { overtimeRepo } from "@/server/repositories/overtime-repo";
+import { employeeRepo } from "@/server/repositories/employee-repo";
+import OvertimeClientView from "@/components/overtime/OvertimeClientView";
 
 export default async function OvertimePage() {
-    const user = await getCurrentUser()
-    if (!user) return <div className="p-8 text-center text-red-500">Bạn chưa đăng nhập</div>
+  const user = await getCurrentUser();
+  if (!user)
+    return (
+      <div className="p-8 text-center text-red-500">Bạn chưa đăng nhập</div>
+    );
 
-    const isAdmin = ['ADMIN', 'MANAGER'].includes(user.role)
-    const filters = isAdmin ? undefined : { employee_id: Number(user.employeeId) }
-    
-    // Fetch requests
-    const requests = await overtimeRepo.getRequests(filters)
+  const isAdmin = ["ADMIN", "MANAGER"].includes(user.role);
+  const filters = isAdmin
+    ? undefined
+    : { employee_id: Number(user.employeeId) };
 
-    // Fetch employees for Admin selector
-    let employees: any[] = []
-    if (isAdmin) {
-        employees = await employeeRepo.getEmployees()
-    }
+  // Fetch requests
+  const requests = await overtimeRepo.getRequests(filters);
 
-    return <div className="p-8 max-w-[1600px] mx-auto">
-        <OvertimeClientView 
-            initialRequests={requests || []} 
-            isAdmin={isAdmin} 
-            employees={employees}
-        />
+  // Fetch employees for Admin selector
+  let employees: Employee[] = [];
+  if (isAdmin) {
+    employees = await employeeRepo.getEmployees();
+  }
+
+  return (
+    <div className="p-8 max-w-[1600px] mx-auto">
+      <OvertimeClientView
+        initialRequests={requests || []}
+        isAdmin={isAdmin}
+        employees={employees}
+      />
     </div>
+  );
 }

@@ -5,6 +5,7 @@ import { overtimeRepo } from '../repositories/overtime-repo'
 import { leaveRepo } from '../repositories/leave-repo'
 import { settingRepo } from '../repositories/setting-repo'
 import { rewardPenaltyRepo } from '../repositories/reward-penalty-repo'
+import { salaryAdvanceRepo } from '../repositories/salary-advance-repo'
 import { Payslip, PayslipUpdateDTO, LeaveRequest } from '../../types'
 
 export const payrollService = {

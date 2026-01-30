@@ -41,7 +41,7 @@ export async function changePasswordAction(currentPassword: string, newPassword:
     }
 
     return { success: true, message: 'Đổi mật khẩu thành công!' }
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Có lỗi xảy ra' }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Có lỗi xảy ra' }
   }
 }

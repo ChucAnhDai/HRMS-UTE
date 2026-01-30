@@ -31,7 +31,7 @@ export async function updateEmployeeRoleAction(employeeId: number, newRole: User
     revalidatePath('/employees')
     
     return { success: true, message: `Đã cập nhật role thành ${newRole}` }
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Có lỗi xảy ra' }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Có lỗi xảy ra' }
   }
 }

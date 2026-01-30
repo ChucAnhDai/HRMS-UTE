@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Diagram - HRM System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-6 flex items-center justify-between">
+            <div>
+                <a href="index.html" class="text-indigo-600 hover:text-indigo-800 mb-2 inline-flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Index
+                </a>
+                <h1 class="text-3xl font-bold text-gray-900">Database Diagram (ERD)</h1>
+                <p class="text-gray-600 mt-1">Entity Relationship Diagram for the Human Resource Management System.</p>
+            </div>
+            <button onclick="window.print()" class="px-4 py-2 bg-white border border-gray-300 rounded shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Print / Save Value
+            </button>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 overflow-x-auto">
+            <div class="mermaid">
+erDiagram
+    users {
+        bigint id PK
+        string name
+        string email UK
+        string role
+        string status
+        string password
+    }
+
+    employees {
+        bigint id PK
+        bigint user_id FK
+        bigint department_id FK
+        string first_name
+        string last_name
+        date hire_date
+        decimal salary
+        string employment_status
+        string email UK
+        string phone
+        int annual_leave_quota
+        int sick_leave_quota
+    }
+
+    departments {
+        bigint id PK
+        string name
+    }
+
+    attendances {
+        bigint id PK
+        bigint employee_id FK
+        date date
+        time check_in_time
+        time check_out_time
+        string status
+    }
+
+    leave_requests {
+        bigint id PK
+        bigint employee_id FK
+        string leave_type
+        date start_date
+        date end_date
+        string status
+        bigint action_by_user_id FK
+    }
+
+    payslips {
+        bigint id PK
+        bigint employee_id FK
+        int month
+        int year
+        decimal salary
+        decimal net_pay
+        string status
+    }
+
+    contracts {
+        bigint id PK
+        bigint employee_id FK
+        string contract_type
+        date start_date
+        date end_date
+    }
+
+    job_openings {
+        bigint id PK
+        bigint department_id FK
+        string title
+        string status
+    }
+
+    candidates {
+        bigint id PK
+        bigint job_opening_id FK
+        string first_name
+        string last_name
+        string email
+        string status
+    }
+
+    assets {
+        bigint id PK
+        string name
+        string asset_tag UK
+        string status
+    }
+
+    asset_assignments {
+        bigint id PK
+        bigint asset_id FK
+        bigint employee_id FK
+        date assigned_date
+        date returned_date
+    }
+
+    overtime_requests {
+        bigint id PK
+        bigint employee_id FK
+        date date
+        double hours
+        string status
+        bigint approved_by FK
+    }
+
+    salary_advances {
+        bigint id PK
+        bigint employee_id FK
+        decimal amount
+        string status
+    }
+
+    %% Relationships
+    users ||--o| employees : "has profile"
+    departments ||--o{ employees : "employs"
+    employees ||--o{ attendances : "has"
+    employees ||--o{ leave_requests : "makes"
+    employees ||--o{ payslips : "receives"
+    employees ||--o{ contracts : "signs"
+    employees ||--o{ asset_assignments : "assigned"
+    assets ||--o{ asset_assignments : "is_assigned"
+    departments ||--o{ job_openings : "posts"
+    job_openings ||--o{ candidates : "has"
+    employees ||--o{ overtime_requests : "requests"
+    employees ||--o{ salary_advances : "requests"
+    users ||--o{ leave_requests : "approves"
+            </div>
+        </div>
+    </div>
+</body>
+</html>

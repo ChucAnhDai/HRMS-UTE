@@ -9,11 +9,12 @@ export async function calculatePayrollAction(month: number, year: number) {
     const { requireRole } = await import('@/lib/auth-helpers')
     await requireRole(['ADMIN', 'MANAGER'])
     
-    await payrollService.calculateMonthlyPayroll(month, year)
+    await payrollService.generateMonthlyPayroll(month, year)
     revalidatePath('/payroll')
     return { success: true, message: 'Đã tính lương xong!' }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Lỗi tính lương:', error)
-    return { success: false, error: error.message || 'Có lỗi xảy ra khi tính lương' }
+    const message = error instanceof Error ? error.message : 'Có lỗi xảy ra khi tính lương'
+    return { success: false, error: message }
   }
 }

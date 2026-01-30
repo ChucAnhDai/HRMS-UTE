@@ -103,7 +103,11 @@ export interface LeaveRequest {
   created_at?: string
   
   // Relations
-  employee?: Employee
+  employees?: Employee | {
+    first_name: string
+    last_name: string
+    avatar: string | null
+  }
   approver?: User
 }
 

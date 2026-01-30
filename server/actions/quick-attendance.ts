@@ -48,8 +48,8 @@ export async function checkInAction() {
       success: true, 
       message: `Check in thành công lúc ${now.toLocaleTimeString('vi-VN')}!` 
     }
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Có lỗi xảy ra' }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Có lỗi xảy ra' }
   }
 }
 
@@ -97,8 +97,8 @@ export async function checkOutAction() {
       success: true, 
       message: `Check out thành công lúc ${now.toLocaleTimeString('vi-VN')}!` 
     }
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Có lỗi xảy ra' }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Có lỗi xảy ra' }
   }
 }
 
@@ -120,7 +120,7 @@ export async function getTodayAttendanceStatus() {
       .single()
 
     return data
-  } catch (error) {
+  } catch {
     return null
   }
 }

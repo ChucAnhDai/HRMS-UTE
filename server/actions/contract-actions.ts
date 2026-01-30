@@ -24,9 +24,9 @@ export async function updateContractAction(prevState: ActionState, formData: For
     revalidatePath(`/employees/${employeeId}`)
     
     return { success: true, message: 'Cập nhật hợp đồng thành công' }
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
-      error: error.message || 'Lỗi khi cập nhật hợp đồng'
+      error: error instanceof Error ? error.message : 'Lỗi khi cập nhật hợp đồng'
     }
   }
 }
@@ -43,9 +43,9 @@ export async function deleteContractAction(contractId: number, employeeId: numbe
     revalidatePath(`/employees/${employeeId}`)
     
     return { success: true, message: 'Xóa hợp đồng thành công' }
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
-      error: error.message || 'Lỗi khi xóa hợp đồng'
+      error: error instanceof Error ? error.message : 'Lỗi khi xóa hợp đồng'
     }
   }
 }

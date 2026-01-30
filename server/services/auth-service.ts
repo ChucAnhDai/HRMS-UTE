@@ -16,27 +16,29 @@ export const authService = {
     try {
         const data = await authRepo.signInWithPassword(credentials)
         return data
-    } catch (error: any) {
+    } catch (error: unknown) {
         // Debugging: In lỗi chi tiết ra console server để xem nguyên nhân
         console.error('Login Error Details:', error)
 
+        const message = error instanceof Error ? error.message : String(error)
+
         // 3. Error Handling & Sanitization (Security Layer 2)
         // Không trả nguyên lỗi của DB/Auth provider ra ngoài UI
-        if (error.message.includes('Invalid login credentials')) {
+        if (message.includes('Invalid login credentials')) {
             throw new Error('Email hoặc mật khẩu không chính xác')
         }
-        if (error.message.includes('Email not confirmed')) {
+        if (message.includes('Email not confirmed')) {
             throw new Error('Vui lòng xác thực email trước khi đăng nhập')
         }
         
-        throw new Error(`Đăng nhập thất bại: ${error.message}`) // Tạm thời hiện lỗi chi tiết để debug
+        throw new Error(`Đăng nhập thất bại: ${message}`) // Tạm thời hiện lỗi chi tiết để debug
     }
   },
 
   async logout() {
     try {
         await authRepo.signOut()
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Logout error:', error)
         // Logout lỗi thì thôi, không cần throw cho user biết
     }

@@ -16,8 +16,9 @@ export async function saveAssetAction(prevState: { success?: boolean; error?: st
     }
     revalidatePath('/instruments')
     return { success: true, error: '' }
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Có lỗi xảy ra' }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Có lỗi xảy ra'
+    return { success: false, error: message }
   }
 }
 
@@ -27,8 +28,9 @@ export async function createAssetAction(prevState: { success?: boolean; error?: 
     await assetService.createAsset(formData)
     revalidatePath('/instruments')
     return { success: true, error: '' }
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Có lỗi xảy ra' }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Có lỗi xảy ra'
+    return { success: false, error: message }
   }
 }
 
@@ -37,8 +39,9 @@ export async function updateAssetAction(id: number, prevState: { success?: boole
     await assetService.updateAsset(id, formData)
     revalidatePath('/instruments')
     return { success: true, error: '' }
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Có lỗi xảy ra' }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Có lỗi xảy ra'
+    return { success: false, error: message }
   }
 }
 
@@ -47,7 +50,8 @@ export async function deleteAssetAction(id: number) {
     await assetService.deleteAsset(id)
     revalidatePath('/instruments')
     return { success: true }
-  } catch (error: any) {
-    return { success: false, error: error.message }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Có lỗi xảy ra'
+    return { success: false, error: message }
   }
 }

@@ -27,8 +27,8 @@ export async function createRewardPenaltyAction(formData: FormData) {
     })
     revalidatePath('/payroll/adjustments')
     return { success: true, message: 'Thêm mới thành công' }
-  } catch (error: any) {
-    return { success: false, message: error.message || 'Lỗi khi thêm mới' }
+  } catch (error: unknown) {
+    return { success: false, message: error instanceof Error ? error.message : 'Lỗi khi thêm mới' }
   }
 }
 

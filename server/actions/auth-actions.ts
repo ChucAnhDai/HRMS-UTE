@@ -3,16 +3,17 @@
 import { authService } from '@/server/services/auth-service'
 import { redirect } from 'next/navigation'
 
-export async function loginAction(prevState: any, formData: FormData) {
+export async function loginAction(prevState: { error?: string } | undefined, formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
   try {
     // Gọi Service thay vì gọi trực tiếp DB
     await authService.login({ email, password })
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Trả lỗi về cho UI hiển thị
-    return { error: error.message }
+    const message = error instanceof Error ? error.message : 'Đăng nhập thất bại'
+    return { error: message }
   }
 
   // Redirect phải nằm ngoài try/catch trong Next.js Server Actions

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Flows / Journey Maps - HRM System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-6 flex items-center justify-between">
+            <div>
+                <a href="index.html" class="text-indigo-600 hover:text-indigo-800 mb-2 inline-flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Index
+                </a>
+                <h1 class="text-3xl font-bold text-gray-900">User Flows</h1>
+                <p class="text-gray-600 mt-1">Visual pathways for common user tasks.</p>
+            </div>
+            <button onclick="window.print()" class="px-4 py-2 bg-white border border-gray-300 rounded shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Print / Save Value
+            </button>
+        </div>
+
+        <!-- Flow 1: Onboarding -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8 overflow-x-auto">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">1. Employee Onboarding Flow</h2>
+            <div class="mermaid">
+flowchart LR
+    Start([Start]) --> Login[Admin Logs In]
+    Login --> NavEmp[Navigate to Employees]
+    NavEmp --> AddBtn[Click 'Add Employee']
+    AddBtn --> Form[Fill Personal & Job Details]
+    Form --> Submit{Submit?}
+    Submit -- No --> Form
+    Submit -- Yes --> Created[Employee Record Created]
+    Created --> CreateUser[Create User Account]
+    CreateUser --> AssignRole[Assign Role & Dept]
+    AssignRole --> Contract[Create Contract]
+    Contract --> Assets[Assign Assets]
+    Assets --> Email[Send Credentials to Employee]
+    Email --> End([End])
+            </div>
+        </div>
+
+        <!-- Flow 2: Leave Request -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8 overflow-x-auto">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">2. Search & Apply for Leave</h2>
+            <div class="mermaid">
+sequenceDiagram
+    participant E as Employee
+    participant S as System
+    participant M as Manager
+
+    E->>S: Log In
+    E->>S: Navigate to 'Leave'
+    E->>S: Click 'New Request'
+    E->>S: Choose Type & Dates
+    E->>S: Submit Request
+    S->>S: Validate Quota
+    alt Quota Exceeded
+        S-->>E: Error: Insufficient Balance
+    else Valid Request
+        S->>M: Notify Manager
+        M->>S: Review Request
+        alt Approved
+            M->>S: Approve
+            S->>E: Notification: Approved
+            S->>S: Deduct Leave Balance
+        else Rejected
+            M->>S: Reject
+            S->>E: Notification: Rejected
+        end
+    end
+            </div>
+        </div>
+
+        <!-- Flow 3: Payroll Generation -->
+        <div class="bg-white rounded-xl shadow-lg p-6 overflow-x-auto">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">3. Monthly Payroll Process</h2>
+            <div class="mermaid">
+stateDiagram-v2
+    [*] --> CollectData
+    CollectData --> ReviewAttendance
+    ReviewAttendance --> CalculateOT
+    CalculateOT --> ApplyDeductions
+    ApplyDeductions --> GenerateDraft
+    GenerateDraft --> Review : Admin Review
+    Review --> corrections : Errors Found
+    corrections --> GenerateDraft
+    Review --> Approve : No Errors
+    Approve --> PublishPayslips
+    PublishPayslips --> NotifyEmployees
+    NotifyEmployees --> [*]
+            </div>
+        </div>
+    </div>
+</body>
+</html>

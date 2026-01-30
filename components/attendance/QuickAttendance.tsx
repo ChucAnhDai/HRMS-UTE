@@ -1,60 +1,71 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import { checkInAction, checkOutAction } from '@/server/actions/quick-attendance'
+import React, { useState } from "react";
+import {
+  checkInAction,
+  checkOutAction,
+} from "@/server/actions/quick-attendance";
+
+interface AttendanceStatus {
+  check_in_time?: string | null;
+  check_out_time?: string | null;
+}
 
 interface Props {
-  initialStatus: any
+  initialStatus: AttendanceStatus | null;
 }
 
 export default function QuickAttendance({ initialStatus }: Props) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   async function handleCheckIn() {
-    setIsLoading(true)
-    setMessage(null)
+    setIsLoading(true);
+    setMessage(null);
 
-    const result = await checkInAction()
-    setIsLoading(false)
+    const result = await checkInAction();
+    setIsLoading(false);
 
     if (result.success) {
-      setMessage({ type: 'success', text: 'Check In thành công!' })
-      setTimeout(() => window.location.reload(), 1500)
+      setMessage({ type: "success", text: "Check In thành công!" });
+      setTimeout(() => window.location.reload(), 1500);
     } else {
-      setMessage({ type: 'error', text: result.error || 'Có lỗi xảy ra' })
+      setMessage({ type: "error", text: result.error || "Có lỗi xảy ra" });
     }
   }
 
   async function handleCheckOut() {
-    setIsLoading(true)
-    setMessage(null)
+    setIsLoading(true);
+    setMessage(null);
 
-    const result = await checkOutAction()
-    setIsLoading(false)
+    const result = await checkOutAction();
+    setIsLoading(false);
 
     if (result.success) {
-      setMessage({ type: 'success', text: 'Check Out thành công!' })
-      setTimeout(() => window.location.reload(), 1500)
+      setMessage({ type: "success", text: "Check Out thành công!" });
+      setTimeout(() => window.location.reload(), 1500);
     } else {
-      setMessage({ type: 'error', text: result.error || 'Có lỗi xảy ra' })
+      setMessage({ type: "error", text: result.error || "Có lỗi xảy ra" });
     }
   }
 
-  const hasCheckedIn = !!initialStatus?.check_in_time
-  const hasCheckedOut = !!initialStatus?.check_out_time
+  const hasCheckedIn = !!initialStatus?.check_in_time;
+  const hasCheckedOut = !!initialStatus?.check_out_time;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       {/* Success Banner */}
-      {message?.type === 'success' && (
+      {message?.type === "success" && (
         <div className="bg-teal-50 border-b border-teal-100 px-6 py-4">
           <p className="text-teal-800 font-medium">{message.text}</p>
         </div>
       )}
 
       {/* Error Banner */}
-      {message?.type === 'error' && (
+      {message?.type === "error" && (
         <div className="bg-red-50 border-b border-red-100 px-6 py-4">
           <p className="text-red-800 font-medium">{message.text}</p>
         </div>
@@ -63,14 +74,15 @@ export default function QuickAttendance({ initialStatus }: Props) {
       {/* Content */}
       <div className="p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">
-          Chấm công hôm nay ({new Date().toLocaleDateString('vi-VN')})
+          Chấm công hôm nay ({new Date().toLocaleDateString("vi-VN")})
         </h2>
 
         {/* Status Display */}
         <div className="space-y-2 mb-6">
           {hasCheckedIn ? (
             <p className="text-green-600 font-medium">
-              Đã Check In lúc: <span className="font-bold">{initialStatus.check_in_time}</span>
+              Đã Check In lúc:{" "}
+              <span className="font-bold">{initialStatus.check_in_time}</span>
             </p>
           ) : (
             <p className="text-gray-500">Chưa check in</p>
@@ -78,7 +90,8 @@ export default function QuickAttendance({ initialStatus }: Props) {
 
           {hasCheckedOut ? (
             <p className="text-red-600 font-medium">
-              Đã Check Out lúc: <span className="font-bold">{initialStatus.check_out_time}</span>
+              Đã Check Out lúc:{" "}
+              <span className="font-bold">{initialStatus.check_out_time}</span>
             </p>
           ) : hasCheckedIn ? (
             <p className="text-gray-500">Chưa check out</p>
@@ -100,7 +113,7 @@ export default function QuickAttendance({ initialStatus }: Props) {
                 disabled={isLoading}
                 className="px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
-                {isLoading ? 'Đang xử lý...' : 'Check In'}
+                {isLoading ? "Đang xử lý..." : "Check In"}
               </button>
             )}
 
@@ -110,12 +123,12 @@ export default function QuickAttendance({ initialStatus }: Props) {
                 disabled={isLoading}
                 className="px-6 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
-                {isLoading ? 'Đang xử lý...' : 'Check Out'}
+                {isLoading ? "Đang xử lý..." : "Check Out"}
               </button>
             )}
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

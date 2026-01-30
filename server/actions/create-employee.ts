@@ -4,7 +4,7 @@ import { employeeService } from '@/server/services/employee-service'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
-export async function createEmployeeAction(prevState: any, formData: FormData) {
+export async function createEmployeeAction(prevState: unknown, formData: FormData) {
   try {
     // Kiểm tra quyền: Chỉ Admin và Manager mới được tạo nhân viên
     const { requireRole } = await import('@/lib/auth-helpers')
@@ -15,9 +15,9 @@ export async function createEmployeeAction(prevState: any, formData: FormData) {
     // Xóa cache của trang danh sách để nó hiện dữ liệu mới ngay lập tức
     revalidatePath('/employees')
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
-      error: error.message || 'Đã có lỗi xảy ra khi tạo nhân viên'
+      error: error instanceof Error ? error.message : 'Đã có lỗi xảy ra khi tạo nhân viên'
     }
   }
 

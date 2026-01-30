@@ -9,8 +9,9 @@ export async function assignAssetAction(assetId: number, employeeId: number) {
     revalidatePath('/instruments')
     revalidatePath(`/employees/${employeeId}`)
     return { success: true, message: 'Cấp phát tài sản thành công' }
-  } catch (error: any) {
-    return { success: false, error: error.message }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Có lỗi xảy ra'
+    return { success: false, error: message }
   }
 }
 
@@ -22,7 +23,8 @@ export async function unassignAssetAction(assetId: number, employeeId?: number) 
       revalidatePath(`/employees/${employeeId}`)
     }
     return { success: true, message: 'Thu hồi tài sản thành công' }
-  } catch (error: any) {
-    return { success: false, error: error.message }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Có lỗi xảy ra'
+    return { success: false, error: message }
   }
 }

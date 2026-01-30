@@ -1,115 +1,120 @@
-'use client'
+"use client";
 
 import React, { useState } from "react";
-import { Plus, Search, Filter, MoreHorizontal, Check, X, Loader2 } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Check,
+  X,
+  Loader2,
+} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { approveLeaveAction, rejectLeaveAction } from "@/server/actions/leave-actions";
+import {
+  approveLeaveAction,
+  rejectLeaveAction,
+} from "@/server/actions/leave-actions";
 import { useRouter } from "next/navigation";
 import LeaveRequestForm from "@/components/leave/LeaveRequestForm";
-
-interface LeaveRequest {
-  id: number
-  leave_type: string
-  start_date: string
-  end_date: string
-  reason: string | null
-  status: string
-  rejection_reason: string | null
-  employees: {
-     first_name: string
-     last_name: string
-     avatar: string | null
-  }
-}
+import { Employee, LeaveRequest } from "@/types";
 
 interface Props {
-  leaves: any[]
-  employees?: any[]
+  leaves: LeaveRequest[];
+  employees?: Employee[];
   currentUser?: {
-    employeeId: number | null
-    role: string
-    employeeData?: any
-  } | null
+    employeeId: number | null;
+    role: string;
+    employeeData?: Employee;
+  } | null;
 }
 
-export default function LeaveTableView({ leaves, employees = [], currentUser = null }: Props) {
-  const router = useRouter()
-  const [loadingId, setLoadingId] = useState<number | null>(null)
-  
+export default function LeaveTableView({
+  leaves,
+  employees = [],
+  currentUser = null,
+}: Props) {
+  const router = useRouter();
+  const [loadingId, setLoadingId] = useState<number | null>(null);
+
   // State cho modal từ chối
-  const [rejectModalOpen, setRejectModalOpen] = useState(false)
-  const [rejectingLeaveId, setRejectingLeaveId] = useState<number | null>(null)
-  const [rejectionReason, setRejectionReason] = useState('')
-  const [rejectError, setRejectError] = useState('')
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectingLeaveId, setRejectingLeaveId] = useState<number | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [rejectError, setRejectError] = useState("");
 
   // Kiểm tra quyền duyệt đơn - Chỉ ADMIN, MANAGER mới được duyệt/từ chối
-  const canApprove = currentUser?.role && ['ADMIN', 'MANAGER'].includes(currentUser.role)
+  const canApprove =
+    currentUser?.role && ["ADMIN", "MANAGER"].includes(currentUser.role);
 
   const handleApprove = async (id: number) => {
-      if (!canApprove) {
-        alert('Bạn không có quyền duyệt đơn nghỉ phép!')
-        return
-      }
-      setLoadingId(id)
-      await approveLeaveAction(id)
-      setLoadingId(null)
-      router.refresh()
-  }
+    if (!canApprove) {
+      alert("Bạn không có quyền duyệt đơn nghỉ phép!");
+      return;
+    }
+    setLoadingId(id);
+    await approveLeaveAction(id);
+    setLoadingId(null);
+    router.refresh();
+  };
 
   // Mở modal từ chối
   const openRejectModal = (id: number) => {
-      if (!canApprove) {
-        alert('Bạn không có quyền từ chối đơn nghỉ phép!')
-        return
-      }
-      setRejectingLeaveId(id)
-      setRejectionReason('')
-      setRejectError('')
-      setRejectModalOpen(true)
-  }
+    if (!canApprove) {
+      alert("Bạn không có quyền từ chối đơn nghỉ phép!");
+      return;
+    }
+    setRejectingLeaveId(id);
+    setRejectionReason("");
+    setRejectError("");
+    setRejectModalOpen(true);
+  };
 
   // Xử lý từ chối đơn
   const handleReject = async () => {
-      if (!rejectingLeaveId) return
-      
-      if (!rejectionReason.trim()) {
-        setRejectError('Vui lòng nhập lý do từ chối')
-        return
-      }
-      
-      setLoadingId(rejectingLeaveId)
-      const result = await rejectLeaveAction(rejectingLeaveId, rejectionReason)
-      setLoadingId(null)
-      
-      if (result.error) {
-        setRejectError(result.error)
-        return
-      }
-      
-      // Đóng modal và refresh
-      setRejectModalOpen(false)
-      setRejectingLeaveId(null)
-      setRejectionReason('')
-      router.refresh()
-  }
+    if (!rejectingLeaveId) return;
+
+    if (!rejectionReason.trim()) {
+      setRejectError("Vui lòng nhập lý do từ chối");
+      return;
+    }
+
+    setLoadingId(rejectingLeaveId);
+    const result = await rejectLeaveAction(rejectingLeaveId, rejectionReason);
+    setLoadingId(null);
+
+    if (result.error) {
+      setRejectError(result.error);
+      return;
+    }
+
+    // Đóng modal và refresh
+    setRejectModalOpen(false);
+    setRejectingLeaveId(null);
+    setRejectionReason("");
+    router.refresh();
+  };
 
   // Tính số ngày nghỉ
   const calculateDays = (start: string, end: string) => {
-      const d1 = new Date(start)
-      const d2 = new Date(end)
-      const diffTime = Math.abs(d2.getTime() - d1.getTime())
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 
-      return `${diffDays} ngày`
-  }
+    const d1 = new Date(start);
+    const d2 = new Date(end);
+    const diffTime = Math.abs(d2.getTime() - d1.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    return `${diffDays} ngày`;
+  };
 
   return (
     <div className="space-y-6">
       {/* Header & Breadcrumb */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/" className="flex items-center gap-1 hover:text-blue-600 transition-colors">
+          <Link
+            href="/"
+            className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+          >
             Trang chủ
           </Link>
           <span className="text-gray-300">/</span>
@@ -121,14 +126,20 @@ export default function LeaveTableView({ leaves, employees = [], currentUser = n
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex gap-4">
-          <button className="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-sm">Danh sách đơn</button>
+          <button className="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-sm">
+            Danh sách đơn
+          </button>
           <button className="px-4 py-2 text-sm font-semibold rounded-lg bg-white text-gray-600 border border-gateway-100 hover:bg-gray-50 flex items-center gap-2">
-             Báo cáo nghỉ phép
+            Báo cáo nghỉ phép
           </button>
         </div>
-        <button 
-            onClick={() => document.getElementById('leave-form-modal')?.classList.remove('hidden')}
-            className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-blue-700 transition-colors"
+        <button
+          onClick={() =>
+            document
+              .getElementById("leave-form-modal")
+              ?.classList.remove("hidden")
+          }
+          className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-blue-700 transition-colors"
         >
           <Plus className="h-4 w-4" /> Tạo đơn nghỉ
         </button>
@@ -141,9 +152,9 @@ export default function LeaveTableView({ leaves, employees = [], currentUser = n
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Tìm kiếm..." 
+              <input
+                type="text"
+                placeholder="Tìm kiếm..."
                 className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 w-48 sm:w-64"
               />
             </div>
@@ -152,104 +163,169 @@ export default function LeaveTableView({ leaves, employees = [], currentUser = n
             </button>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
-            <table className="w-full text-left">
+          <table className="w-full text-left">
             <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">Nhân viên</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">Loại nghỉ</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">Từ ngày</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">Đến ngày</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700 text-center">Số ngày</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">Lý do</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700 text-center">Trạng thái</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700 text-right">Thao tác</th>
-                </tr>
+              <tr>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">
+                  Nhân viên
+                </th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">
+                  Loại nghỉ
+                </th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">
+                  Từ ngày
+                </th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">
+                  Đến ngày
+                </th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700 text-center">
+                  Số ngày
+                </th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">
+                  Lý do
+                </th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700 text-center">
+                  Trạng thái
+                </th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700 text-right">
+                  Thao tác
+                </th>
+              </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-                {leaves.length === 0 ? (
-                    <tr>
-                        <td colSpan={8} className="text-center py-8 text-sm text-gray-500">Chưa có dữ liệu nghỉ phép</td>
-                    </tr>
-                ) : leaves.map((leave: LeaveRequest) => (
-                <tr key={leave.id} className="hover:bg-gray-50 transition-colors group">
+              {leaves.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="text-center py-8 text-sm text-gray-500"
+                  >
+                    Chưa có dữ liệu nghỉ phép
+                  </td>
+                </tr>
+              ) : (
+                leaves.map((leave: LeaveRequest) => (
+                  <tr
+                    key={leave.id}
+                    className="hover:bg-gray-50 transition-colors group"
+                  >
                     <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3">
                         <div className="relative w-10 h-10 rounded-full overflow-hidden border border-gray-200">
-                            <Image 
-                                src={leave.employees?.avatar || `https://ui-avatars.com/api/?name=${leave.employees?.first_name || 'U'}+${leave.employees?.last_name || 'N'}&background=random`} 
-                                alt="avatar" 
-                                fill
-                                className="object-cover"
-                            />
+                          <Image
+                            src={
+                              leave.employees?.avatar ||
+                              `https://ui-avatars.com/api/?name=${leave.employees?.first_name || "U"}+${leave.employees?.last_name || "N"}&background=random`
+                            }
+                            alt="avatar"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
-                        <span className="text-sm font-bold text-gray-800">{leave.employees?.last_name || ''} {leave.employees?.first_name || 'Unknown'}</span>
-                    </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 font-medium">{leave.leave_type}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{new Date(leave.start_date).toLocaleDateString('vi-VN')}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{new Date(leave.end_date).toLocaleDateString('vi-VN')}</td>
-                    <td className="px-6 py-4 text-sm text-gray-800 font-bold text-center">{calculateDays(leave.start_date, leave.end_date)}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-[150px] truncate" title={leave.reason || ''}>{leave.reason || '---'}</td>
-                    <td className="px-6 py-4 text-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <span className={cn(
-                          "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider inline-block",
-                          leave.status === "Approved" ? "bg-green-100 text-green-700" : 
-                          leave.status === "Pending" ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
-                      )}>
-                          {leave.status === 'Approved' ? 'Đã duyệt' : leave.status === 'Pending' ? 'Chờ duyệt' : 'Từ chối'}
-                      </span>
-                      {/* Hiển thị lý do từ chối nếu có */}
-                      {leave.status === 'Rejected' && leave.rejection_reason && (
-                        <span 
-                          className="text-xs text-red-600 max-w-[120px] truncate cursor-help" 
-                          title={leave.rejection_reason}
-                        >
-                          {leave.rejection_reason}
+                        <span className="text-sm font-bold text-gray-800">
+                          {leave.employees?.last_name || ""}{" "}
+                          {leave.employees?.first_name || "Unknown"}
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600 font-medium">
+                      {leave.leave_type}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {new Date(leave.start_date).toLocaleDateString("vi-VN")}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {new Date(leave.end_date).toLocaleDateString("vi-VN")}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-800 font-bold text-center">
+                      {calculateDays(leave.start_date, leave.end_date)}
+                    </td>
+                    <td
+                      className="px-6 py-4 text-sm text-gray-500 max-w-[150px] truncate"
+                      title={leave.reason || ""}
+                    >
+                      {leave.reason || "---"}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span
+                          className={cn(
+                            "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider inline-block",
+                            leave.status === "Approved"
+                              ? "bg-green-100 text-green-700"
+                              : leave.status === "Pending"
+                                ? "bg-orange-100 text-orange-700"
+                                : "bg-red-100 text-red-700",
+                          )}
+                        >
+                          {leave.status === "Approved"
+                            ? "Đã duyệt"
+                            : leave.status === "Pending"
+                              ? "Chờ duyệt"
+                              : "Từ chối"}
+                        </span>
+                        {/* Hiển thị lý do từ chối nếu có */}
+                        {leave.status === "Rejected" &&
+                          leave.rejection_reason && (
+                            <span
+                              className="text-xs text-red-600 max-w-[120px] truncate cursor-help"
+                              title={leave.rejection_reason}
+                            >
+                              {leave.rejection_reason}
+                            </span>
+                          )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                        {/* Chỉ ADMIN, MANAGER mới thấy nút duyệt/từ chối */}
-                        {canApprove && leave.status === 'Pending' ? (
-                            <div className="flex items-center justify-end gap-2">
-                                <button 
-                                    onClick={() => handleApprove(leave.id)}
-                                    disabled={loadingId === leave.id}
-                                    className="p-1.5 bg-green-50 text-green-600 rounded hover:bg-green-100 disabled:opacity-50" title="Duyệt"
-                                >
-                                    {loadingId === leave.id ? <Loader2 className="w-4 h-4 animate-spin"/> : <Check className="w-4 h-4" />}
-                                </button>
-                                <button 
-                                    onClick={() => openRejectModal(leave.id)}
-                                    disabled={loadingId === leave.id}
-                                    className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 disabled:opacity-50" title="Từ chối"
-                                >
-                                    {loadingId === leave.id ? <Loader2 className="w-4 h-4 animate-spin"/> : <X className="w-4 h-4" />}
-                                </button>
-                            </div>
-                        ) : canApprove ? (
-                            <button className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
-                                <MoreHorizontal className="h-4 w-4" />
-                            </button>
-                        ) : (
-                            // Nhân viên thường chỉ thấy trạng thái, không có nút thao tác
-                            <span className="text-xs text-gray-400">---</span>
-                        )}
+                      {/* Chỉ ADMIN, MANAGER mới thấy nút duyệt/từ chối */}
+                      {canApprove && leave.status === "Pending" ? (
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleApprove(leave.id)}
+                            disabled={loadingId === leave.id}
+                            className="p-1.5 bg-green-50 text-green-600 rounded hover:bg-green-100 disabled:opacity-50"
+                            title="Duyệt"
+                          >
+                            {loadingId === leave.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Check className="w-4 h-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => openRejectModal(leave.id)}
+                            disabled={loadingId === leave.id}
+                            className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 disabled:opacity-50"
+                            title="Từ chối"
+                          >
+                            {loadingId === leave.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <X className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      ) : canApprove ? (
+                        <button className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </button>
+                      ) : (
+                        // Nhân viên thường chỉ thấy trạng thái, không có nút thao tác
+                        <span className="text-xs text-gray-400">---</span>
+                      )}
                     </td>
-                </tr>
-                ))}
+                  </tr>
+                ))
+              )}
             </tbody>
-            </table>
+          </table>
         </div>
       </div>
-      
+
       {/* Modal tạo đơn nghỉ */}
       <LeaveRequestForm employees={employees} currentUser={currentUser} />
-      
+
       {/* Modal từ chối đơn nghỉ */}
       {rejectModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -259,16 +335,18 @@ export default function LeaveTableView({ leaves, employees = [], currentUser = n
                 <X className="w-5 h-5 text-red-600" />
                 Từ chối đơn nghỉ phép
               </h3>
-              <p className="text-sm text-gray-500 mt-1">Vui lòng nhập lý do từ chối để nhân viên biết</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Vui lòng nhập lý do từ chối để nhân viên biết
+              </p>
             </div>
-            
+
             <div className="p-6">
               {rejectError && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                   {rejectError}
                 </div>
               )}
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
                   Lý do từ chối <span className="text-red-500">*</span>
@@ -281,15 +359,15 @@ export default function LeaveTableView({ leaves, employees = [], currentUser = n
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none bg-white text-gray-900 placeholder:text-gray-400"
                 />
               </div>
-              
+
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   type="button"
                   onClick={() => {
-                    setRejectModalOpen(false)
-                    setRejectingLeaveId(null)
-                    setRejectionReason('')
-                    setRejectError('')
+                    setRejectModalOpen(false);
+                    setRejectingLeaveId(null);
+                    setRejectionReason("");
+                    setRejectError("");
                   }}
                   className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
                 >

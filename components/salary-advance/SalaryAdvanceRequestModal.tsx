@@ -16,7 +16,7 @@ import { PlusCircle, Loader2 } from "lucide-react";
 import { createSalaryAdvanceAction } from "@/server/actions/salary-advance-actions";
 import { useToast } from "@/hooks/use-toast";
 
-const initialState = {
+const initialState: { error?: string; success?: boolean } = {
   error: "",
   success: false,
 };
@@ -36,8 +36,11 @@ export default function SalaryAdvanceRequestModal() {
         description: "Yêu cầu tạm ứng đã được gửi thành công.",
         variant: "default",
       });
-      setOpen(false);
-    } else if (state.error) {
+      const timer = setTimeout(() => {
+        setOpen(false);
+      }, 0);
+      return () => clearTimeout(timer);
+    } else if (state.error && state.error !== "") {
       toast({
         title: "Lỗi",
         description: state.error,
@@ -45,18 +48,6 @@ export default function SalaryAdvanceRequestModal() {
       });
     }
   }, [state, toast]);
-
-  const formatCurrency = (value: string) => {
-    // Remove non-digits
-    const number = value.replace(/\D/g, "");
-    // Format with separators
-    return Number(number).toLocaleString("vi-VN");
-  };
-
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Just a helper if needed, but for simplicity we rely on type="number"
-    // OR we can mask it. For now let's use simple number input.
-  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

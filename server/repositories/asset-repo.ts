@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase.server'
+import { Database } from '@/types/database'
 
 export const assetRepo = {
   // Lấy danh sách tài sản
@@ -22,7 +23,7 @@ export const assetRepo = {
   },
 
   // Tạo tài sản mới
-  async createAsset(asset: any) {
+  async createAsset(asset: Database['public']['Tables']['assets']['Insert']) {
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('assets')
@@ -35,7 +36,7 @@ export const assetRepo = {
   },
 
   // Cập nhật tài sản
-  async updateAsset(id: number, asset: any) {
+  async updateAsset(id: number, asset: Database['public']['Tables']['assets']['Update']) {
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('assets')

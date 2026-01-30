@@ -17,7 +17,8 @@ export async function createEmployeeAccountAction(employeeId: number, email: str
         
         revalidatePath(`/employees/${employeeId}`)
         return { success: true, message: 'Đã cấp tài khoản thành công!' }
-    } catch (error: any) {
-        return { success: false, error: error.message }
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Có lỗi xảy ra'
+        return { success: false, error: message }
     }
 }

@@ -22,9 +22,9 @@ export async function createContractAction(prevState: ActionState, formData: For
     revalidatePath(`/employees/${employeeId}/edit`)
     
     return { success: true, message: 'Thêm hợp đồng thành công' }
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
-      error: error.message || 'Lỗi khi tạo hợp đồng'
+      error: error instanceof Error ? error.message : 'Lỗi khi tạo hợp đồng'
     }
   }
 }

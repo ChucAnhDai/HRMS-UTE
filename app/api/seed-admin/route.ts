@@ -20,7 +20,8 @@ export async function GET() {
     const password = 'admin123@Password' // Mật khẩu mạnh mẫu
 
     // 1. Tạo User trong Auth System
-    const { data: user, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    // 1. Tạo User trong Auth System
+    const { error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true
@@ -76,7 +77,8 @@ export async function GET() {
         uid: adminUser.id 
     })
 
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

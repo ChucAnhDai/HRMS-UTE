@@ -8,8 +8,9 @@ export async function checkInAction(employeeId: number) {
     await attendanceService.performCheckIn(employeeId)
     revalidatePath('/calendar')
     return { success: true, message: 'Check-in thành công!' }
-  } catch (error: any) {
-    return { error: error.message || 'Lỗi Check-in' }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Lỗi Check-in'
+    return { error: message }
   }
 }
 
@@ -18,7 +19,8 @@ export async function checkOutAction(employeeId: number) {
     await attendanceService.performCheckOut(employeeId)
     revalidatePath('/calendar')
     return { success: true, message: 'Check-out thành công!' }
-  } catch (error: any) {
-    return { error: error.message || 'Lỗi Check-out' }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Lỗi Check-out'
+    return { error: message }
   }
 }

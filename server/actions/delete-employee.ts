@@ -12,9 +12,9 @@ export async function deleteEmployeeAction(id: number) {
     await employeeService.deleteEmployee(id)
     revalidatePath('/employees')
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
-      error: error.message || 'Xóa nhân viên thất bại'
+      error: error instanceof Error ? error.message : 'Xóa nhân viên thất bại'
     }
   }
 }
