@@ -12,6 +12,7 @@ export const employeeRepo = {
       .from('employees')
       .select(`
         *,
+        auth_user_id,
         departments (
           name
         )

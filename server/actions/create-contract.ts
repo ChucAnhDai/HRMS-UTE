@@ -15,6 +15,18 @@ export async function createContractAction(prevState: ActionState, formData: For
     const { requireRole } = await import('@/lib/auth-helpers')
     await requireRole(['ADMIN', 'MANAGER'])
     
+    // Validate
+    const rawData = Object.fromEntries(formData.entries());
+    const { ContractSchema } = await import('@/lib/schemas/contract.schema');
+    
+    // Chuyển đổi dữ liệu và validate (Vì formData.get trả về string, coerce trong schema sẽ lo việc chuyển số)
+    const result = ContractSchema.safeParse(rawData);
+    
+    if (!result.success) {
+      const errorMessages = result.error.issues.map(issue => issue.message).join(', ');
+      return { error: errorMessages };
+    }
+
     await contractService.createContract(formData)
     
     // Refresh lại trang hiện tại (dựa trên employee_id gửi lên)

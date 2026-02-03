@@ -24,3 +24,18 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer base {
+  input,
+  textarea,
+  select {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    opacity: 1 !important;
+  }
+
+  ::placeholder {
+    color: #6b7280 !important; /* gray-500 */
+    opacity: 1 !important;
+  }
+}

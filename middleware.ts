@@ -34,13 +34,15 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Các route cần bảo vệ (Dashboard)
+  // Các route cần bảo vệ (Dashboard)
   const isProtectedRoute = 
        request.nextUrl.pathname.startsWith('/employees') || 
        request.nextUrl.pathname.startsWith('/calendar') ||
        request.nextUrl.pathname.startsWith('/leave') ||
        request.nextUrl.pathname.startsWith('/payroll') ||
        request.nextUrl.pathname.startsWith('/instruments') ||
-       request.nextUrl.pathname === '/'
+       request.nextUrl.pathname.startsWith('/dashboard') 
+       // Removed '/' from protected routes
 
   // Nếu truy cập route bảo vệ mà chưa login -> Redirect về Login
   if (isProtectedRoute && !user) {
@@ -49,8 +51,23 @@ export async function middleware(request: NextRequest) {
 
   // Nếu đã login mà cố vào trang Login -> Redirect về Dashboard
   if (request.nextUrl.pathname === '/login' && user) {
-    return NextResponse.redirect(new URL('/', request.url))
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
+  
+  // Nếu đã login mà vào trang chủ (Landing) -> Redirect về Dashboard 
+  // (Optional: Giữ lại nếu muốn user đã login luôn vào dashboard)
+  // Tuy nhiên yêu cầu của user là: "nhấn nút login mới chuyển".
+  // Nhưng thông thường đã login thì vào root nên vào dashboard?
+  // User bảo: "npm run dev ... hien thi trang gioi thieu ... nhan login -> chuyen den login"
+  // Nếu user ĐÃ login, vào /login thì middleware chuyển đi đâu?
+  // Hiện tại chuyển về '/'. Nếu '/' là Landing Page, thì user kẹt ở Landing Page.
+  // Nên user đã login vào '/login' -> nên về '/dashboard'. -> Done above.
+  
+  // Còn root '/'?
+  // Nếu user đã login, vào '/' -> Thấy Landing Page.
+  // Bấm 'Login' -> vào '/login' -> Middleware đá về '/dashboard'.
+  // Hợp lý.
+
 
   return response
 }

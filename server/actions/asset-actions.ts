@@ -6,6 +6,18 @@ import { revalidatePath } from 'next/cache'
 // Action chung cho cả tạo mới và cập nhật
 export async function saveAssetAction(prevState: { success?: boolean; error?: string }, formData: FormData) {
   try {
+    const rawData = Object.fromEntries(formData.entries());
+    const { AssetSchema } = await import('@/lib/schemas/asset.schema');
+    
+    // Nếu là update, ID có thể null trong schema nhưng bắt buộc có trong logic if(id).
+    // Tuy nhiên AssetSchema đã define id optional.
+    const result = AssetSchema.safeParse(rawData);
+    
+    if (!result.success) {
+      const errorMessages = result.error.issues.map(issue => issue.message).join(', ');
+      return { success: false, error: errorMessages };
+    }
+
     const id = formData.get('id')
     if (id) {
       // Update

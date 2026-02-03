@@ -18,7 +18,7 @@ export default async function DashboardLayout({
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
-    redirect("/login");
+    redirect("/api/auth/logout");
   }
 
   // Fetch employee details to get avatar

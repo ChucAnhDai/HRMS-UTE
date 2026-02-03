@@ -20,7 +20,17 @@ export async function createDepartmentAction(
     // Kiểm tra quyền: Chỉ ADMIN mới được tạo phòng ban
     await requireRole(['ADMIN'])
     
-    const name = formData.get('name') as string
+    // Validate
+    const { DepartmentSchema } = await import('@/lib/schemas/department.schema');
+    const rawData = Object.fromEntries(formData.entries());
+    const result = DepartmentSchema.safeParse(rawData);
+
+    if (!result.success) {
+      const errorMessages = result.error.issues.map(issue => issue.message).join(', ');
+      return { error: errorMessages };
+    }
+
+    const name = result.data.name;
     
     await departmentService.createDepartment(name)
     
@@ -43,7 +53,17 @@ export async function updateDepartmentAction(
     // Kiểm tra quyền: Chỉ ADMIN mới được sửa phòng ban
     await requireRole(['ADMIN'])
     
-    const name = formData.get('name') as string
+    // Validate
+    const { DepartmentSchema } = await import('@/lib/schemas/department.schema');
+    const rawData = Object.fromEntries(formData.entries());
+    const result = DepartmentSchema.safeParse(rawData);
+    
+    if (!result.success) {
+      const errorMessages = result.error.issues.map(issue => issue.message).join(', ');
+      return { error: errorMessages };
+    }
+
+    const name = result.data.name;
     
     await departmentService.updateDepartment(id, name)
     

@@ -12,6 +12,16 @@ export type ActionState = {
 
 export async function createLeaveRequestAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    const { LeaveRequestSchema } = await import('@/lib/schemas/leave.schema');
+    const rawData = Object.fromEntries(formData.entries());
+    
+    const result = LeaveRequestSchema.safeParse(rawData);
+    
+    if (!result.success) {
+      const errorMessages = result.error.issues.map(issue => issue.message).join(', ');
+      return { error: errorMessages };
+    }
+
     await leaveService.submitLeaveRequest(formData)
     revalidatePath('/leave')
     revalidatePath('/profile')

@@ -62,7 +62,37 @@ export const employeeService = {
 
   // Xóa nhân viên
   async deleteEmployee(id: number) {
-    return await employeeRepo.deleteEmployee(id)
+    // 1. Lấy thông tin nhân viên để lấy auth_user_id
+    const emp = await employeeRepo.getEmployeeById(id)
+
+    // 2. Xóa nhân viên trong DB
+    await employeeRepo.deleteEmployee(id)
+
+    // 3. Xóa tài khoản Supabase Auth (nếu có)
+    const email = (emp as unknown as { email?: string })?.email
+    
+    if (email) {
+        try {
+            const { supabaseAdmin } = await import('@/lib/supabase.admin')
+            
+            // Tìm user trong danh sách Auth Users (Limit 1000 cho dự án nhỏ/vừa)
+            const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 })
+            
+            if (error) throw error;
+
+            const userToDelete = users.find(u => u.email === email)
+            
+            if (userToDelete) {
+                await supabaseAdmin.auth.admin.deleteUser(userToDelete.id)
+                console.log(`Deleted Auth User: ${userToDelete.id} (${email})`)
+            } else {
+                console.warn(`Không tìm thấy Auth User với email: ${email}`)
+            }
+        } catch (error) {
+            console.error('Lỗi khi xóa Auth User:', error)
+            // Không throw error để tránh chặn quy trình xóa nhân viên thành công
+        }
+    }
   },
 
   // Lấy chi tiết nhân viên để edit

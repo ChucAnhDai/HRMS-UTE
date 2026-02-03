@@ -25,6 +25,7 @@ export default function SalaryFields({ defaultValues = {} }: Props) {
             name="salary"
             defaultValue={val("salary")}
             placeholder="0"
+            min="0" // Chặn số âm
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
           />
         </div>
@@ -35,6 +36,8 @@ export default function SalaryFields({ defaultValues = {} }: Props) {
             name="tax_code"
             defaultValue={val("tax_code")}
             placeholder="VD: 123456789"
+            pattern="[0-9]*" // Chỉ cho nhập số (mobile keyboard)
+            inputMode="numeric"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
           />
         </div>
@@ -46,7 +49,7 @@ export default function SalaryFields({ defaultValues = {} }: Props) {
             type="number"
             name="dependents"
             defaultValue={val("dependents", 0)}
-            min="0"
+            min="0" // Chặn số âm
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
           />
         </div>

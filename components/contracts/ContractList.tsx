@@ -125,7 +125,7 @@ export default function ContractList({ employeeId, contracts }: Props) {
                 <select
                   name="contract_type"
                   defaultValue={editingContract?.contract_type || "Thử việc"}
-                  className="w-full text-sm border-gray-300 rounded-md py-2 px-3 border focus:outline-none focus:border-blue-500 bg-white text-gray-900"
+                  className="w-full text-sm border-gray-300 rounded-md py-2 px-3 border focus:outline-none focus:border-blue-500 bg-white text-black"
                 >
                   <option value="Thử việc">Hợp đồng thử việc</option>
                   <option value="Chính thức 1 năm">Chính thức 1 năm</option>
@@ -147,7 +147,7 @@ export default function ContractList({ employeeId, contracts }: Props) {
                   min="0"
                   defaultValue={editingContract?.salary || ""}
                   placeholder="0"
-                  className="w-full text-sm border-gray-300 rounded-md py-2 px-3 border focus:outline-none focus:border-blue-500 bg-white text-gray-900 placeholder:text-gray-400"
+                  className="w-full text-sm border-gray-300 rounded-md py-2 px-3 border focus:outline-none focus:border-blue-500 bg-white text-black placeholder:text-gray-500"
                 />
               </div>
               <div>
@@ -159,7 +159,15 @@ export default function ContractList({ employeeId, contracts }: Props) {
                   name="start_date"
                   required
                   defaultValue={editingContract?.start_date || ""}
-                  className="w-full text-sm border-gray-300 rounded-md py-2 px-3 border focus:outline-none focus:border-blue-500 bg-white text-gray-900"
+                  onChange={(e) => {
+                    // Tìm input end_date trong cùng form và set min
+                    const form = e.target.closest("form");
+                    const endDateInput = form?.querySelector(
+                      'input[name="end_date"]',
+                    ) as HTMLInputElement;
+                    if (endDateInput) endDateInput.min = e.target.value;
+                  }}
+                  className="w-full text-sm border-gray-300 rounded-md py-2 px-3 border focus:outline-none focus:border-blue-500 bg-white text-black"
                 />
               </div>
               <div>
@@ -169,8 +177,9 @@ export default function ContractList({ employeeId, contracts }: Props) {
                 <input
                   type="date"
                   name="end_date"
+                  min={editingContract?.start_date || ""} // Validate ban đầu
                   defaultValue={editingContract?.end_date || ""}
-                  className="w-full text-sm border-gray-300 rounded-md py-2 px-3 border focus:outline-none focus:border-blue-500 bg-white text-gray-900 placeholder:text-gray-400"
+                  className="w-full text-sm border-gray-300 rounded-md py-2 px-3 border focus:outline-none focus:border-blue-500 bg-white text-black placeholder:text-gray-500"
                 />
               </div>
               <div>
@@ -182,7 +191,7 @@ export default function ContractList({ employeeId, contracts }: Props) {
                   name="notes"
                   defaultValue={editingContract?.notes || ""}
                   placeholder="Ghi chú thêm..."
-                  className="w-full text-sm border-gray-300 rounded-md py-2 px-3 border focus:outline-none focus:border-blue-500 bg-white text-gray-900 placeholder:text-gray-400"
+                  className="w-full text-sm border-gray-300 rounded-md py-2 px-3 border focus:outline-none focus:border-blue-500 bg-white text-black placeholder:text-gray-500"
                 />
               </div>
             </div>
