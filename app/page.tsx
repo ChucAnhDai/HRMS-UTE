@@ -1,66 +1,12 @@
-import Link from "next/link";
+import PublicHeader from "@/components/layout/PublicHeader";
 
 export default function LandingPage() {
   return (
     <div className="bg-[#f5f6f8] text-[#111318] transition-colors duration-200">
       <div className="relative flex flex-col min-h-screen w-full overflow-x-hidden">
         {/* Top Navigation */}
-        <header className="sticky top-0 z-50 bg-white border-b border-[#f0f1f5]">
-          <div className="max-w-[1280px] mx-auto px-4 sm:px-10 py-3">
-            <div className="flex items-center justify-between whitespace-nowrap">
-              <div className="flex items-center gap-3 text-[#111318]">
-                <div className="size-8 text-[#0d59f2] flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[32px]!">
-                    dataset
-                  </span>
-                </div>
-                <h2 className="text-[#111318] text-xl font-bold leading-tight tracking-[-0.015em]">
-                  HRM System
-                </h2>
-              </div>
-              <div className="hidden md:flex flex-1 justify-end gap-8 items-center">
-                <nav className="flex items-center gap-6 lg:gap-9">
-                  <a
-                    className="text-[#111318] text-sm font-medium hover:text-[#0d59f2] transition-colors"
-                    href="#"
-                  >
-                    Features
-                  </a>
-                  <a
-                    className="text-[#111318] text-sm font-medium hover:text-[#0d59f2] transition-colors"
-                    href="#"
-                  >
-                    Pricing
-                  </a>
-                  <a
-                    className="text-[#111318] text-sm font-medium hover:text-[#0d59f2] transition-colors"
-                    href="#"
-                  >
-                    Resources
-                  </a>
-                </nav>
-                <div className="flex gap-2">
-                  <Link
-                    href="/login"
-                    className="flex items-center justify-center rounded-lg h-10 px-4 bg-transparent border border-gray-200 text-[#111318] text-sm font-bold hover:bg-gray-50 transition-colors"
-                  >
-                    <span className="truncate">Login</span>
-                  </Link>
-                  <Link
-                    href="/login"
-                    className="flex items-center justify-center rounded-lg h-10 px-4 bg-[#0d59f2] text-white text-sm font-bold shadow-md hover:bg-blue-700 transition-colors"
-                  >
-                    <span className="truncate">Get Started</span>
-                  </Link>
-                </div>
-              </div>
-              {/* Mobile Menu Button */}
-              <button className="md:hidden p-2 text-gray-600">
-                <span className="material-symbols-outlined">menu</span>
-              </button>
-            </div>
-          </div>
-        </header>
+        {/* Top Navigation */}
+        <PublicHeader />
 
         {/* Hero Section */}
         <section className="relative bg-white pt-12 pb-20 lg:pt-20 lg:pb-28">

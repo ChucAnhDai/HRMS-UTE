@@ -334,6 +334,85 @@ export interface Database {
           updated_at?: string | null
         }
       }
+      job_openings: {
+        Row: {
+          id: number
+          department_id: number | null
+          title: string
+          description: string | null
+          status: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: number
+          department_id?: number | null
+          title: string
+          description?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: number
+          department_id?: number | null
+          title?: string
+          description?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      candidates: {
+        Row: {
+          id: number
+          job_opening_id: number
+          first_name: string
+          last_name: string
+          email: string
+          phone: string | null
+          resume_path: string | null
+          status: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: number
+          job_opening_id: number
+          first_name: string
+          last_name: string
+          email: string
+          phone?: string | null
+          resume_path?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: number
+          job_opening_id?: number
+          first_name?: string
+          last_name?: string
+          email?: string
+          phone?: string | null
+          resume_path?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
     }
   }
 }
+
+export type JobOpening = Database["public"]["Tables"]["job_openings"]["Row"];
+export type JobOpeningInsert = Database["public"]["Tables"]["job_openings"]["Insert"];
+export type JobOpeningUpdate = Database["public"]["Tables"]["job_openings"]["Update"];
+
+export type Candidate = Database["public"]["Tables"]["candidates"]["Row"];
+export type CandidateInsert = Database["public"]["Tables"]["candidates"]["Insert"];
+export type CandidateUpdate = Database["public"]["Tables"]["candidates"]["Update"];
+
+export type Department = Database["public"]["Tables"]["departments"]["Row"];
+export type Employee = Database["public"]["Tables"]["employees"]["Row"];
+export type User = Database["public"]["Tables"]["users"]["Row"];

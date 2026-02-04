@@ -19,6 +19,7 @@ import {
   Clock,
   Laptop,
   Coins,
+  Search,
 } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
@@ -94,6 +95,12 @@ const menuItems = [
     icon: FileText,
     href: "/report",
     roles: ["ADMIN"] as UserRole[],
+  },
+  {
+    name: "Tuyển dụng",
+    icon: Search,
+    href: "/recruitment",
+    roles: ["ADMIN", "MANAGER"] as UserRole[],
   },
   {
     name: "Cài đặt hệ thống",
