@@ -8,6 +8,10 @@ export const authService = {
         throw new Error('Vui lòng nhập đầy đủ email và mật khẩu')
     }
 
+    if (credentials.email.length > 100 || credentials.password.length > 100) {
+        throw new Error('Email hoặc mật khẩu quá dài')
+    }
+
     if (credentials.password.length < 6) {
         throw new Error('Mật khẩu phải có ít nhất 6 ký tự')
     }

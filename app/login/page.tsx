@@ -116,6 +116,7 @@ export default function LoginPage() {
                   name="email"
                   type="email"
                   required
+                  maxLength={100}
                   placeholder="name@company.com"
                   className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-3xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:bg-white transition-all shadow-inner text-black"
                 />
@@ -140,6 +141,7 @@ export default function LoginPage() {
                   name="password"
                   type="password"
                   required
+                  maxLength={100}
                   placeholder="••••••••"
                   className="w-full pl-14 pr-14 py-4 bg-gray-50 border border-gray-100 rounded-3xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:bg-white transition-all shadow-inner text-black"
                 />
