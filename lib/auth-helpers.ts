@@ -28,7 +28,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   // Lấy thông tin nhân viên từ bảng employees
   const { data: employee } = await supabase
     .from('employees')
-    .select('id, user_id, role, first_name, last_name, email, department_id, job_title')
+    .select('id, user_id, role, first_name, last_name, email, department_id, job_title, avatar')
     .eq('auth_user_id', user.id)
     .single()
 
@@ -42,7 +42,8 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     email: user.email || '',
     role: (employee.role ? employee.role.toUpperCase() : 'EMPLOYEE') as UserRole,
     employeeId: employee.id,
-    employeeData: employee
+    employeeData: employee,
+    avatar: employee.avatar
   }
 }
 
@@ -88,6 +89,16 @@ export async function requireAdmin() {
   const admin = await isAdmin()
   if (!admin) {
     throw new Error('Chỉ Admin mới có quyền thực hiện thao tác này')
+  }
+}
+
+/**
+ * Throw error nếu user không phải Manager hoặc Admin
+ */
+export async function requireManagerOrAbove() {
+  const allowed = await isManagerOrAbove()
+  if (!allowed) {
+    throw new Error('Bạn không có quyền thực hiện thao tác này')
   }
 }
 

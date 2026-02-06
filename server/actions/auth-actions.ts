@@ -7,9 +7,16 @@ export async function loginAction(prevState: { error?: string } | undefined, for
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
+  let role = 'EMPLOYEE';
+
   try {
     // Gọi Service thay vì gọi trực tiếp DB
-    await authService.login({ email, password })
+    const result = await authService.login({ email, password })
+    
+    // Check role safely
+    if (result && typeof result === 'object' && 'role' in result) {
+        role = (result as { role: string }).role
+    }
   } catch (error: unknown) {
     // Trả lỗi về cho UI hiển thị
     const message = error instanceof Error ? error.message : 'Đăng nhập thất bại'
@@ -17,7 +24,11 @@ export async function loginAction(prevState: { error?: string } | undefined, for
   }
 
   // Redirect phải nằm ngoài try/catch trong Next.js Server Actions
-  redirect('/')
+  if (role === 'EMPLOYEE') {
+    redirect('/profile')
+  } else {
+    redirect('/dashboard')
+  }
 }
 
 export async function logoutAction() {

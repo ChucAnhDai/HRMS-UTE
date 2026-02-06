@@ -1,4 +1,5 @@
 import { employeeRepo } from '@/server/repositories/employee-repo'
+import { requireManagerOrAbove } from '@/lib/auth-helpers'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -11,6 +12,9 @@ export const employeeService = {
 
   // Tạo nhân viên mới
   async createEmployee(formData: FormData) {
+    // Security Check: Only Manager/Admin can create employees
+    await requireManagerOrAbove()
+
     const first_name = formData.get('first_name') as string
     const last_name = formData.get('last_name') as string
     const email = formData.get('email') as string
@@ -62,6 +66,9 @@ export const employeeService = {
 
   // Xóa nhân viên
   async deleteEmployee(id: number) {
+    // Security Check
+    await requireManagerOrAbove()
+
     // 1. Lấy thông tin nhân viên để lấy auth_user_id
     const emp = await employeeRepo.getEmployeeById(id)
 
@@ -104,6 +111,9 @@ export const employeeService = {
 
   // Cập nhật nhân viên
   async updateEmployee(id: number, formData: FormData) {
+    // Security Check
+    await requireManagerOrAbove()
+
     const first_name = formData.get('first_name') as string
     const last_name = formData.get('last_name') as string
     const email = formData.get('email') as string

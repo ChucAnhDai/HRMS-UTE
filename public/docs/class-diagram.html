@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class Diagram - HRMS</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+      --accent-green: #10b981;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-orange: #f59e0b;
+      --accent-pink: #ec4899;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    
+    .container { max-width: 1600px; margin: 0 auto; }
+    
+    header { text-align: center; margin-bottom: 3rem; }
+    
+    h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-pink) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    
+    .subtitle { color: var(--text-secondary); font-size: 1.1rem; }
+    
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+    }
+    
+    .nav-links a {
+      padding: 0.75rem 1.5rem;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      text-decoration: none;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .nav-links a:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    
+    .nav-links a.active {
+      background: var(--accent-purple);
+      border-color: var(--accent-purple);
+    }
+    
+    .diagram-container {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 2rem;
+      border: 1px solid var(--border);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    
+    .diagram-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--accent-purple);
+    }
+    
+    .mermaid {
+      display: flex;
+      justify-content: center;
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      min-height: 500px;
+      overflow-x: auto;
+    }
+    
+    .architecture-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .arch-card {
+      background: rgba(139, 92, 246, 0.1);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+    
+    .arch-card h4 {
+      color: var(--accent-purple);
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+    
+    .arch-card code {
+      display: block;
+      background: var(--bg-dark);
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--accent-green);
+      overflow-x: auto;
+    }
+    
+    .arch-card p {
+      color: var(--text-secondary);
+      margin-top: 1rem;
+      line-height: 1.6;
+    }
+    
+    .layer-section {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: 12px;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .layer-section h3 {
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    
+    .layer-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    
+    .layer-item {
+      padding: 0.75rem;
+      background: var(--bg-dark);
+      border-radius: 8px;
+      color: var(--text-secondary);
+    }
+    
+    .layer-item strong {
+      color: var(--accent-blue);
+    }
+    
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding: 2rem;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📦 Class Diagram</h1>
+      <p class="subtitle">Kiến trúc lớp hệ thống HRMS - TypeScript/Next.js</p>
+    </header>
+    
+    <nav class="nav-links">
+      <a href="index.html">🏠 Trang chủ</a>
+      <a href="use-case-diagram.html">📋 Use Case</a>
+      <a href="erd-diagram.html">🗄️ ERD</a>
+      <a href="class-diagram.html" class="active">📦 Class</a>
+      <a href="sequence-diagram.html">🔄 Sequence</a>
+      <a href="uml-diagram.html">📐 UML</a>
+    </nav>
+    
+    <div class="diagram-container">
+      <h2 class="diagram-title">Sơ đồ lớp - Data Types & Interfaces</h2>
+      <div class="mermaid">
+classDiagram
+    class Department {
+        +number id
+        +string name
+        +string created_at
+        +string updated_at
+    }
+    
+    class User {
+        +number id
+        +string name
+        +string email
+        +string role
+        +string status
+        +string avatar
+        +string created_at
+    }
+    
+    class Employee {
+        +number id
+        +number user_id
+        +number department_id
+        +string first_name
+        +string last_name
+        +string email
+        +string phone
+        +string avatar
+        +string job_title
+        +string hire_date
+        +string probation_end_date
+        +string termination_date
+        +EmploymentStatus employment_status
+        +number salary
+        +string tax_code
+        +number dependents
+        +number annual_leave_quota
+        +number sick_leave_quota
+        +number other_leave_quota
+        +Department department
+        +User user
+    }
+    
+    class Attendance {
+        +number id
+        +number employee_id
+        +string date
+        +string check_in_time
+        +string check_out_time
+        +string status
+        +Employee employee
+    }
+    
+    class LeaveRequest {
+        +number id
+        +number employee_id
+        +string leave_type
+        +string start_date
+        +string end_date
+        +string reason
+        +string status
+        +number action_by_user_id
+        +string rejection_reason
+        +Employee employees
+        +User approver
+    }
+    
+    class OvertimeRequest {
+        +number id
+        +number employee_id
+        +string date
+        +string start_time
+        +string end_time
+        +number hours
+        +string reason
+        +string status
+        +number approved_by
+        +Employee employees
+    }
+    
+    class Contract {
+        +number id
+        +number employee_id
+        +string contract_type
+        +string start_date
+        +string end_date
+        +string file_path
+        +string notes
+        +Employee employee
+    }
+    
+    class Payslip {
+        +number id
+        +number employee_id
+        +number month
+        +number year
+        +number salary
+        +number ot_hours
+        +number ot_salary
+        +number bonus
+        +number social_insurance
+        +number tax
+        +number advance_amount
+        +number penalties
+        +number net_pay
+        +string status
+        +Employee employees
+    }
+    
+    class Asset {
+        +number id
+        +string name
+        +string asset_tag
+        +string purchase_date
+        +number purchase_cost
+        +string status
+    }
+    
+    class AssetAssignment {
+        +number id
+        +number asset_id
+        +number employee_id
+        +string assigned_date
+        +string returned_date
+        +Asset asset
+        +Employee employee
+    }
+    
+    class SalaryAdvance {
+        +number id
+        +number employee_id
+        +number amount
+        +string request_date
+        +string reason
+        +string status
+        +number approved_by
+        +Employee employees
+        +User approver
+    }
+    
+    Department "1" --> "*" Employee : has
+    User "1" --> "0..1" Employee : linked
+    Employee "1" --> "*" Attendance : records
+    Employee "1" --> "*" LeaveRequest : submits
+    Employee "1" --> "*" OvertimeRequest : submits
+    Employee "1" --> "*" Contract : has
+    Employee "1" --> "*" Payslip : receives
+    Employee "1" --> "*" SalaryAdvance : requests
+    Employee "1" --> "*" AssetAssignment : assigned
+    Asset "1" --> "*" AssetAssignment : assigned via
+      </div>
+    </div>
+    
+    <div class="diagram-container">
+      <h2 class="diagram-title">Sơ đồ lớp - Service Layer</h2>
+      <div class="mermaid">
+classDiagram
+    class EmployeeService {
+        +getEmployeesList() Promise~Employee[]~
+        +createEmployee(formData) Promise~Employee~
+        +getDepartments() Promise~Department[]~
+        +deleteEmployee(id) Promise~void~
+        +getEmployee(id) Promise~Employee~
+        +updateEmployee(id, formData) Promise~Employee~
+    }
+    
+    class AttendanceService {
+        +checkIn(employeeId) Promise~Attendance~
+        +checkOut(employeeId) Promise~Attendance~
+        +getLogsByDate(date) Promise~Attendance[]~
+        +getAttendanceByEmployee(empId, month, year) Promise~Attendance[]~
+    }
+    
+    class LeaveService {
+        +getLeaveRequests() Promise~LeaveRequest[]~
+        +createLeaveRequest(data) Promise~LeaveRequest~
+        +approveLeave(id, userId) Promise~void~
+        +rejectLeave(id, userId, reason) Promise~void~
+    }
+    
+    class PayrollService {
+        +generateMonthlyPayroll(month, year) Promise~Payslip[]~
+        +getPayrollList(month, year) Promise~Payslip[]~
+        +updatePayslip(id, data) Promise~Payslip~
+        +getPayrollsByEmployeeId(empId) Promise~Payslip[]~
+        +getPayslipById(id) Promise~Payslip~
+        +markPayrollAsPaid(month, year) Promise~void~
+        -calculateTax(income) number
+    }
+    
+    class AssetService {
+        +getAssets() Promise~Asset[]~
+        +createAsset(data) Promise~Asset~
+        +updateAsset(id, data) Promise~Asset~
+        +deleteAsset(id) Promise~void~
+        +assignAsset(assetId, empId) Promise~void~
+        +returnAsset(assetId) Promise~void~
+    }
+    
+    class ContractService {
+        +getContracts() Promise~Contract[]~
+        +createContract(data) Promise~Contract~
+        +updateContract(id, data) Promise~Contract~
+        +deleteContract(id) Promise~void~
+    }
+    
+    class DepartmentService {
+        +getDepartments() Promise~Department[]~
+        +createDepartment(name) Promise~Department~
+        +updateDepartment(id, name) Promise~Department~
+        +deleteDepartment(id) Promise~void~
+    }
+    
+    class AuthService {
+        +signIn(email, password) Promise~Session~
+        +signOut() Promise~void~
+        +getSession() Promise~Session~
+        +getCurrentEmployee() Promise~Employee~
+    }
+    
+    class DashboardService {
+        +getStatistics() Promise~DashboardStats~
+        +getRecentActivities() Promise~Activity[]~
+        +getUpcomingEvents() Promise~Event[]~
+    }
+    
+    EmployeeService --> EmployeeRepo : uses
+    AttendanceService --> AttendanceRepo : uses
+    LeaveService --> LeaveRepo : uses
+    PayrollService --> PayrollRepo : uses
+    PayrollService --> AttendanceRepo : uses
+    PayrollService --> OvertimeRepo : uses
+    PayrollService --> LeaveRepo : uses
+    AssetService --> AssetRepo : uses
+    ContractService --> ContractRepo : uses
+    DepartmentService --> DepartmentRepo : uses
+    AuthService --> AuthRepo : uses
+      </div>
+    </div>
+    
+    <div class="diagram-container">
+      <h2 class="diagram-title">Sơ đồ lớp - Repository Layer</h2>
+      <div class="mermaid">
+classDiagram
+    class EmployeeRepo {
+        +getEmployees() Promise~Employee[]~
+        +getEmployeeById(id) Promise~Employee~
+        +createEmployee(data) Promise~Employee~
+        +updateEmployee(id, data) Promise~Employee~
+        +deleteEmployee(id) Promise~void~
+        +getDepartments() Promise~Department[]~
+    }
+    
+    class AttendanceRepo {
+        +getAttendanceByDate(date) Promise~Attendance[]~
+        +getAttendanceByEmployee(empId, startDate, endDate) Promise~Attendance[]~
+        +checkIn(empId, time) Promise~Attendance~
+        +checkOut(empId, time) Promise~Attendance~
+        +createAttendance(data) Promise~Attendance~
+    }
+    
+    class LeaveRepo {
+        +getLeaveRequests() Promise~LeaveRequest[]~
+        +getLeaveRequestById(id) Promise~LeaveRequest~
+        +createLeaveRequest(data) Promise~LeaveRequest~
+        +updateLeaveRequest(id, data) Promise~LeaveRequest~
+        +getApprovedLeavesByEmployee(empId, startDate, endDate) Promise~LeaveRequest[]~
+    }
+    
+    class PayrollRepo {
+        +getPayslips(month, year) Promise~Payslip[]~
+        +getPayslipById(id) Promise~Payslip~
+        +createPayslip(data) Promise~Payslip~
+        +updatePayslip(id, data) Promise~Payslip~
+        +getPayslipsByEmployee(empId) Promise~Payslip[]~
+        +markAsPaid(month, year) Promise~void~
+    }
+    
+    class OvertimeRepo {
+        +getOvertimeRequests() Promise~OvertimeRequest[]~
+        +createOvertimeRequest(data) Promise~OvertimeRequest~
+        +updateOvertimeRequest(id, data) Promise~OvertimeRequest~
+        +getApprovedOTByEmployee(empId, startDate, endDate) Promise~OvertimeRequest[]~
+    }
+    
+    class AssetRepo {
+        +getAssets() Promise~Asset[]~
+        +getAssetById(id) Promise~Asset~
+        +createAsset(data) Promise~Asset~
+        +updateAsset(id, data) Promise~Asset~
+        +deleteAsset(id) Promise~void~
+    }
+    
+    class ContractRepo {
+        +getContracts() Promise~Contract[]~
+        +getContractById(id) Promise~Contract~
+        +createContract(data) Promise~Contract~
+        +updateContract(id, data) Promise~Contract~
+        +deleteContract(id) Promise~void~
+    }
+    
+    class DepartmentRepo {
+        +getDepartments() Promise~Department[]~
+        +getDepartmentById(id) Promise~Department~
+        +createDepartment(name) Promise~Department~
+        +updateDepartment(id, name) Promise~Department~
+        +deleteDepartment(id) Promise~void~
+    }
+    
+    class RecruitmentRepo {
+        +getJobOpenings() Promise~JobOpening[]~
+        +createJobOpening(data) Promise~JobOpening~
+        +getCandidates(jobId) Promise~Candidate[]~
+        +createCandidate(data) Promise~Candidate~
+        +updateCandidateStatus(id, status) Promise~Candidate~
+    }
+    
+    class SalaryAdvanceRepo {
+        +getSalaryAdvances() Promise~SalaryAdvance[]~
+        +createSalaryAdvance(data) Promise~SalaryAdvance~
+        +approveSalaryAdvance(id, approvedBy) Promise~SalaryAdvance~
+        +rejectSalaryAdvance(id, reason) Promise~SalaryAdvance~
+    }
+    
+    EmployeeRepo --> Supabase : query
+    AttendanceRepo --> Supabase : query
+    LeaveRepo --> Supabase : query
+    PayrollRepo --> Supabase : query
+    OvertimeRepo --> Supabase : query
+    AssetRepo --> Supabase : query
+    ContractRepo --> Supabase : query
+    DepartmentRepo --> Supabase : query
+    RecruitmentRepo --> Supabase : query
+    SalaryAdvanceRepo --> Supabase : query
+      </div>
+    </div>
+    
+    <div class="layer-section">
+      <h3>🏗️ Kiến trúc 3-Layer</h3>
+      <div class="layer-list">
+        <div class="layer-item">
+          <strong>Presentation Layer</strong><br>
+          Next.js Pages, React Components
+        </div>
+        <div class="layer-item">
+          <strong>Service Layer</strong><br>
+          Business Logic, Validation
+        </div>
+        <div class="layer-item">
+          <strong>Repository Layer</strong><br>
+          Database Operations, Supabase
+        </div>
+        <div class="layer-item">
+          <strong>Data Layer</strong><br>
+          PostgreSQL via Supabase
+        </div>
+      </div>
+    </div>
+    
+    <div class="architecture-grid">
+      <div class="arch-card">
+        <h4>📁 Cấu trúc thư mục Services</h4>
+        <code>
+server/services/<br>
+├── employee-service.ts<br>
+├── attendance-service.ts<br>
+├── leave-service.ts<br>
+├── payroll-service.ts<br>
+├── asset-service.ts<br>
+├── contract-service.ts<br>
+├── department-service.ts<br>
+├── auth-service.ts<br>
+├── admin-auth-service.ts<br>
+└── dashboard-service.ts
+        </code>
+        <p>Services chứa business logic, validation và gọi xuống repository layer.</p>
+      </div>
+      
+      <div class="arch-card">
+        <h4>📁 Cấu trúc thư mục Repositories</h4>
+        <code>
+server/repositories/<br>
+├── employee-repo.ts<br>
+├── attendance-repo.ts<br>
+├── leave-repo.ts<br>
+├── payroll-repo.ts<br>
+├── overtime-repo.ts<br>
+├── asset-repo.ts<br>
+├── contract-repo.ts<br>
+├── department-repo.ts<br>
+├── recruitment-repo.ts<br>
+├── salary-advance-repo.ts<br>
+├── salary-history-repo.ts<br>
+├── reward-penalty-repo.ts<br>
+├── setting-repo.ts<br>
+└── auth-repo.ts
+        </code>
+        <p>Repositories thực hiện các thao tác CRUD với Supabase database.</p>
+      </div>
+      
+      <div class="arch-card">
+        <h4>📁 Cấu trúc Types</h4>
+        <code>
+types/<br>
+├── index.ts (Interfaces)<br>
+├── database.ts (Supabase Types)<br>
+└── auth.ts (Auth Types)
+        </code>
+        <p>Định nghĩa các TypeScript interfaces và types cho toàn bộ ứng dụng.</p>
+      </div>
+      
+      <div class="arch-card">
+        <h4>🔐 Middleware & Auth</h4>
+        <code>
+middleware.ts<br>
+├── Authentication Check<br>
+├── Role-based Access Control<br>
+├── Route Protection<br>
+└── Redirect Logic
+        </code>
+        <p>Bảo vệ routes dựa trên role: ADMIN, MANAGER, EMPLOYEE.</p>
+      </div>
+    </div>
+    
+    <footer>
+      <p>HRMS Documentation © 2024 | Human Resource Management System</p>
+    </footer>
+  </div>
+  
+  <script>
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#8b5cf6',
+        primaryTextColor: '#1e293b',
+        primaryBorderColor: '#7c3aed',
+        lineColor: '#64748b',
+        secondaryColor: '#ec4899'
+      }
+    });
+  </script>
+</body>
+</html>

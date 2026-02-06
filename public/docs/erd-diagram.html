@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ERD Diagram - HRMS</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+      --accent-green: #10b981;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-orange: #f59e0b;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+    
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+    }
+    
+    .nav-links a {
+      padding: 0.75rem 1.5rem;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      text-decoration: none;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .nav-links a:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    
+    .nav-links a.active {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+    }
+    
+    .diagram-container {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 2rem;
+      border: 1px solid var(--border);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    
+    .diagram-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--accent-green);
+    }
+    
+    .mermaid {
+      display: flex;
+      justify-content: center;
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      min-height: 600px;
+      overflow-x: auto;
+    }
+    
+    .tables-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .table-card {
+      background: rgba(16, 185, 129, 0.1);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .table-card h4 {
+      color: var(--accent-green);
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .table-card table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    
+    .table-card th, .table-card td {
+      padding: 0.5rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .table-card th {
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+    
+    .table-card td {
+      color: var(--text-secondary);
+    }
+    
+    .pk {
+      color: var(--accent-orange) !important;
+      font-weight: bold;
+    }
+    
+    .fk {
+      color: var(--accent-purple) !important;
+    }
+    
+    .legend {
+      display: flex;
+      gap: 2rem;
+      margin-top: 2rem;
+      padding: 1rem;
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+    
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding: 2rem;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🗄️ Entity Relationship Diagram</h1>
+      <p class="subtitle">Cấu trúc cơ sở dữ liệu HRMS - 18 Tables</p>
+    </header>
+    
+    <nav class="nav-links">
+      <a href="index.html">🏠 Trang chủ</a>
+      <a href="use-case-diagram.html">📋 Use Case</a>
+      <a href="erd-diagram.html" class="active">🗄️ ERD</a>
+      <a href="class-diagram.html">📦 Class</a>
+      <a href="sequence-diagram.html">🔄 Sequence</a>
+      <a href="uml-diagram.html">📐 UML</a>
+    </nav>
+    
+    <div class="diagram-container">
+      <h2 class="diagram-title">Sơ đồ thực thể quan hệ (ERD)</h2>
+      <div class="mermaid">
+erDiagram
+    USERS {
+        bigint id PK
+        text name
+        text email UK
+        text role
+        text status
+        text avatar
+        timestamp email_verified_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    DEPARTMENTS {
+        bigint id PK
+        text name
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    EMPLOYEES {
+        bigint id PK
+        bigint department_id FK
+        bigint user_id FK
+        uuid auth_user_id FK
+        text first_name
+        text last_name
+        text email UK
+        text phone
+        date hire_date
+        date probation_end_date
+        numeric salary
+        text job_title
+        text tax_code
+        integer dependents
+        text avatar
+        text employment_status
+        date termination_date
+        user_role role
+        integer annual_leave_quota
+        integer sick_leave_quota
+        integer other_leave_quota
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    ATTENDANCES {
+        bigint id PK
+        bigint employee_id FK
+        date date
+        time check_in_time
+        time check_out_time
+        text status
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    LEAVE_REQUESTS {
+        bigint id PK
+        bigint employee_id FK
+        bigint action_by_user_id FK
+        bigint action_by_employee_id FK
+        text leave_type
+        date start_date
+        date end_date
+        text reason
+        text status
+        text rejection_reason
+        timestamp action_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    OVERTIME_REQUESTS {
+        bigint id PK
+        bigint employee_id FK
+        bigint approved_by FK
+        bigint action_by_employee_id FK
+        date date
+        time start_time
+        time end_time
+        numeric hours
+        text reason
+        text status
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    CONTRACTS {
+        bigint id PK
+        bigint employee_id FK
+        text contract_type
+        date start_date
+        date end_date
+        text file_path
+        text notes
+        numeric salary
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    PAYSLIPS {
+        bigint id PK
+        bigint employee_id FK
+        integer month
+        integer year
+        numeric salary
+        numeric ot_hours
+        numeric ot_salary
+        numeric bonus
+        numeric tax
+        numeric social_insurance
+        numeric penalties
+        numeric advance_amount
+        numeric net_pay
+        text status
+        text notes
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    PAYROLLS {
+        uuid id PK
+        bigint employee_id FK
+        text month
+        numeric base_salary
+        integer work_days
+        integer leave_days
+        numeric allowance
+        numeric bonus
+        numeric deduction
+        numeric total_salary
+        text status
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    SALARY_ADVANCES {
+        bigint id PK
+        bigint employee_id FK
+        bigint approved_by FK
+        numeric amount
+        date request_date
+        text reason
+        text status
+        timestamp approved_at
+        text rejection_reason
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    SALARY_HISTORY {
+        bigint id PK
+        bigint employee_id FK
+        bigint changed_by_employee_id FK
+        numeric old_salary
+        numeric new_salary
+        date change_date
+        text reason
+        timestamp created_at
+    }
+    
+    REWARDS_PENALTIES {
+        bigint id PK
+        bigint employee_id FK
+        text type
+        numeric amount
+        text reason
+        date date
+        text status
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    ASSETS {
+        bigint id PK
+        integer assigned_to FK
+        text name
+        text asset_tag UK
+        date purchase_date
+        numeric purchase_cost
+        text status
+        date assigned_date
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    ASSET_ASSIGNMENTS {
+        bigint id PK
+        bigint asset_id FK
+        bigint employee_id FK
+        date assigned_date
+        date returned_date
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    JOB_OPENINGS {
+        bigint id PK
+        bigint department_id FK
+        text title
+        text description
+        text status
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    CANDIDATES {
+        bigint id PK
+        bigint job_opening_id FK
+        text first_name
+        text last_name
+        text email
+        text phone
+        text cv_path
+        text resume_path
+        text status
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    HOLIDAYS {
+        bigint id PK
+        text name
+        date date UK
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    SETTINGS {
+        bigint id PK
+        text key UK
+        text value
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    %% Relationships
+    DEPARTMENTS ||--o{ EMPLOYEES : "has"
+    USERS ||--o| EMPLOYEES : "linked to"
+    EMPLOYEES ||--o{ ATTENDANCES : "records"
+    EMPLOYEES ||--o{ LEAVE_REQUESTS : "submits"
+    EMPLOYEES ||--o{ OVERTIME_REQUESTS : "submits"
+    EMPLOYEES ||--o{ CONTRACTS : "has"
+    EMPLOYEES ||--o{ PAYSLIPS : "receives"
+    EMPLOYEES ||--o{ PAYROLLS : "has"
+    EMPLOYEES ||--o{ SALARY_ADVANCES : "requests"
+    EMPLOYEES ||--o{ SALARY_HISTORY : "has"
+    EMPLOYEES ||--o{ REWARDS_PENALTIES : "receives"
+    EMPLOYEES ||--o{ ASSET_ASSIGNMENTS : "assigned"
+    ASSETS ||--o{ ASSET_ASSIGNMENTS : "assigned via"
+    EMPLOYEES ||--o| ASSETS : "uses"
+    DEPARTMENTS ||--o{ JOB_OPENINGS : "posts"
+    JOB_OPENINGS ||--o{ CANDIDATES : "receives"
+    USERS ||--o{ LEAVE_REQUESTS : "approves"
+    USERS ||--o{ OVERTIME_REQUESTS : "approves"
+    USERS ||--o{ SALARY_ADVANCES : "approves"
+    EMPLOYEES ||--o{ LEAVE_REQUESTS : "approves as"
+    EMPLOYEES ||--o{ OVERTIME_REQUESTS : "approves as"
+    EMPLOYEES ||--o{ SALARY_HISTORY : "changes"
+      </div>
+      
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: #f59e0b;"></div>
+          <span>PK - Primary Key</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #8b5cf6;"></div>
+          <span>FK - Foreign Key</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #3b82f6;"></div>
+          <span>UK - Unique Key</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #10b981;"></div>
+          <span>||--o{ One to Many</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #ef4444;"></div>
+          <span>||--o| One to One (Optional)</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="diagram-container">
+      <h2 class="diagram-title">Chi tiết các bảng</h2>
+      <div class="tables-grid">
+        <div class="table-card">
+          <h4>👤 employees</h4>
+          <table>
+            <tr><th>Column</th><th>Type</th></tr>
+            <tr><td class="pk">id</td><td>bigint (PK)</td></tr>
+            <tr><td class="fk">department_id</td><td>bigint (FK)</td></tr>
+            <tr><td class="fk">user_id</td><td>bigint (FK)</td></tr>
+            <tr><td>first_name, last_name</td><td>text</td></tr>
+            <tr><td>email</td><td>text (Unique)</td></tr>
+            <tr><td>hire_date</td><td>date</td></tr>
+            <tr><td>salary</td><td>numeric</td></tr>
+            <tr><td>role</td><td>user_role enum</td></tr>
+          </table>
+        </div>
+        
+        <div class="table-card">
+          <h4>📅 attendances</h4>
+          <table>
+            <tr><th>Column</th><th>Type</th></tr>
+            <tr><td class="pk">id</td><td>bigint (PK)</td></tr>
+            <tr><td class="fk">employee_id</td><td>bigint (FK)</td></tr>
+            <tr><td>date</td><td>date</td></tr>
+            <tr><td>check_in_time</td><td>time</td></tr>
+            <tr><td>check_out_time</td><td>time</td></tr>
+            <tr><td>status</td><td>text</td></tr>
+          </table>
+        </div>
+        
+        <div class="table-card">
+          <h4>🏖️ leave_requests</h4>
+          <table>
+            <tr><th>Column</th><th>Type</th></tr>
+            <tr><td class="pk">id</td><td>bigint (PK)</td></tr>
+            <tr><td class="fk">employee_id</td><td>bigint (FK)</td></tr>
+            <tr><td>leave_type</td><td>text</td></tr>
+            <tr><td>start_date, end_date</td><td>date</td></tr>
+            <tr><td>status</td><td>text (Pending/Approved/Rejected)</td></tr>
+          </table>
+        </div>
+        
+        <div class="table-card">
+          <h4>💰 payslips</h4>
+          <table>
+            <tr><th>Column</th><th>Type</th></tr>
+            <tr><td class="pk">id</td><td>bigint (PK)</td></tr>
+            <tr><td class="fk">employee_id</td><td>bigint (FK)</td></tr>
+            <tr><td>month, year</td><td>integer</td></tr>
+            <tr><td>salary, bonus, tax</td><td>numeric</td></tr>
+            <tr><td>net_pay</td><td>numeric</td></tr>
+            <tr><td>status</td><td>text</td></tr>
+          </table>
+        </div>
+        
+        <div class="table-card">
+          <h4>🖥️ assets</h4>
+          <table>
+            <tr><th>Column</th><th>Type</th></tr>
+            <tr><td class="pk">id</td><td>bigint (PK)</td></tr>
+            <tr><td>name</td><td>text</td></tr>
+            <tr><td>asset_tag</td><td>text (Unique)</td></tr>
+            <tr><td>purchase_cost</td><td>numeric</td></tr>
+            <tr><td>status</td><td>text</td></tr>
+            <tr><td class="fk">assigned_to</td><td>integer (FK)</td></tr>
+          </table>
+        </div>
+        
+        <div class="table-card">
+          <h4>🎯 job_openings & candidates</h4>
+          <table>
+            <tr><th>Column</th><th>Type</th></tr>
+            <tr><td class="pk">job_openings.id</td><td>bigint (PK)</td></tr>
+            <tr><td class="fk">department_id</td><td>bigint (FK)</td></tr>
+            <tr><td>title, description</td><td>text</td></tr>
+            <tr><td class="pk">candidates.id</td><td>bigint (PK)</td></tr>
+            <tr><td class="fk">job_opening_id</td><td>bigint (FK)</td></tr>
+            <tr><td>email, cv_path</td><td>text</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <footer>
+      <p>HRMS Documentation © 2024 | Human Resource Management System</p>
+    </footer>
+  </div>
+  
+  <script>
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: 'base',
+      er: {
+        diagramPadding: 20,
+        layoutDirection: 'TB',
+        minEntityWidth: 100,
+        minEntityHeight: 75,
+        entityPadding: 15
+      },
+      themeVariables: {
+        primaryColor: '#10b981',
+        primaryTextColor: '#1e293b',
+        primaryBorderColor: '#059669',
+        lineColor: '#64748b'
+      }
+    });
+  </script>
+</body>
+</html>

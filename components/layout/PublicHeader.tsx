@@ -57,13 +57,13 @@ export default function PublicHeader() {
                 href="/login"
                 className="flex items-center justify-center rounded-lg h-10 px-4 bg-transparent border border-gray-200 text-[#111318] text-sm font-bold hover:bg-gray-50 transition-colors"
               >
-                <span className="truncate">Login</span>
+                <span className="truncate">Đăng nhập</span>
               </Link>
               <Link
                 href="/login"
                 className="flex items-center justify-center rounded-lg h-10 px-4 bg-[#0d59f2] text-white text-sm font-bold shadow-md hover:bg-blue-700 transition-colors"
               >
-                <span className="truncate">Get Started</span>
+                <span className="truncate">Bắt đầu</span>
               </Link>
             </div>
           </div>

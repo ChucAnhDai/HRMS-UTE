@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sequence Diagram - HRMS</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+      --accent-green: #10b981;
+      --accent-blue: #3b82f6;
+      --accent-orange: #f59e0b;
+      --accent-cyan: #06b6d4;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    
+    .container { max-width: 1600px; margin: 0 auto; }
+    
+    header { text-align: center; margin-bottom: 3rem; }
+    
+    h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    
+    .subtitle { color: var(--text-secondary); font-size: 1.1rem; }
+    
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+    }
+    
+    .nav-links a {
+      padding: 0.75rem 1.5rem;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      text-decoration: none;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .nav-links a:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    
+    .nav-links a.active {
+      background: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      color: var(--bg-dark);
+    }
+    
+    .diagram-container {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 2rem;
+      border: 1px solid var(--border);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    
+    .diagram-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .diagram-title .badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      background: var(--accent-orange);
+      color: var(--bg-dark);
+      border-radius: 99px;
+    }
+    
+    .mermaid {
+      display: flex;
+      justify-content: center;
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      min-height: 400px;
+      overflow-x: auto;
+    }
+    
+    .flow-description {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: rgba(6, 182, 212, 0.1);
+      border-radius: 12px;
+      border-left: 4px solid var(--accent-cyan);
+    }
+    
+    .flow-description h4 {
+      color: var(--accent-cyan);
+      margin-bottom: 0.75rem;
+    }
+    
+    .flow-description ol {
+      padding-left: 1.5rem;
+      color: var(--text-secondary);
+    }
+    
+    .flow-description li {
+      padding: 0.5rem 0;
+      line-height: 1.6;
+    }
+    
+    .flow-description strong {
+      color: var(--accent-blue);
+    }
+    
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding: 2rem;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔄 Sequence Diagrams</h1>
+      <p class="subtitle">Luồng xử lý các chức năng chính trong HRMS</p>
+    </header>
+    
+    <nav class="nav-links">
+      <a href="index.html">🏠 Trang chủ</a>
+      <a href="use-case-diagram.html">📋 Use Case</a>
+      <a href="erd-diagram.html">🗄️ ERD</a>
+      <a href="class-diagram.html">📦 Class</a>
+      <a href="sequence-diagram.html" class="active">🔄 Sequence</a>
+      <a href="uml-diagram.html">📐 UML</a>
+    </nav>
+    
+    <!-- Sequence 1: Login Flow -->
+    <div class="diagram-container">
+      <h2 class="diagram-title">
+        1. Đăng nhập hệ thống
+        <span class="badge">Authentication</span>
+      </h2>
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as 👤 User
+    participant LP as 🖥️ Login Page
+    participant MW as 🔒 Middleware
+    participant Auth as 🔐 Supabase Auth
+    participant DB as 🗄️ Database
+    participant Dashboard as 📊 Dashboard
+    participant Profile as 👤 Profile
+    
+    User->>LP: Nhập email & password
+    LP->>Auth: signInWithPassword()
+    Auth->>Auth: Validate credentials
+    
+    alt Đăng nhập thành công
+        Auth-->>LP: Session + User data
+        LP->>MW: Redirect với session
+        MW->>DB: Query employee role
+        DB-->>MW: Role (ADMIN/MANAGER/EMPLOYEE)
+        
+        alt Role = ADMIN hoặc MANAGER
+            MW->>Dashboard: Redirect /dashboard
+            Dashboard-->>User: Hiển thị Dashboard
+        else Role = EMPLOYEE
+            MW->>Profile: Redirect /profile
+            Profile-->>User: Hiển thị Profile cá nhân
+        end
+    else Đăng nhập thất bại
+        Auth-->>LP: Error message
+        LP-->>User: Hiển thị lỗi
+    end
+      </div>
+      
+      <div class="flow-description">
+        <h4>Mô tả luồng</h4>
+        <ol>
+          <li>User nhập thông tin đăng nhập trên Login Page</li>
+          <li>Hệ thống gọi <strong>Supabase Auth</strong> để xác thực</li>
+          <li><strong>Middleware</strong> kiểm tra role của user từ database</li>
+          <li>Dựa vào role, redirect đến trang phù hợp (Dashboard hoặc Profile)</li>
+        </ol>
+      </div>
+    </div>
+    
+    <!-- Sequence 2: Employee CRUD -->
+    <div class="diagram-container">
+      <h2 class="diagram-title">
+        2. Quản lý Nhân viên (CRUD)
+        <span class="badge">Employee Management</span>
+      </h2>
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Admin as 👑 Admin/Manager
+    participant Page as 🖥️ Employees Page
+    participant Action as ⚡ Server Action
+    participant Service as 🔧 EmployeeService
+    participant Repo as 📦 EmployeeRepo
+    participant DB as 🗄️ Supabase DB
+    
+    Note over Admin, DB: === Xem danh sách ===
+    Admin->>Page: Truy cập /employees
+    Page->>Service: getEmployeesList()
+    Service->>Repo: getEmployees()
+    Repo->>DB: SELECT * FROM employees
+    DB-->>Repo: Employees data
+    Repo-->>Service: Employee[]
+    Service-->>Page: Employee[]
+    Page-->>Admin: Hiển thị danh sách
+    
+    Note over Admin, DB: === Thêm mới ===
+    Admin->>Page: Click "Thêm nhân viên"
+    Page->>Page: Mở form thêm mới
+    Admin->>Page: Điền thông tin & Submit
+    Page->>Action: createEmployee(formData)
+    Action->>Service: createEmployee(formData)
+    Service->>Service: requireManagerOrAbove()
+    Service->>Service: Validate data
+    Service->>Repo: createEmployee(data)
+    Repo->>DB: INSERT INTO employees
+    DB-->>Repo: New employee
+    Repo-->>Service: Employee
+    Service-->>Action: Success
+    Action-->>Page: Revalidate & Redirect
+    Page-->>Admin: Danh sách cập nhật
+    
+    Note over Admin, DB: === Cập nhật ===
+    Admin->>Page: Click "Sửa" nhân viên
+    Page->>Service: getEmployee(id)
+    Service-->>Page: Employee data
+    Page-->>Admin: Hiển thị form edit
+    Admin->>Page: Chỉnh sửa & Submit
+    Page->>Action: updateEmployee(id, formData)
+    Action->>Service: updateEmployee(id, formData)
+    Service->>Repo: updateEmployee(id, data)
+    Repo->>DB: UPDATE employees SET...
+    DB-->>Repo: Updated employee
+    Repo-->>Page: Success
+    Page-->>Admin: Thông báo thành công
+    
+    Note over Admin, DB: === Xóa ===
+    Admin->>Page: Click "Xóa" nhân viên
+    Page->>Page: Confirm dialog
+    Admin->>Page: Xác nhận xóa
+    Page->>Action: deleteEmployee(id)
+    Action->>Service: deleteEmployee(id)
+    Service->>Repo: deleteEmployee(id)
+    Repo->>DB: DELETE FROM employees
+    DB-->>Service: Success
+    Service->>Auth: Delete Auth User (nếu có)
+    Service-->>Page: Success
+    Page-->>Admin: Danh sách cập nhật
+      </div>
+      
+      <div class="flow-description">
+        <h4>Mô tả luồng</h4>
+        <ol>
+          <li><strong>View:</strong> Page gọi Service → Repository → Database để lấy dữ liệu</li>
+          <li><strong>Create:</strong> Form submit → Server Action → Service (validate + auth check) → Repo → DB</li>
+          <li><strong>Update:</strong> Fetch data → Edit form → Submit → Service → Repo → DB</li>
+          <li><strong>Delete:</strong> Confirm → Service xóa employee và Auth user liên quan</li>
+        </ol>
+      </div>
+    </div>
+    
+    <!-- Sequence 3: Attendance -->
+    <div class="diagram-container">
+      <h2 class="diagram-title">
+        3. Chấm công (Check-in/Check-out)
+        <span class="badge">Attendance</span>
+      </h2>
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor EMP as 👤 Employee
+    participant Page as 🖥️ Calendar Page
+    participant Service as 🔧 AttendanceService
+    participant Repo as 📦 AttendanceRepo
+    participant DB as 🗄️ Supabase DB
+    
+    Note over EMP, DB: === Check-in ===
+    EMP->>Page: Click "Check-in"
+    Page->>Service: checkIn(employeeId)
+    Service->>Service: Get current time
+    Service->>Repo: findTodayAttendance(empId)
+    Repo->>DB: SELECT WHERE date = today
+    
+    alt Chưa có record hôm nay
+        DB-->>Repo: null
+        Repo->>DB: INSERT (employee_id, date, check_in_time)
+        DB-->>Repo: New attendance
+    else Đã có record (chưa check-in)
+        DB-->>Repo: Attendance record
+        Repo->>DB: UPDATE SET check_in_time = now()
+        DB-->>Repo: Updated attendance
+    end
+    
+    Repo-->>Service: Attendance
+    Service-->>Page: Success + Time
+    Page-->>EMP: Hiển thị giờ check-in
+    
+    Note over EMP, DB: === Check-out ===
+    EMP->>Page: Click "Check-out"
+    Page->>Service: checkOut(employeeId)
+    Service->>Repo: findTodayAttendance(empId)
+    Repo->>DB: SELECT WHERE date = today
+    DB-->>Repo: Attendance (with check_in)
+    
+    alt Đã check-in
+        Repo->>DB: UPDATE SET check_out_time = now()
+        DB-->>Repo: Updated attendance
+        Repo-->>Service: Success
+        Service-->>Page: Success + Time
+        Page-->>EMP: Hiển thị giờ check-out
+    else Chưa check-in
+        Repo-->>Service: Error
+        Service-->>Page: Error message
+        Page-->>EMP: "Vui lòng check-in trước"
+    end
+      </div>
+      
+      <div class="flow-description">
+        <h4>Mô tả luồng</h4>
+        <ol>
+          <li><strong>Check-in:</strong> Tạo hoặc cập nhật record chấm công với thời gian hiện tại</li>
+          <li><strong>Check-out:</strong> Chỉ cho phép nếu đã check-in, cập nhật check_out_time</li>
+          <li>Hệ thống tự động xác định trạng thái (Present, Late, Absent...)</li>
+        </ol>
+      </div>
+    </div>
+    
+    <!-- Sequence 4: Leave Request -->
+    <div class="diagram-container">
+      <h2 class="diagram-title">
+        4. Yêu cầu nghỉ phép
+        <span class="badge">Leave Management</span>
+      </h2>
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor EMP as 👤 Employee
+    actor MGR as 👔 Manager
+    participant LeavePage as 🖥️ Leave Page
+    participant Service as 🔧 LeaveService
+    participant Repo as 📦 LeaveRepo
+    participant DB as 🗄️ Supabase DB
+    
+    Note over EMP, DB: === Tạo yêu cầu ===
+    EMP->>LeavePage: Mở form xin nghỉ
+    EMP->>LeavePage: Điền thông tin (type, dates, reason)
+    LeavePage->>Service: createLeaveRequest(data)
+    Service->>Service: Validate dates & quota
+    Service->>Repo: createLeaveRequest(data)
+    Repo->>DB: INSERT INTO leave_requests
+    DB-->>Repo: New request (status: Pending)
+    Repo-->>LeavePage: Success
+    LeavePage-->>EMP: "Đã gửi yêu cầu"
+    
+    Note over MGR, DB: === Duyệt yêu cầu ===
+    MGR->>LeavePage: Xem danh sách pending
+    LeavePage->>Service: getLeaveRequests()
+    Service->>Repo: getLeaveRequests()
+    Repo->>DB: SELECT * FROM leave_requests
+    DB-->>LeavePage: List of requests
+    LeavePage-->>MGR: Hiển thị danh sách
+    
+    MGR->>LeavePage: Click "Duyệt"
+    LeavePage->>Service: approveLeave(id, userId)
+    Service->>Repo: updateLeaveRequest(id, status: Approved)
+    Repo->>DB: UPDATE leave_requests SET status = 'Approved'
+    DB-->>Repo: Updated
+    Repo-->>LeavePage: Success
+    LeavePage-->>MGR: "Đã duyệt"
+    
+    Note over MGR, DB: === Từ chối yêu cầu ===
+    MGR->>LeavePage: Click "Từ chối"
+    MGR->>LeavePage: Nhập lý do từ chối
+    LeavePage->>Service: rejectLeave(id, userId, reason)
+    Service->>Repo: updateLeaveRequest(id, status: Rejected, rejection_reason)
+    Repo->>DB: UPDATE leave_requests SET...
+    DB-->>Repo: Updated
+    Repo-->>LeavePage: Success
+    LeavePage-->>MGR: "Đã từ chối"
+      </div>
+    </div>
+    
+    <!-- Sequence 5: Payroll -->
+    <div class="diagram-container">
+      <h2 class="diagram-title">
+        5. Tính lương tháng
+        <span class="badge">Payroll</span>
+      </h2>
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Admin as 👑 Admin
+    participant Page as 🖥️ Payroll Page
+    participant Service as 🔧 PayrollService
+    participant EmpRepo as 📦 EmployeeRepo
+    participant AttRepo as 📦 AttendanceRepo
+    participant OTRepo as 📦 OvertimeRepo
+    participant LeaveRepo as 📦 LeaveRepo
+    participant PayRepo as 📦 PayrollRepo
+    participant DB as 🗄️ Database
+    
+    Admin->>Page: Chọn tháng/năm & Click "Tính lương"
+    Page->>Service: generateMonthlyPayroll(month, year)
+    
+    Service->>EmpRepo: getEmployees()
+    EmpRepo->>DB: SELECT * FROM employees
+    DB-->>Service: Employee[]
+    
+    loop Với mỗi Employee
+        Service->>AttRepo: getAttendanceByEmployee(empId, month)
+        AttRepo-->>Service: Attendance[] (work days)
+        
+        Service->>OTRepo: getApprovedOTByEmployee(empId, month)
+        OTRepo-->>Service: OvertimeRequest[] (OT hours)
+        
+        Service->>LeaveRepo: getApprovedLeavesByEmployee(empId, month)
+        LeaveRepo-->>Service: LeaveRequest[] (leave days)
+        
+        Service->>Service: Calculate base salary
+        Service->>Service: Calculate OT salary
+        Service->>Service: Calculate bonus/penalties
+        Service->>Service: Calculate tax (progressive)
+        Service->>Service: Calculate social insurance
+        Service->>Service: Calculate net_pay
+        
+        Service->>PayRepo: createOrUpdatePayslip(data)
+        PayRepo->>DB: UPSERT payslips
+    end
+    
+    DB-->>Service: All payslips created
+    Service-->>Page: Payslip[]
+    Page-->>Admin: Hiển thị bảng lương
+    
+    Note over Admin, DB: === Thanh toán ===
+    Admin->>Page: Click "Đánh dấu đã thanh toán"
+    Page->>Service: markPayrollAsPaid(month, year)
+    Service->>PayRepo: updateStatus(Paid)
+    PayRepo->>DB: UPDATE payslips SET status = 'Paid'
+    DB-->>Page: Success
+    Page-->>Admin: "Đã thanh toán"
+      </div>
+      
+      <div class="flow-description">
+        <h4>Công thức tính lương</h4>
+        <ol>
+          <li><strong>Lương cơ bản:</strong> base_salary × (work_days / total_work_days)</li>
+          <li><strong>Lương OT:</strong> (base_salary / 26 / 8) × 1.5 × ot_hours</li>
+          <li><strong>Thuế TNCN:</strong> Progressive tax calculation (5% - 35%)</li>
+          <li><strong>BHXH:</strong> 10.5% × base_salary</li>
+          <li><strong>Net Pay:</strong> Base + OT + Bonus - Tax - BHXH - Penalties - Advance</li>
+        </ol>
+      </div>
+    </div>
+    
+    <!-- Sequence 6: Recruitment -->
+    <div class="diagram-container">
+      <h2 class="diagram-title">
+        6. Quy trình Tuyển dụng
+        <span class="badge">Recruitment</span>
+      </h2>
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor HR as 👔 HR/Admin
+    actor Candidate as 🎯 Ứng viên
+    participant CareerPage as 🌐 Careers Page (Public)
+    participant AdminPage as 🖥️ Recruitment Admin
+    participant Service as 🔧 RecruitmentService
+    participant Repo as 📦 RecruitmentRepo
+    participant DB as 🗄️ Database
+    
+    Note over HR, DB: === Đăng tin ===
+    HR->>AdminPage: Tạo tin tuyển dụng mới
+    AdminPage->>Service: createJobOpening(data)
+    Service->>Repo: createJobOpening(title, description, dept)
+    Repo->>DB: INSERT INTO job_openings
+    DB-->>HR: Job posted (status: Open)
+    
+    Note over Candidate, DB: === Ứng tuyển ===
+    Candidate->>CareerPage: Xem danh sách việc làm
+    CareerPage->>Service: getOpenJobs()
+    Service->>DB: SELECT WHERE status = 'Open'
+    DB-->>CareerPage: JobOpening[]
+    CareerPage-->>Candidate: Hiển thị tin tuyển dụng
+    
+    Candidate->>CareerPage: Click "Ứng tuyển"
+    Candidate->>CareerPage: Điền form + Upload CV
+    CareerPage->>Service: submitApplication(jobId, candidateData)
+    Service->>Repo: createCandidate(data)
+    Repo->>DB: INSERT INTO candidates
+    DB-->>Service: Candidate (status: Pending)
+    Service-->>CareerPage: Success
+    CareerPage-->>Candidate: "Đã nộp đơn thành công"
+    
+    Note over HR, DB: === Xem xét ứng viên ===
+    HR->>AdminPage: Xem danh sách ứng viên
+    AdminPage->>Service: getCandidates(jobId)
+    Service->>DB: SELECT FROM candidates
+    DB-->>AdminPage: Candidate[]
+    AdminPage-->>HR: Hiển thị ứng viên
+    
+    HR->>AdminPage: Cập nhật trạng thái ứng viên
+    AdminPage->>Service: updateCandidateStatus(id, status)
+    Service->>Repo: updateCandidate(id, status)
+    Repo->>DB: UPDATE candidates SET status = 'Shortlisted'
+    DB-->>HR: Updated
+    
+    Note right of HR: Trạng thái: Pending → Shortlisted → Interviewed → Offered → Hired/Rejected
+      </div>
+    </div>
+    
+    <footer>
+      <p>HRMS Documentation © 2024 | Human Resource Management System</p>
+    </footer>
+  </div>
+  
+  <script>
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: 'base',
+      sequence: {
+        diagramMarginX: 50,
+        diagramMarginY: 30,
+        actorMargin: 50,
+        width: 150,
+        height: 65,
+        boxMargin: 10,
+        boxTextMargin: 5,
+        noteMargin: 10,
+        messageMargin: 35,
+        mirrorActors: false
+      },
+      themeVariables: {
+        primaryColor: '#06b6d4',
+        primaryTextColor: '#1e293b',
+        primaryBorderColor: '#0891b2',
+        lineColor: '#64748b',
+        actorBkg: '#e0f2fe',
+        actorBorder: '#0891b2',
+        actorTextColor: '#0c4a6e',
+        signalColor: '#334155',
+        signalTextColor: '#1e293b',
+        noteBkgColor: '#fef3c7',
+        noteTextColor: '#92400e',
+        noteBorderColor: '#f59e0b'
+      }
+    });
+  </script>
+</body>
+</html>

@@ -14,8 +14,18 @@ export const authService = {
 
     // 2. Call Repository
     try {
-        const data = await authRepo.signInWithPassword(credentials)
-        return data
+        const authData = await authRepo.signInWithPassword(credentials)
+        
+        // 2.1 Fetch User Profile to get Role
+        if (authData.user) {
+             const profile = await authRepo.getUserProfile(authData.user.id)
+             return {
+                 ...authData,
+                 role: profile?.role || 'EMPLOYEE' // Default role
+             }
+        }
+
+        return authData
     } catch (error: unknown) {
         // Debugging: In lỗi chi tiết ra console server để xem nguyên nhân
         console.error('Login Error Details:', error)

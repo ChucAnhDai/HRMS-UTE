@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UML Component Diagram - HRMS</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+      --accent-green: #10b981;
+      --accent-blue: #3b82f6;
+      --accent-red: #ef4444;
+      --accent-yellow: #eab308;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    
+    .container { max-width: 1600px; margin: 0 auto; }
+    
+    header { text-align: center; margin-bottom: 3rem; }
+    
+    h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--accent-yellow) 0%, var(--accent-red) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    
+    .subtitle { color: var(--text-secondary); font-size: 1.1rem; }
+    
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+    }
+    
+    .nav-links a {
+      padding: 0.75rem 1.5rem;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      text-decoration: none;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .nav-links a:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    
+    .nav-links a.active {
+      background: linear-gradient(135deg, var(--accent-yellow) 0%, var(--accent-red) 100%);
+      border-color: var(--accent-yellow);
+      color: var(--bg-dark);
+    }
+    
+    .diagram-container {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 2rem;
+      border: 1px solid var(--border);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    
+    .diagram-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--accent-yellow);
+    }
+    
+    .mermaid {
+      display: flex;
+      justify-content: center;
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      min-height: 400px;
+      overflow-x: auto;
+    }
+    
+    .tech-stack {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .tech-card {
+      background: rgba(234, 179, 8, 0.1);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid rgba(234, 179, 8, 0.3);
+    }
+    
+    .tech-card h4 {
+      color: var(--accent-yellow);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .tech-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .tech-card li {
+      padding: 0.5rem 0;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .tech-card li::before {
+      content: "▸";
+      color: var(--accent-green);
+    }
+    
+    .architecture-section {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: 12px;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .architecture-section h3 {
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+    }
+    
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      padding: 1.5rem;
+      background: var(--bg-dark);
+      border-radius: 12px;
+    }
+    
+    .flow-box {
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .flow-box.client { background: var(--accent-blue); color: white; }
+    .flow-box.server { background: var(--accent-green); color: white; }
+    .flow-box.db { background: var(--accent-yellow); color: var(--bg-dark); }
+    
+    .flow-arrow {
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+    }
+    
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding: 2rem;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📐 UML Component Diagram</h1>
+      <p class="subtitle">Kiến trúc thành phần hệ thống HRMS</p>
+    </header>
+    
+    <nav class="nav-links">
+      <a href="index.html">🏠 Trang chủ</a>
+      <a href="use-case-diagram.html">📋 Use Case</a>
+      <a href="erd-diagram.html">🗄️ ERD</a>
+      <a href="class-diagram.html">📦 Class</a>
+      <a href="sequence-diagram.html">🔄 Sequence</a>
+      <a href="uml-diagram.html" class="active">📐 UML</a>
+    </nav>
+    
+    <div class="diagram-container">
+      <h2 class="diagram-title">Sơ đồ thành phần - Component Diagram</h2>
+      <div class="mermaid">
+flowchart TB
+    subgraph Client["🖥️ Client Layer (Browser)"]
+        direction TB
+        subgraph Pages["📄 Next.js Pages"]
+            LP[Login Page]
+            DP[Dashboard Page]
+            EP[Employees Page]
+            AP[Attendance/Calendar]
+            LRP[Leave Requests]
+            PP[Payroll Page]
+            RP[Recruitment]
+            PF[Profile Page]
+        end
+        
+        subgraph Components["🧩 React Components"]
+            LC[Layout Components]
+            FC[Form Components]
+            TC[Table Components]
+            MC[Modal Components]
+            UC[UI Components]
+        end
+        
+        subgraph Hooks["🪝 Custom Hooks"]
+            UH[useAuth]
+            UT[useToast]
+        end
+    end
+    
+    subgraph Server["⚙️ Next.js Server"]
+        direction TB
+        MW[Middleware<br/>Auth & RBAC]
+        
+        subgraph Actions["⚡ Server Actions"]
+            EA[Employee Actions]
+            AA[Attendance Actions]
+            LA[Leave Actions]
+            PA[Payroll Actions]
+            RA[Recruitment Actions]
+        end
+        
+        subgraph Services["🔧 Business Logic"]
+            ES[EmployeeService]
+            AS[AttendanceService]
+            LS[LeaveService]
+            PS[PayrollService]
+            DS[DepartmentService]
+            CS[ContractService]
+            AuS[AuthService]
+            DaS[DashboardService]
+        end
+        
+        subgraph Repos["📦 Repository Layer"]
+            ER[EmployeeRepo]
+            AR[AttendanceRepo]
+            LR[LeaveRepo]
+            PR[PayrollRepo]
+            OR[OvertimeRepo]
+            DR[DepartmentRepo]
+            RR[RecruitmentRepo]
+            SAR[SalaryAdvanceRepo]
+        end
+    end
+    
+    subgraph External["☁️ External Services"]
+        direction TB
+        SB[(Supabase<br/>PostgreSQL)]
+        SA[Supabase Auth]
+        ST[Supabase Storage]
+    end
+    
+    %% Client to Server connections
+    Pages --> MW
+    Components --> Pages
+    Hooks --> Components
+    
+    MW --> Actions
+    Actions --> Services
+    Services --> Repos
+    
+    %% Server to External
+    Repos --> SB
+    AuS --> SA
+    ES --> ST
+      </div>
+    </div>
+    
+    <div class="diagram-container">
+      <h2 class="diagram-title">Module Dependencies</h2>
+      <div class="mermaid">
+flowchart LR
+    subgraph Core["🎯 Core Modules"]
+        Auth[Auth Module]
+        Employee[Employee Module]
+        Department[Department Module]
+    end
+    
+    subgraph HR["👥 HR Modules"]
+        Attendance[Attendance<br/>Module]
+        Leave[Leave<br/>Module]
+        Overtime[Overtime<br/>Module]
+        Contract[Contract<br/>Module]
+    end
+    
+    subgraph Finance["💰 Finance Modules"]
+        Payroll[Payroll<br/>Module]
+        SalaryAdv[Salary Advance<br/>Module]
+        Rewards[Rewards &<br/>Penalties]
+    end
+    
+    subgraph Assets["🖥️ Asset Module"]
+        AssetMgmt[Asset<br/>Management]
+    end
+    
+    subgraph Recruit["🎯 Recruitment"]
+        JobPost[Job Postings]
+        Candidates[Candidates]
+    end
+    
+    %% Dependencies
+    Employee --> Auth
+    Department --> Auth
+    
+    Attendance --> Employee
+    Leave --> Employee
+    Overtime --> Employee
+    Contract --> Employee
+    
+    Payroll --> Employee
+    Payroll --> Attendance
+    Payroll --> Leave
+    Payroll --> Overtime
+    Payroll --> SalaryAdv
+    Payroll --> Rewards
+    
+    SalaryAdv --> Employee
+    Rewards --> Employee
+    
+    AssetMgmt --> Employee
+    
+    JobPost --> Department
+    Candidates --> JobPost
+      </div>
+    </div>
+    
+    <div class="diagram-container">
+      <h2 class="diagram-title">Deployment Diagram</h2>
+      <div class="mermaid">
+flowchart TB
+    subgraph Browser["🌐 Web Browser"]
+        UI[React UI<br/>Next.js Client]
+    end
+    
+    subgraph Vercel["☁️ Vercel / Hosting"]
+        subgraph NextJS["Next.js 16.x App Router"]
+            SSR[Server-Side Rendering]
+            API[API Routes]
+            SA[Server Actions]
+            MW[Middleware]
+        end
+    end
+    
+    subgraph SupabaseCloud["☁️ Supabase Cloud"]
+        subgraph Auth["🔐 Auth Service"]
+            JWT[JWT Tokens]
+            Sessions[Session Management]
+        end
+        
+        subgraph DB["🗄️ PostgreSQL"]
+            Tables[(18 Tables)]
+            RLS[Row Level Security]
+        end
+        
+        subgraph Storage["📁 Storage"]
+            Avatars[Avatars Bucket]
+            CVs[CVs Bucket]
+        end
+    end
+    
+    UI <-->|HTTPS| NextJS
+    NextJS <-->|Supabase Client| Auth
+    NextJS <-->|Supabase Client| DB
+    NextJS <-->|Supabase Client| Storage
+      </div>
+    </div>
+    
+    <div class="architecture-section">
+      <h3>🔄 Request Flow</h3>
+      <div class="flow-diagram">
+        <div class="flow-box client">Browser<br/>Request</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box server">Middleware<br/>(Auth Check)</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box client">Next.js<br/>Page/Action</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box server">Service<br/>Layer</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box server">Repository<br/>Layer</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box db">Supabase<br/>Database</div>
+      </div>
+    </div>
+    
+    <div class="tech-stack">
+      <div class="tech-card">
+        <h4>⚛️ Frontend</h4>
+        <ul>
+          <li>Next.js 16.x (App Router)</li>
+          <li>React 18</li>
+          <li>TypeScript</li>
+          <li>Tailwind CSS</li>
+          <li>Shadcn/UI Components</li>
+          <li>Lucide Icons</li>
+        </ul>
+      </div>
+      
+      <div class="tech-card">
+        <h4>🔧 Backend</h4>
+        <ul>
+          <li>Next.js Server Actions</li>
+          <li>Server-Side Rendering</li>
+          <li>Middleware (Auth/RBAC)</li>
+          <li>Service Layer Pattern</li>
+          <li>Repository Pattern</li>
+        </ul>
+      </div>
+      
+      <div class="tech-card">
+        <h4>🗄️ Database</h4>
+        <ul>
+          <li>Supabase (PostgreSQL)</li>
+          <li>18 Database Tables</li>
+          <li>Row Level Security</li>
+          <li>Real-time subscriptions</li>
+        </ul>
+      </div>
+      
+      <div class="tech-card">
+        <h4>🔐 Authentication</h4>
+        <ul>
+          <li>Supabase Auth</li>
+          <li>JWT Tokens</li>
+          <li>Role-based Access Control</li>
+          <li>3 Roles: ADMIN, MANAGER, EMPLOYEE</li>
+        </ul>
+      </div>
+      
+      <div class="tech-card">
+        <h4>📦 Key Packages</h4>
+        <ul>
+          <li>@supabase/supabase-js</li>
+          <li>@supabase/ssr</li>
+          <li>date-fns</li>
+          <li>recharts</li>
+          <li>zod (validation)</li>
+        </ul>
+      </div>
+      
+      <div class="tech-card">
+        <h4>🚀 DevOps</h4>
+        <ul>
+          <li>Git Version Control</li>
+          <li>Vercel Deployment</li>
+          <li>ESLint + TypeScript</li>
+          <li>Environment Variables</li>
+        </ul>
+      </div>
+    </div>
+    
+    <footer>
+      <p>HRMS Documentation © 2024 | Human Resource Management System</p>
+    </footer>
+  </div>
+  
+  <script>
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: 'base',
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis'
+      },
+      themeVariables: {
+        primaryColor: '#eab308',
+        primaryTextColor: '#1e293b',
+        primaryBorderColor: '#ca8a04',
+        lineColor: '#64748b',
+        secondaryColor: '#10b981',
+        tertiaryColor: '#3b82f6'
+      }
+    });
+  </script>
+</body>
+</html>

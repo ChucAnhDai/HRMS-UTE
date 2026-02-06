@@ -1,149 +1,622 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HRM Project Documentation</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HRMS Documentation - Tài liệu Hệ thống</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --bg-card-hover: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+      --accent-green: #10b981;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-orange: #f59e0b;
+      --accent-pink: #ec4899;
+      --accent-cyan: #06b6d4;
+      --accent-red: #ef4444;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 50%, #16213e 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* Animated Background */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+    
+    .bg-animation::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.08) 0%, transparent 40%);
+      animation: float 20s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(30px, -30px) rotate(5deg); }
+      66% { transform: translate(-20px, 20px) rotate(-5deg); }
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Header */
+    header {
+      text-align: center;
+      padding: 4rem 0 3rem;
+    }
+    
+    .logo {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      animation: bounce 2s ease-in-out infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 0%, var(--accent-purple) 50%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+    
+    .subtitle {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    
+    /* Stats Banner */
+    .stats-banner {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      margin: 3rem 0;
+      flex-wrap: wrap;
+    }
+    
+    .stat-item {
+      text-align: center;
+      padding: 1.5rem 2rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .stat-item:hover {
+      transform: translateY(-5px);
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+    
+    /* Diagram Cards Grid */
+    .diagrams-section {
+      margin: 4rem 0;
+    }
+    
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, var(--border), transparent);
+      margin-left: 1rem;
+    }
+    
+    .diagrams-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .diagram-card {
+      background: var(--bg-card);
+      border-radius: 20px;
+      padding: 2rem;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .diagram-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--card-accent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .diagram-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border-color: var(--card-accent);
+    }
+    
+    .diagram-card:hover::before {
+      opacity: 1;
+    }
+    
+    .diagram-card[data-type="usecase"] { --card-accent: var(--primary); }
+    .diagram-card[data-type="erd"] { --card-accent: var(--accent-green); }
+    .diagram-card[data-type="class"] { --card-accent: var(--accent-purple); }
+    .diagram-card[data-type="sequence"] { --card-accent: var(--accent-cyan); }
+    .diagram-card[data-type="uml"] { --card-accent: var(--accent-orange); }
+    
+    .card-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: inline-block;
+      animation: none;
+      transition: transform 0.3s ease;
+    }
+    
+    .diagram-card:hover .card-icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+    
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-primary);
+    }
+    
+    .card-description {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .tag {
+      padding: 0.25rem 0.75rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 99px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    
+    .card-arrow {
+      position: absolute;
+      bottom: 2rem;
+      right: 2rem;
+      width: 40px;
+      height: 40px;
+      background: var(--card-accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.25rem;
+      opacity: 0;
+      transform: translateX(-10px);
+      transition: all 0.3s ease;
+    }
+    
+    .diagram-card:hover .card-arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    /* Features Section */
+    .features-section {
+      margin: 5rem 0;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .feature-card {
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--accent-blue);
+    }
+    
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    
+    .feature-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .feature-desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    
+    /* Tech Stack */
+    .tech-section {
+      margin: 5rem 0;
+      text-align: center;
+    }
+    
+    .tech-logos {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .tech-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 1.5rem;
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .tech-item:hover {
+      transform: translateY(-5px);
+      border-color: var(--accent-cyan);
+    }
+    
+    .tech-item span:first-child {
+      font-size: 2rem;
+    }
+    
+    .tech-item span:last-child {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 3rem 2rem;
+      margin-top: 4rem;
+      border-top: 1px solid var(--border);
+    }
+    
+    .footer-brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    
+    .footer-text {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1.5rem;
+    }
+    
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .footer-links a:hover {
+      color: var(--accent-cyan);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1 { font-size: 2.5rem; }
+      .diagrams-grid { grid-template-columns: 1fr; }
+      .stats-banner { gap: 1.5rem; }
+      .container { padding: 1rem; }
+    }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen p-10">
-    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-        <div class="bg-indigo-600 p-8 text-white">
-            <h1 class="text-3xl font-bold mb-2">HRM Project Documentation</h1>
-            <p class="opacity-90">Comprehensive documentation and diagrams for the Human Resource Management System.</p>
+<body>
+  <div class="bg-animation"></div>
+  
+  <div class="container">
+    <header>
+      <div class="logo">🏢</div>
+      <h1>HRMS Documentation</h1>
+      <p class="subtitle">
+        Tài liệu kỹ thuật hệ thống Quản lý Nhân sự - Human Resource Management System
+      </p>
+    </header>
+    
+    <div class="stats-banner">
+      <div class="stat-item">
+        <div class="stat-number">18</div>
+        <div class="stat-label">Database Tables</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">10</div>
+        <div class="stat-label">Services</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">14</div>
+        <div class="stat-label">Repositories</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">12+</div>
+        <div class="stat-label">Modules</div>
+      </div>
+    </div>
+    
+    <section class="diagrams-section">
+      <h2 class="section-title">📊 Các sơ đồ hệ thống</h2>
+      
+      <div class="diagrams-grid">
+        <a href="use-case-diagram.html" class="diagram-card" data-type="usecase">
+          <div class="card-icon">📋</div>
+          <h3 class="card-title">Use Case Diagram</h3>
+          <p class="card-description">
+            Sơ đồ ca sử dụng mô tả các tác nhân (Admin, Manager, Employee, Candidate) 
+            và các chức năng họ có thể thực hiện trong hệ thống HRMS.
+          </p>
+          <div class="card-tags">
+            <span class="tag">4 Actors</span>
+            <span class="tag">40+ Use Cases</span>
+            <span class="tag">RBAC</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+        
+        <a href="erd-diagram.html" class="diagram-card" data-type="erd">
+          <div class="card-icon">🗄️</div>
+          <h3 class="card-title">ERD Diagram</h3>
+          <p class="card-description">
+            Sơ đồ thực thể quan hệ hiển thị 18 bảng cơ sở dữ liệu, các mối quan hệ, 
+            khóa chính, khóa ngoại và ràng buộc dữ liệu.
+          </p>
+          <div class="card-tags">
+            <span class="tag">18 Tables</span>
+            <span class="tag">PostgreSQL</span>
+            <span class="tag">Supabase</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+        
+        <a href="class-diagram.html" class="diagram-card" data-type="class">
+          <div class="card-icon">📦</div>
+          <h3 class="card-title">Class Diagram</h3>
+          <p class="card-description">
+            Sơ đồ lớp thể hiện các TypeScript interfaces, Service classes, 
+            Repository classes và mối quan hệ giữa chúng.
+          </p>
+          <div class="card-tags">
+            <span class="tag">TypeScript</span>
+            <span class="tag">Services</span>
+            <span class="tag">Repositories</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+        
+        <a href="sequence-diagram.html" class="diagram-card" data-type="sequence">
+          <div class="card-icon">🔄</div>
+          <h3 class="card-title">Sequence Diagram</h3>
+          <p class="card-description">
+            Sơ đồ tuần tự mô tả luồng xử lý của các chức năng: Login, CRUD Employees, 
+            Chấm công, Nghỉ phép, Tính lương, Tuyển dụng.
+          </p>
+          <div class="card-tags">
+            <span class="tag">6 Flows</span>
+            <span class="tag">Authentication</span>
+            <span class="tag">Payroll</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+        
+        <a href="uml-diagram.html" class="diagram-card" data-type="uml">
+          <div class="card-icon">📐</div>
+          <h3 class="card-title">UML Component Diagram</h3>
+          <p class="card-description">
+            Sơ đồ thành phần UML hiển thị kiến trúc hệ thống, các module, 
+            deployment và technology stack được sử dụng.
+          </p>
+          <div class="card-tags">
+            <span class="tag">Architecture</span>
+            <span class="tag">Deployment</span>
+            <span class="tag">Tech Stack</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+      </div>
+    </section>
+    
+    <section class="features-section">
+      <h2 class="section-title">✨ Các module chức năng</h2>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">👥</div>
+          <h4 class="feature-title">Quản lý Nhân viên</h4>
+          <p class="feature-desc">CRUD thông tin nhân viên, phòng ban, chức vụ, trạng thái làm việc</p>
         </div>
         
-        <div class="p-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Database -->
-                <a href="database_diagram.html" class="block p-6 border border-gray-200 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all group">
-                    <div class="flex items-center space-x-4">
-                        <div class="p-3 bg-blue-100 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">Database Diagram</h3>
-                            <p class="text-sm text-gray-500">Entity Relationship Diagram (ERD) of the system.</p>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Actors -->
-                <a href="actors.html" class="block p-6 border border-gray-200 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all group">
-                    <div class="flex items-center space-x-4">
-                        <div class="p-3 bg-purple-100 text-purple-600 rounded-lg group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">Actors & Roles</h3>
-                            <p class="text-sm text-gray-500">System users and their responsibilities.</p>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Use Cases -->
-                <a href="use_cases.html" class="block p-6 border border-gray-200 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all group">
-                    <div class="flex items-center space-x-4">
-                        <div class="p-3 bg-green-100 text-green-600 rounded-lg group-hover:bg-green-600 group-hover:text-white transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">Use Cases</h3>
-                            <p class="text-sm text-gray-500">Functional requirements and interactions.</p>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Sitemap -->
-                <a href="sitemap.html" class="block p-6 border border-gray-200 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all group">
-                    <div class="flex items-center space-x-4">
-                        <div class="p-3 bg-yellow-100 text-yellow-600 rounded-lg group-hover:bg-yellow-600 group-hover:text-white transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">Sitemap</h3>
-                            <p class="text-sm text-gray-500">Hierarchical structure of the application.</p>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- User Flows -->
-                <a href="user_flows.html" class="block p-6 border border-gray-200 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all group">
-                    <div class="flex items-center space-x-4">
-                        <div class="p-3 bg-pink-100 text-pink-600 rounded-lg group-hover:bg-pink-600 group-hover:text-white transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">User Flows</h3>
-                            <p class="text-sm text-gray-500">Visual pathways for user tasks.</p>
-                        </div>
-                    </div>
-                </a>
-                 
-                 <!-- Flow Charts -->
-                <a href="flow_charts.html" class="block p-6 border border-gray-200 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all group">
-                    <div class="flex items-center space-x-4">
-                        <div class="p-3 bg-orange-100 text-orange-600 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">Flow Charts</h3>
-                            <p class="text-sm text-gray-500">Process logic and workflows.</p>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- UML -->
-                <a href="uml_diagrams.html" class="block p-6 border border-gray-200 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all group">
-                    <div class="flex items-center space-x-4">
-                        <div class="p-3 bg-teal-100 text-teal-600 rounded-lg group-hover:bg-teal-600 group-hover:text-white transition-colors">
-                           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">UML Diagrams</h3>
-                            <p class="text-sm text-gray-500">Class and Sequence diagrams.</p>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Test Cases -->
-                <a href="test_cases.html" class="block p-6 border border-gray-200 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all group">
-                    <div class="flex items-center space-x-4">
-                        <div class="p-3 bg-red-100 text-red-600 rounded-lg group-hover:bg-red-600 group-hover:text-white transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">Test Cases</h3>
-                            <p class="text-sm text-gray-500">QA scenarios and validation steps.</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="mt-8 pt-6 border-t border-gray-100 text-center text-gray-500 text-sm">
-                Generated by Antigravity
-            </div>
+        <div class="feature-card">
+          <div class="feature-icon">📅</div>
+          <h4 class="feature-title">Chấm công</h4>
+          <p class="feature-desc">Check-in/out, theo dõi giờ làm việc, báo cáo chấm công</p>
         </div>
-    </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🏖️</div>
+          <h4 class="feature-title">Nghỉ phép</h4>
+          <p class="feature-desc">Xin nghỉ, duyệt nghỉ, quản lý quota nghỉ phép</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">⏰</div>
+          <h4 class="feature-title">Làm thêm giờ</h4>
+          <p class="feature-desc">Đăng ký OT, duyệt OT, tính lương OT</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">💰</div>
+          <h4 class="feature-title">Bảng lương</h4>
+          <p class="feature-desc">Tính lương tự động, thuế, BHXH, phiếu lương</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">📄</div>
+          <h4 class="feature-title">Hợp đồng</h4>
+          <p class="feature-desc">Quản lý hợp đồng lao động, gia hạn, kết thúc</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🖥️</div>
+          <h4 class="feature-title">Tài sản</h4>
+          <p class="feature-desc">Quản lý tài sản công ty, cấp phát, thu hồi</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h4 class="feature-title">Tuyển dụng</h4>
+          <p class="feature-desc">Đăng tin, quản lý ứng viên, theo dõi quy trình</p>
+        </div>
+      </div>
+    </section>
+    
+    <section class="tech-section">
+      <h2 class="section-title" style="justify-content: center;">🛠️ Technology Stack</h2>
+      
+      <div class="tech-logos">
+        <div class="tech-item">
+          <span>⚛️</span>
+          <span>Next.js 16.x</span>
+        </div>
+        <div class="tech-item">
+          <span>📘</span>
+          <span>TypeScript</span>
+        </div>
+        <div class="tech-item">
+          <span>🎨</span>
+          <span>Tailwind CSS</span>
+        </div>
+        <div class="tech-item">
+          <span>⚡</span>
+          <span>Supabase</span>
+        </div>
+        <div class="tech-item">
+          <span>🐘</span>
+          <span>PostgreSQL</span>
+        </div>
+        <div class="tech-item">
+          <span>🔐</span>
+          <span>Auth & RBAC</span>
+        </div>
+      </div>
+    </section>
+    
+    <footer>
+      <div class="footer-brand">🏢 HRMS Documentation</div>
+      <p class="footer-text">Human Resource Management System - Hệ thống Quản lý Nhân sự</p>
+      <p class="footer-text" style="margin-top: 0.5rem;">© 2024 - Built with Next.js & Supabase</p>
+      
+      <div class="footer-links">
+        <a href="use-case-diagram.html">Use Case</a>
+        <a href="erd-diagram.html">ERD</a>
+        <a href="class-diagram.html">Class</a>
+        <a href="sequence-diagram.html">Sequence</a>
+        <a href="uml-diagram.html">UML</a>
+      </div>
+    </footer>
+  </div>
 </body>
 </html>

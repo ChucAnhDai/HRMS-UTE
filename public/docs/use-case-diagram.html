@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Use Case Diagram - HRMS</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    :root {
+      --primary: #6366f1;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-purple: #8b5cf6;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    
+    .container { max-width: 1600px; margin: 0 auto; }
+    
+    header { text-align: center; margin-bottom: 2rem; }
+    
+    h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    
+    .subtitle { color: var(--text-secondary); font-size: 1.1rem; }
+    
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+    }
+    
+    .nav-links a {
+      padding: 0.75rem 1.5rem;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      text-decoration: none;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .nav-links a:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    
+    .nav-links a.active {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .diagram-container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    
+    .diagram-title {
+      font-size: 1.25rem;
+      color: var(--bg-dark);
+      margin-bottom: 1rem;
+      text-align: center;
+      font-weight: 600;
+    }
+    
+    /* SVG Use Case Diagram Styles */
+    .use-case-svg {
+      display: block;
+      margin: 0 auto;
+    }
+    
+    .actor-label {
+      font-size: 12px;
+      fill: #1e293b;
+      text-anchor: middle;
+      font-weight: 500;
+    }
+    
+    .use-case-ellipse {
+      fill: #e0f2fe;
+      stroke: #0284c7;
+      stroke-width: 2;
+    }
+    
+    .use-case-text {
+      font-size: 11px;
+      fill: #0c4a6e;
+      text-anchor: middle;
+      font-weight: 500;
+    }
+    
+    .system-boundary {
+      fill: none;
+      stroke: #64748b;
+      stroke-width: 2;
+      stroke-dasharray: none;
+    }
+    
+    .system-title {
+      font-size: 16px;
+      fill: #1e293b;
+      font-weight: 700;
+    }
+    
+    .association-line {
+      stroke: #475569;
+      stroke-width: 1.5;
+      fill: none;
+    }
+    
+    .extend-line {
+      stroke: #475569;
+      stroke-width: 1.5;
+      stroke-dasharray: 6, 4;
+      fill: none;
+    }
+    
+    .include-line {
+      stroke: #475569;
+      stroke-width: 1.5;
+      stroke-dasharray: 6, 4;
+      fill: none;
+    }
+    
+    .stereotype-text {
+      font-size: 10px;
+      fill: #64748b;
+      text-anchor: middle;
+      font-style: italic;
+    }
+    
+    .actor-stick {
+      stroke: #1e293b;
+      stroke-width: 2;
+      fill: none;
+    }
+    
+    .actor-head {
+      fill: #fff;
+      stroke: #1e293b;
+      stroke-width: 2;
+    }
+    
+    .generalization-arrow {
+      stroke: #475569;
+      stroke-width: 1.5;
+      fill: none;
+    }
+    
+    .arrow-head {
+      fill: #fff;
+      stroke: #475569;
+      stroke-width: 1.5;
+    }
+    
+    /* Legend */
+    .legend {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+      border: 1px solid var(--border);
+    }
+    
+    .legend h3 {
+      color: var(--accent-blue);
+      margin-bottom: 1rem;
+    }
+    
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-secondary);
+    }
+    
+    .legend-icon {
+      width: 50px;
+      height: 40px;
+    }
+    
+    /* Actors section */
+    .actors-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .actor-card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+    }
+    
+    .actor-card h4 {
+      color: var(--accent-blue);
+      margin-bottom: 0.75rem;
+    }
+    
+    .actor-card ul {
+      list-style: disc;
+      padding-left: 1.5rem;
+      color: var(--text-secondary);
+    }
+    
+    .actor-card li { padding: 0.25rem 0; }
+    
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding: 2rem;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📋 Use Case Diagram</h1>
+      <p class="subtitle">Sơ đồ Ca sử dụng - Hệ thống Quản lý Nhân sự (HRMS)</p>
+    </header>
+    
+    <nav class="nav-links">
+      <a href="index.html">🏠 Trang chủ</a>
+      <a href="use-case-diagram.html" class="active">📋 Use Case</a>
+      <a href="erd-diagram.html">🗄️ ERD</a>
+      <a href="class-diagram.html">📦 Class</a>
+      <a href="sequence-diagram.html">🔄 Sequence</a>
+      <a href="uml-diagram.html">📐 UML</a>
+    </nav>
+    
+    <div class="diagram-container">
+      <h2 class="diagram-title">Sơ đồ Use Case - Hệ thống HRMS</h2>
+      
+      <svg class="use-case-svg" width="1200" height="900" viewBox="0 0 1200 900">
+        <!-- System Boundary -->
+        <rect class="system-boundary" x="200" y="30" width="800" height="840" rx="10"/>
+        <text class="system-title" x="600" y="60" text-anchor="middle">Hệ thống Quản lý Nhân sự (HRMS)</text>
+        
+        <!-- ============ ACTORS (Left Side) ============ -->
+        <!-- Admin Actor -->
+        <g transform="translate(80, 120)">
+          <circle class="actor-head" cx="0" cy="0" r="15"/>
+          <line class="actor-stick" x1="0" y1="15" x2="0" y2="45"/>
+          <line class="actor-stick" x1="-20" y1="30" x2="20" y2="30"/>
+          <line class="actor-stick" x1="0" y1="45" x2="-15" y2="70"/>
+          <line class="actor-stick" x1="0" y1="45" x2="15" y2="70"/>
+          <text class="actor-label" x="0" y="90">Admin</text>
+        </g>
+        
+        <!-- Manager Actor -->
+        <g transform="translate(80, 400)">
+          <circle class="actor-head" cx="0" cy="0" r="15"/>
+          <line class="actor-stick" x1="0" y1="15" x2="0" y2="45"/>
+          <line class="actor-stick" x1="-20" y1="30" x2="20" y2="30"/>
+          <line class="actor-stick" x1="0" y1="45" x2="-15" y2="70"/>
+          <line class="actor-stick" x1="0" y1="45" x2="15" y2="70"/>
+          <text class="actor-label" x="0" y="90">Manager</text>
+        </g>
+        
+        <!-- Employee Actor -->
+        <g transform="translate(80, 680)">
+          <circle class="actor-head" cx="0" cy="0" r="15"/>
+          <line class="actor-stick" x1="0" y1="15" x2="0" y2="45"/>
+          <line class="actor-stick" x1="-20" y1="30" x2="20" y2="30"/>
+          <line class="actor-stick" x1="0" y1="45" x2="-15" y2="70"/>
+          <line class="actor-stick" x1="0" y1="45" x2="15" y2="70"/>
+          <text class="actor-label" x="0" y="90">Employee</text>
+        </g>
+        
+        <!-- ============ ACTORS (Right Side) ============ -->
+        <!-- Candidate Actor -->
+        <g transform="translate(1120, 200)">
+          <circle class="actor-head" cx="0" cy="0" r="15"/>
+          <line class="actor-stick" x1="0" y1="15" x2="0" y2="45"/>
+          <line class="actor-stick" x1="-20" y1="30" x2="20" y2="30"/>
+          <line class="actor-stick" x1="0" y1="45" x2="-15" y2="70"/>
+          <line class="actor-stick" x1="0" y1="45" x2="15" y2="70"/>
+          <text class="actor-label" x="0" y="90">Ứng viên</text>
+        </g>
+        
+        <!-- Supabase System Actor -->
+        <g transform="translate(1120, 550)">
+          <rect x="-30" y="-20" width="60" height="40" rx="5" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+          <text class="actor-label" x="0" y="5" font-size="10">«system»</text>
+          <text class="actor-label" x="0" y="60">Supabase</text>
+        </g>
+        
+        <!-- ============ USE CASES ============ -->
+        
+        <!-- Authentication Module -->
+        <ellipse class="use-case-ellipse" cx="350" cy="100" rx="80" ry="30"/>
+        <text class="use-case-text" x="350" y="105">Đăng nhập</text>
+        
+        <ellipse class="use-case-ellipse" cx="550" cy="100" rx="80" ry="30"/>
+        <text class="use-case-text" x="550" y="105">Đăng xuất</text>
+        
+        <!-- Employee Management Module -->
+        <ellipse class="use-case-ellipse" cx="350" cy="180" rx="90" ry="30"/>
+        <text class="use-case-text" x="350" y="185">Quản lý Nhân viên</text>
+        
+        <ellipse class="use-case-ellipse" cx="550" cy="180" rx="80" ry="30"/>
+        <text class="use-case-text" x="550" y="185">Thêm Nhân viên</text>
+        
+        <ellipse class="use-case-ellipse" cx="750" cy="180" rx="80" ry="30"/>
+        <text class="use-case-text" x="750" y="185">Sửa Nhân viên</text>
+        
+        <ellipse class="use-case-ellipse" cx="900" cy="180" rx="70" ry="30"/>
+        <text class="use-case-text" x="900" y="185">Xóa Nhân viên</text>
+        
+        <!-- Department Management -->
+        <ellipse class="use-case-ellipse" cx="350" cy="260" rx="90" ry="30"/>
+        <text class="use-case-text" x="350" y="265">Quản lý Phòng ban</text>
+        
+        <!-- Attendance Module -->
+        <ellipse class="use-case-ellipse" cx="350" cy="340" rx="70" ry="30"/>
+        <text class="use-case-text" x="350" y="345">Check-in</text>
+        
+        <ellipse class="use-case-ellipse" cx="550" cy="340" rx="70" ry="30"/>
+        <text class="use-case-text" x="550" y="345">Check-out</text>
+        
+        <ellipse class="use-case-ellipse" cx="750" cy="340" rx="100" ry="30"/>
+        <text class="use-case-text" x="750" y="345">Xem lịch chấm công</text>
+        
+        <!-- Leave Management -->
+        <ellipse class="use-case-ellipse" cx="350" cy="420" rx="90" ry="30"/>
+        <text class="use-case-text" x="350" y="425">Xin nghỉ phép</text>
+        
+        <ellipse class="use-case-ellipse" cx="550" cy="420" rx="90" ry="30"/>
+        <text class="use-case-text" x="550" y="425">Duyệt nghỉ phép</text>
+        
+        <ellipse class="use-case-ellipse" cx="750" cy="420" rx="90" ry="30"/>
+        <text class="use-case-text" x="750" y="425">Từ chối nghỉ phép</text>
+        
+        <!-- Overtime Module -->
+        <ellipse class="use-case-ellipse" cx="350" cy="500" rx="80" ry="30"/>
+        <text class="use-case-text" x="350" y="505">Đăng ký OT</text>
+        
+        <ellipse class="use-case-ellipse" cx="550" cy="500" rx="70" ry="30"/>
+        <text class="use-case-text" x="550" y="505">Duyệt OT</text>
+        
+        <!-- Payroll Module -->
+        <ellipse class="use-case-ellipse" cx="350" cy="580" rx="80" ry="30"/>
+        <text class="use-case-text" x="350" y="585">Tính lương</text>
+        
+        <ellipse class="use-case-ellipse" cx="550" cy="580" rx="90" ry="30"/>
+        <text class="use-case-text" x="550" y="585">Xem phiếu lương</text>
+        
+        <ellipse class="use-case-ellipse" cx="750" cy="580" rx="100" ry="30"/>
+        <text class="use-case-text" x="750" y="585">Đánh dấu đã thanh toán</text>
+        
+        <!-- Salary Advance -->
+        <ellipse class="use-case-ellipse" cx="350" cy="660" rx="80" ry="30"/>
+        <text class="use-case-text" x="350" y="665">Ứng lương</text>
+        
+        <ellipse class="use-case-ellipse" cx="550" cy="660" rx="90" ry="30"/>
+        <text class="use-case-text" x="550" y="665">Duyệt ứng lương</text>
+        
+        <!-- Assets & Contracts -->
+        <ellipse class="use-case-ellipse" cx="750" cy="660" rx="80" ry="30"/>
+        <text class="use-case-text" x="750" y="665">Quản lý Tài sản</text>
+        
+        <ellipse class="use-case-ellipse" cx="900" cy="660" rx="80" ry="30"/>
+        <text class="use-case-text" x="900" y="665">Quản lý Hợp đồng</text>
+        
+        <!-- Recruitment Module -->
+        <ellipse class="use-case-ellipse" cx="350" cy="740" rx="100" ry="30"/>
+        <text class="use-case-text" x="350" y="745">Đăng tin tuyển dụng</text>
+        
+        <ellipse class="use-case-ellipse" cx="550" cy="740" rx="90" ry="30"/>
+        <text class="use-case-text" x="550" y="745">Quản lý ứng viên</text>
+        
+        <ellipse class="use-case-ellipse" cx="750" cy="740" rx="80" ry="30"/>
+        <text class="use-case-text" x="750" y="745">Ứng tuyển</text>
+        
+        <!-- Settings -->
+        <ellipse class="use-case-ellipse" cx="350" cy="820" rx="80" ry="30"/>
+        <text class="use-case-text" x="350" y="825">Cài đặt hệ thống</text>
+        
+        <ellipse class="use-case-ellipse" cx="550" cy="820" rx="90" ry="30"/>
+        <text class="use-case-text" x="550" y="825">Quản lý ngày lễ</text>
+        
+        <!-- ============ ASSOCIATION LINES ============ -->
+        
+        <!-- Admin associations -->
+        <line class="association-line" x1="100" y1="120" x2="270" y2="100"/>
+        <line class="association-line" x1="100" y1="120" x2="470" y2="100"/>
+        <line class="association-line" x1="100" y1="130" x2="260" y2="180"/>
+        <line class="association-line" x1="100" y1="140" x2="260" y2="260"/>
+        <line class="association-line" x1="100" y1="150" x2="270" y2="580"/>
+        <line class="association-line" x1="100" y1="160" x2="250" y2="740"/>
+        <line class="association-line" x1="100" y1="170" x2="270" y2="820"/>
+        
+        <!-- Manager associations -->
+        <line class="association-line" x1="100" y1="400" x2="270" y2="100"/>
+        <line class="association-line" x1="100" y1="400" x2="260" y2="180"/>
+        <line class="association-line" x1="100" y1="410" x2="280" y2="340"/>
+        <line class="association-line" x1="100" y1="420" x2="460" y2="420"/>
+        <line class="association-line" x1="100" y1="430" x2="480" y2="500"/>
+        <line class="association-line" x1="100" y1="440" x2="460" y2="660"/>
+        <line class="association-line" x1="100" y1="450" x2="460" y2="740"/>
+        
+        <!-- Employee associations -->
+        <line class="association-line" x1="100" y1="680" x2="270" y2="100"/>
+        <line class="association-line" x1="100" y1="680" x2="280" y2="340"/>
+        <line class="association-line" x1="100" y1="690" x2="280" y2="420"/>
+        <line class="association-line" x1="100" y1="700" x2="270" y2="500"/>
+        <line class="association-line" x1="100" y1="710" x2="460" y2="580"/>
+        <line class="association-line" x1="100" y1="720" x2="270" y2="660"/>
+        
+        <!-- Candidate associations -->
+        <line class="association-line" x1="1100" y1="200" x2="830" y2="740"/>
+        
+        <!-- Supabase system associations -->
+        <line class="association-line" x1="1090" y1="550" x2="850" y2="580"/>
+        <line class="association-line" x1="1090" y1="550" x2="850" y2="340"/>
+        
+        <!-- ============ INCLUDE RELATIONSHIPS ============ -->
+        
+        <!-- Quản lý NV includes Thêm/Sửa/Xóa -->
+        <path class="include-line" d="M440,180 L470,180" marker-end="url(#arrowhead)"/>
+        <text class="stereotype-text" x="455" y="170">«include»</text>
+        
+        <path class="include-line" d="M440,180 Q500,200 670,180" marker-end="url(#arrowhead)"/>
+        
+        <path class="include-line" d="M440,180 Q500,210 830,180" marker-end="url(#arrowhead)"/>
+        
+        <!-- Duyệt nghỉ phép extends Từ chối -->
+        <path class="extend-line" d="M640,420 L660,420" marker-end="url(#arrowhead)"/>
+        <text class="stereotype-text" x="700" y="400">«extend»</text>
+        
+        <!-- Arrow marker definition -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon class="arrow-head" points="0 0, 10 3.5, 0 7"/>
+          </marker>
+          <marker id="triangle" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+            <path class="arrow-head" d="M0,0 L12,6 L0,12 Z"/>
+          </marker>
+        </defs>
+        
+        <!-- ============ GENERALIZATION (Actor inheritance) ============ -->
+        <!-- Manager inherits from Admin (some permissions) -->
+        <line class="generalization-arrow" x1="80" y1="310" x2="80" y2="210" marker-end="url(#triangle)"/>
+        
+      </svg>
+    </div>
+    
+    <!-- Legend -->
+    <div class="legend">
+      <h3>📖 Chú thích (Legend)</h3>
+      <div class="legend-grid">
+        <div class="legend-item">
+          <svg class="legend-icon" viewBox="0 0 50 40">
+            <circle cx="25" cy="10" r="8" fill="#fff" stroke="#1e293b" stroke-width="2"/>
+            <line x1="25" y1="18" x2="25" y2="30" stroke="#1e293b" stroke-width="2"/>
+            <line x1="15" y1="24" x2="35" y2="24" stroke="#1e293b" stroke-width="2"/>
+          </svg>
+          <span>Actor (Tác nhân)</span>
+        </div>
+        <div class="legend-item">
+          <svg class="legend-icon" viewBox="0 0 60 40">
+            <ellipse cx="30" cy="20" rx="25" ry="15" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+          </svg>
+          <span>Use Case (Ca sử dụng)</span>
+        </div>
+        <div class="legend-item">
+          <svg class="legend-icon" viewBox="0 0 60 40">
+            <line x1="5" y1="20" x2="55" y2="20" stroke="#475569" stroke-width="2"/>
+          </svg>
+          <span>Association (Liên kết)</span>
+        </div>
+        <div class="legend-item">
+          <svg class="legend-icon" viewBox="0 0 60 40">
+            <line x1="5" y1="20" x2="55" y2="20" stroke="#475569" stroke-width="2" stroke-dasharray="6,4"/>
+          </svg>
+          <span>«include» / «extend»</span>
+        </div>
+        <div class="legend-item">
+          <svg class="legend-icon" viewBox="0 0 60 40">
+            <rect x="5" y="5" width="50" height="30" fill="none" stroke="#64748b" stroke-width="2" rx="5"/>
+          </svg>
+          <span>System Boundary</span>
+        </div>
+        <div class="legend-item">
+          <svg class="legend-icon" viewBox="0 0 60 40">
+            <line x1="30" y1="35" x2="30" y2="10" stroke="#475569" stroke-width="2"/>
+            <polygon points="22,15 30,5 38,15" fill="#fff" stroke="#475569" stroke-width="2"/>
+          </svg>
+          <span>Generalization (Kế thừa)</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="description">
+        <h3>Mô tả Use Case</h3>
+        <ul>
+          <li><strong>Xác thực (Authentication):</strong> Quản lý đăng nhập, đăng xuất và phiên làm việc của người dùng</li>
+          <li><strong>Quản lý Nhân viên:</strong> CRUD thông tin nhân viên, phân quyền theo vai trò</li>
+          <li><strong>Chấm công:</strong> Theo dõi giờ làm việc với check-in/check-out hàng ngày</li>
+          <li><strong>Nghỉ phép:</strong> Workflow xin phép và duyệt nghỉ phép</li>
+          <li><strong>Bảng lương:</strong> Tính toán lương tự động, quản lý phiếu lương</li>
+          <li><strong>Tuyển dụng:</strong> Quản lý tin tuyển dụng và ứng viên</li>
+        </ul>
+      </div>
+
+    <!-- Actors Description -->
+    <div class="actors-section">
+      <div class="actor-card">
+        <h4>👑 Admin</h4>
+        <ul>
+          <li>Toàn quyền truy cập hệ thống</li>
+          <li>Quản lý nhân viên, phòng ban</li>
+          <li>Tính lương và thanh toán</li>
+          <li>Đăng tin tuyển dụng</li>
+          <li>Cài đặt hệ thống</li>
+        </ul>
+      </div>
+      
+      <div class="actor-card">
+        <h4>👔 Manager</h4>
+        <ul>
+          <li>Quản lý nhân viên trong phòng ban</li>
+          <li>Duyệt/từ chối nghỉ phép</li>
+          <li>Duyệt làm thêm giờ</li>
+          <li>Duyệt ứng lương</li>
+          <li>Xem ứng viên tuyển dụng</li>
+        </ul>
+      </div>
+      
+      <div class="actor-card">
+        <h4>👤 Employee</h4>
+        <ul>
+          <li>Chấm công hàng ngày</li>
+          <li>Xin nghỉ phép</li>
+          <li>Đăng ký làm thêm giờ</li>
+          <li>Yêu cầu ứng lương</li>
+          <li>Xem phiếu lương cá nhân</li>
+        </ul>
+      </div>
+      
+      <div class="actor-card">
+        <h4>🎯 Ứng viên (Candidate)</h4>
+        <ul>
+          <li>Xem tin tuyển dụng</li>
+          <li>Nộp đơn ứng tuyển</li>
+          <li>Theo dõi trạng thái hồ sơ</li>
+        </ul>
+      </div>
+    </div>
+    
+    <footer>
+      <p>HRMS Documentation © 2024 | Human Resource Management System</p>
+    </footer>
+  </div>
+</body>
+</html>
