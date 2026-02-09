@@ -3,12 +3,15 @@ import JobCard from "@/components/recruitment/JobCard";
 import Footer from "../../components/layout/Footer";
 import PublicHeader from "@/components/layout/PublicHeader";
 
+import { getCurrentUser } from "@/lib/auth-helpers";
+
 export default async function CareersPage() {
+  const user = await getCurrentUser();
   const jobs = await recruitmentRepo.getJobOpenings({ status: "Open" });
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-      <PublicHeader />
+      <PublicHeader user={user} />
 
       <main className="flex-1 container mx-auto px-4 py-12 max-w-5xl">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 mb-12 text-center">

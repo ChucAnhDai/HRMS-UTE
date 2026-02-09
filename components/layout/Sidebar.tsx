@@ -20,9 +20,10 @@ import {
   Laptop,
   Coins,
   Search,
+  Globe,
 } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
-import { cn } from "@/lib/utils";
+import { cn, getUserAvatarUrl } from "@/lib/utils";
 import { logoutAction } from "@/server/actions/auth-actions";
 import Image from "next/image";
 import { HeaderUserProps } from "./Header";
@@ -31,9 +32,15 @@ type UserRole = "ADMIN" | "MANAGER" | "EMPLOYEE";
 
 const menuItems = [
   {
+    name: "Trang chủ",
+    icon: Globe,
+    href: "/",
+    roles: ["ADMIN", "MANAGER", "EMPLOYEE"] as UserRole[],
+  },
+  {
     name: "Tổng quan",
     icon: Home,
-    href: "/",
+    href: "/dashboard",
     roles: ["ADMIN", "MANAGER", "EMPLOYEE"] as UserRole[],
   },
   {
@@ -144,7 +151,10 @@ export default function Sidebar({ user }: { user: HeaderUserProps | null }) {
             isCollapsed ? "justify-center" : "justify-between",
           )}
         >
-          <Link href="/" className="flex items-center gap-2 overflow-hidden">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 overflow-hidden"
+          >
             {/* Logo */}
             <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shrink-0">
               C
@@ -165,10 +175,7 @@ export default function Sidebar({ user }: { user: HeaderUserProps | null }) {
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
             <div className="relative w-10 h-10 rounded-full overflow-hidden border border-gray-100 shrink-0">
               <Image
-                src={
-                  user.avatar ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`
-                }
+                src={getUserAvatarUrl(user.avatar)}
                 alt="User"
                 fill
                 className="object-cover"

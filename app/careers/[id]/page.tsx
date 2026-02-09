@@ -6,6 +6,7 @@ import PublicHeader from "@/components/layout/PublicHeader";
 import { Briefcase, Calendar, MapPin, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { getCurrentUser } from "@/lib/auth-helpers";
 
 interface Props {
   params: Promise<{
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default async function JobDetailPage({ params }: Props) {
+  const user = await getCurrentUser();
   const resolvedParams = await params;
   const job = await recruitmentRepo.getJobOpeningById(
     Number(resolvedParams.id),
@@ -25,7 +27,7 @@ export default async function JobDetailPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-      <PublicHeader />
+      <PublicHeader user={user} />
 
       {/* Breadcrumb / Back Link */}
       <div className="bg-white border-b border-gray-100 py-4">

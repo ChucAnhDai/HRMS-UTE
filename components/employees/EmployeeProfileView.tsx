@@ -15,7 +15,7 @@ import {
   Monitor,
 } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, getUserAvatarUrl } from "@/lib/utils";
 import Image from "next/image";
 import ContractList from "@/components/contracts/ContractList";
 import PayrollTable from "@/components/payroll/PayrollTable";
@@ -92,10 +92,7 @@ export default function EmployeeProfileView({
             <div className="relative group shrink-0">
               <div className="w-32 h-32 rounded-3xl border-4 border-white shadow-lg bg-white overflow-hidden relative">
                 <Image
-                  src={
-                    employee.avatar ||
-                    `https://ui-avatars.com/api/?name=${employee.first_name}+${employee.last_name}&background=random`
-                  }
+                  src={getUserAvatarUrl(employee.avatar)}
                   alt="Profile"
                   fill
                   className="object-cover"

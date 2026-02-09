@@ -32,7 +32,14 @@ export const employeeRepo = {
     
     const { data, error } = await supabase
       .from('employees')
-      .select('*')
+      .select(`
+        *,
+        auth_user_id,
+        departments (
+          id,
+          name
+        )
+      `)
       .eq('id', id)
       .single()
 

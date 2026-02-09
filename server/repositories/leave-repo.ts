@@ -111,5 +111,24 @@ export const leaveRepo = {
 
     if (error) throw new Error(error.message)
     return data
+  },
+
+  // NEW: Lấy danh sách nghỉ phép được duyệt trong năm (để tính quota)
+  async getYearlyApprovedLeaves(year: number, employeeId: number, leaveType: string = 'Annual') {
+    const supabase = await createClient()
+    const startDate = `${year}-01-01`
+    const endDate = `${year}-12-31`
+
+    const { data, error } = await supabase
+      .from('leave_requests')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .eq('status', 'Approved')
+      .eq('leave_type', leaveType)
+      .gte('start_date', startDate)
+      .lte('start_date', endDate) // Note: This checks start_date. Simple logic.
+
+    if (error) throw new Error(error.message)
+    return data
   }
 }

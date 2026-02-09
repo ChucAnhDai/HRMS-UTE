@@ -1,9 +1,12 @@
 import { Briefcase } from "lucide-react";
 import { Employee, Department, EmploymentStatus } from "@/types";
+import { useState } from "react";
 
 interface Props {
   departments: Department[];
   defaultValues?: Partial<Employee>;
+  status: EmploymentStatus;
+  onStatusChange: (status: EmploymentStatus) => void;
 }
 
 const EMPLOYMENT_STATUSES: { value: EmploymentStatus; label: string }[] = [
@@ -19,6 +22,8 @@ const EMPLOYMENT_STATUSES: { value: EmploymentStatus; label: string }[] = [
 export default function JobInfoFields({
   departments,
   defaultValues = {},
+  status,
+  onStatusChange,
 }: Props) {
   const val = (
     key: keyof Employee,
@@ -29,6 +34,10 @@ export default function JobInfoFields({
     if (typeof value === "object") return "";
     return value as string | number;
   };
+
+  const [jobTitle, setJobTitle] = useState<string>(
+    val("job_title")?.toString() || "",
+  );
 
   return (
     <div className="mb-8">
@@ -57,10 +66,18 @@ export default function JobInfoFields({
           <input
             type="text"
             name="job_title"
-            defaultValue={val("job_title")}
+            value={jobTitle}
+            onChange={(e) => setJobTitle(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
             placeholder="VD: Software Engineer"
           />
+          {status === "Active" &&
+            jobTitle.toLowerCase().includes("thử việc") && (
+              <p className="text-xs text-amber-600 mt-1 font-medium">
+                ⚠️ Lưu ý: Nhân viên chính thức thường không để chức danh là
+                &quot;Thử việc&quot;.
+              </p>
+            )}
         </div>
         <div className="space-y-2">
           <label className="text-sm font-bold text-gray-700">
@@ -68,12 +85,13 @@ export default function JobInfoFields({
           </label>
           <select
             name="employment_status"
-            defaultValue={val("employment_status", "Probation")}
+            value={status}
+            onChange={(e) => onStatusChange(e.target.value as EmploymentStatus)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white transition-all focus:border-blue-500 text-black"
           >
-            {EMPLOYMENT_STATUSES.map((status) => (
-              <option key={status.value} value={status.value}>
-                {status.label}
+            {EMPLOYMENT_STATUSES.map((statusItem) => (
+              <option key={statusItem.value} value={statusItem.value}>
+                {statusItem.label}
               </option>
             ))}
           </select>

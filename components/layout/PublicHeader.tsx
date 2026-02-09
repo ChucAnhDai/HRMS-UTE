@@ -4,8 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export default function PublicHeader() {
+import { CurrentUser } from "@/lib/auth-helpers";
+import { getUserAvatarUrl } from "@/lib/utils";
+
+export default function PublicHeader({ user }: { user: CurrentUser | null }) {
   const pathname = usePathname();
+  const avatarSrc = getUserAvatarUrl(user?.avatar);
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-[#f0f1f5]">
@@ -53,18 +57,44 @@ export default function PublicHeader() {
               </Link>
             </nav>
             <div className="flex gap-2">
-              <Link
-                href="/login"
-                className="flex items-center justify-center rounded-lg h-10 px-4 bg-transparent border border-gray-200 text-[#111318] text-sm font-bold hover:bg-gray-50 transition-colors"
-              >
-                <span className="truncate">Đăng nhập</span>
-              </Link>
-              <Link
-                href="/login"
-                className="flex items-center justify-center rounded-lg h-10 px-4 bg-[#0d59f2] text-white text-sm font-bold shadow-md hover:bg-blue-700 transition-colors"
-              >
-                <span className="truncate">Bắt đầu</span>
-              </Link>
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={avatarSrc}
+                      alt="Avatar"
+                      className="w-8 h-8 rounded-full border border-gray-200 object-cover"
+                    />
+                    <span className="text-sm font-medium text-gray-700 hidden lg:block">
+                      {user.name || user.email}
+                    </span>
+                  </div>
+                  <Link
+                    href={user.role === "EMPLOYEE" ? "/profile" : "/dashboard"}
+                    className="flex items-center justify-center rounded-lg h-10 px-4 bg-[#0d59f2] text-white text-sm font-bold shadow-md hover:bg-blue-700 transition-colors"
+                  >
+                    <span className="truncate">
+                      {user.role === "EMPLOYEE" ? "Hồ sơ cá nhân" : "Dashboard"}
+                    </span>
+                  </Link>
+                </div>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="flex items-center justify-center rounded-lg h-10 px-4 bg-transparent border border-gray-200 text-[#111318] text-sm font-bold hover:bg-gray-50 transition-colors"
+                  >
+                    <span className="truncate">Đăng nhập</span>
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="flex items-center justify-center rounded-lg h-10 px-4 bg-[#0d59f2] text-white text-sm font-bold shadow-md hover:bg-blue-700 transition-colors"
+                  >
+                    <span className="truncate">Bắt đầu</span>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
           {/* Mobile Menu Button */}

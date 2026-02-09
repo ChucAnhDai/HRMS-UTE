@@ -1,12 +1,15 @@
 import PublicHeader from "@/components/layout/PublicHeader";
+import { getCurrentUser } from "@/lib/auth-helpers";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const user = await getCurrentUser();
+
   return (
     <div className="bg-[#f5f6f8] text-[#111318] transition-colors duration-200">
       <div className="relative flex flex-col min-h-screen w-full overflow-x-hidden">
         {/* Top Navigation */}
         {/* Top Navigation */}
-        <PublicHeader />
+        <PublicHeader user={user} />
 
         {/* Hero Section */}
         <section className="relative bg-white pt-12 pb-20 lg:pt-20 lg:pb-28">

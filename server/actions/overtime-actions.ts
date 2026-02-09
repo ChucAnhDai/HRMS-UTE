@@ -31,6 +31,13 @@ export async function createOvertimeRequestAction(data: Partial<OvertimeRequest>
              data.status = 'Pending' // Vẫn cần duyệt hoặc auto approve tùy ý. Để Pending cho an toàn.
         }
 
+        // Validate Time
+        if (data.start_time && data.end_time) {
+            if (data.end_time <= data.start_time) {
+                return { success: false, error: 'Giờ kết thúc phải lớn hơn giờ bắt đầu' }
+            }
+        }
+
         const res = await overtimeRepo.createRequest(data)
         revalidatePath('/overtime')
         return { success: true, data: res }

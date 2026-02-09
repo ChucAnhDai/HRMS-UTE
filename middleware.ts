@@ -54,9 +54,17 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = 
        request.nextUrl.pathname.startsWith('/dashboard') || 
        request.nextUrl.pathname.startsWith('/employees') || 
+       request.nextUrl.pathname.startsWith('/contracts') ||
+       request.nextUrl.pathname.startsWith('/departments') ||
        request.nextUrl.pathname.startsWith('/calendar') ||
        request.nextUrl.pathname.startsWith('/leave') ||
+       request.nextUrl.pathname.startsWith('/overtime') ||
+       request.nextUrl.pathname.startsWith('/salary-advances') ||
        request.nextUrl.pathname.startsWith('/payroll') ||
+       request.nextUrl.pathname.startsWith('/review') ||
+       request.nextUrl.pathname.startsWith('/report') ||
+       request.nextUrl.pathname.startsWith('/recruitment') ||
+       request.nextUrl.pathname.startsWith('/settings') ||
        request.nextUrl.pathname.startsWith('/instruments');
 
   // Nếu là Employee mà cố vào Admin Route -> Đá về Profile

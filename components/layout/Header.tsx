@@ -8,10 +8,12 @@ import {
   Settings,
   LogOut,
   AlignLeft,
+  Globe,
 } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, getUserAvatarUrl } from "@/lib/utils";
+import { logoutAction } from "@/server/actions/auth-actions";
 
 export interface HeaderUserProps {
   name: string;
@@ -25,9 +27,7 @@ export default function Header({ user }: { user: HeaderUserProps | null }) {
   const { toggle, toggleCollapse, isCollapsed } = useSidebar();
 
   const displayName = user?.name || "Admin User";
-  const avatarSrc =
-    user?.avatar ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`;
+  const avatarSrc = getUserAvatarUrl(user?.avatar);
 
   return (
     <header
@@ -85,6 +85,12 @@ export default function Header({ user }: { user: HeaderUserProps | null }) {
 
           <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-lg shadow-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right">
             <Link
+              href="/"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              <Globe className="h-4 w-4" /> Trang chủ
+            </Link>
+            <Link
               href="/profile"
               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
             >
@@ -97,12 +103,12 @@ export default function Header({ user }: { user: HeaderUserProps | null }) {
               <Settings className="h-4 w-4" /> Cài đặt
             </Link>
             <hr className="my-1 border-gray-100" />
-            <Link
-              href="/login"
-              className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+            <button
+              onClick={() => logoutAction()}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left"
             >
               <LogOut className="h-4 w-4" /> Đăng xuất
-            </Link>
+            </button>
           </div>
         </div>
       </div>

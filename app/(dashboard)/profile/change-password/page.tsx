@@ -217,7 +217,7 @@ export default function ChangePasswordPage() {
               💡 Mẹo bảo mật:
             </h3>
             <ul className="text-xs text-gray-600 space-y-1">
-              <li>• Sử dụng mật khẩu mạnh với ít nhất 8 ký tự</li>
+              <li>• Sử dụng mật khẩu mạnh với ít nhất 6 ký tự</li>
               <li>• Kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt</li>
               <li>• Không sử dụng lại mật khẩu cũ</li>
               <li>• Không chia sẻ mật khẩu với người khác</li>

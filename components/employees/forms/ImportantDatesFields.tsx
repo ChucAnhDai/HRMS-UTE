@@ -1,12 +1,16 @@
 import { Calendar } from "lucide-react";
-import { Employee } from "@/types";
+import { Employee, EmploymentStatus } from "@/types";
 import { useState } from "react";
 
 interface Props {
   defaultValues?: Partial<Employee>;
+  status: EmploymentStatus;
 }
 
-export default function ImportantDatesFields({ defaultValues = {} }: Props) {
+export default function ImportantDatesFields({
+  defaultValues = {},
+  status,
+}: Props) {
   const val = (key: keyof Employee) => defaultValues?.[key];
 
   const formatDate = (date: string | null | undefined) => {
@@ -17,6 +21,8 @@ export default function ImportantDatesFields({ defaultValues = {} }: Props) {
   const [hireDate, setHireDate] = useState<string>(
     formatDate(val("hire_date") as string),
   );
+
+  const isResigned = status === "Resigned" || status === "Terminated";
 
   return (
     <div className="mb-8">
@@ -55,13 +61,15 @@ export default function ImportantDatesFields({ defaultValues = {} }: Props) {
         </div>
         <div className="space-y-2">
           <label className="text-sm font-bold text-gray-700">
-            Ngày nghỉ việc (Nếu có)
+            Ngày nghỉ việc (Nếu có){" "}
+            {isResigned && <span className="text-red-500">*</span>}
           </label>
           <input
             type="date"
             name="termination_date"
             min={hireDate} // Chặn chọn ngày trước ngày vào làm
             defaultValue={formatDate(val("termination_date") as string)}
+            required={isResigned}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
           />
           <p className="text-xs text-gray-500">Phải sau ngày vào làm</p>

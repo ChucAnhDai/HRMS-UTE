@@ -30,13 +30,21 @@ export async function checkInAction() {
     const now = new Date()
     const time = now.toTimeString().split(' ')[0] // HH:mm:ss
 
+    // Logic đi muộn: Nếu check-in sau 08:30:00 thì tính là Late
+    // Đây là hardcode ví dụ, thực tế có thể lấy từ bảng Settings
+    let status: 'Present' | 'Late' = 'Present'
+    const WORK_START_TIME = '08:30:00'
+    if (time > WORK_START_TIME) {
+        status = 'Late'
+    }
+
     const { error } = await supabase
       .from('attendances')
       .insert({
         employee_id: currentUser.employeeId,
         date: today,
         check_in_time: time,
-        status: 'Present'
+        status: status
       })
 
     if (error) {

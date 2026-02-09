@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 export const EmployeeSchema = z.object({
-  first_name: z.string().min(1, "Họ không được để trống"),
-  last_name: z.string().min(1, "Tên không được để trống"),
+  first_name: z.string().min(1, "Họ không được để trống").max(250, "Họ không được quá 250 ký tự"),
+  last_name: z.string().min(1, "Tên không được để trống").max(250, "Tên không được quá 250 ký tự"),
   email: z.string().email("Email không hợp lệ"),
-  phone: z.string().regex(/^[0-9+\-\s()]*$/, "Số điện thoại không hợp lệ").optional().or(z.literal("")),
+  phone: z.string().regex(/^(0\d{9}|\+\d{10})$/, "Số điện thoại phải gồm đúng 10 số (nếu bắt đầu bằng 0) hoặc 11 ký tự (nếu bắt đầu bằng +)").optional().or(z.literal("")),
   department_id: z.coerce.number().optional().nullable(),
   job_title: z.string().optional(),
   hire_date: z.string().min(1, "Ngày vào làm là bắt buộc"),
@@ -20,6 +20,32 @@ export const EmployeeSchema = z.object({
   avatar: z.string().optional().nullable(),
 }).superRefine((data, ctx) => {
   const hireDate = new Date(data.hire_date);
+
+  // Validate termination date is required for resigned/terminated employees
+  if (
+    ["Resigned", "Terminated"].includes(data.employment_status) &&
+    !data.termination_date
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Ngày nghỉ việc là bắt buộc với trạng thái Đã nghỉ/Đã chấm dứt",
+      path: ["termination_date"],
+    });
+  }
+
+  // Validate job title vs status
+  if (
+    data.employment_status === "Active" &&
+    data.job_title &&
+    (data.job_title.toLowerCase().includes("thử việc") ||
+      data.job_title.toLowerCase().includes("probation"))
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Nhân viên chính thức không nên để chức danh là Thử việc",
+      path: ["job_title"],
+    });
+  }
 
   if (data.probation_end_date) {
     const probationDate = new Date(data.probation_end_date);

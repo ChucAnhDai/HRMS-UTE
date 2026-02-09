@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Grid, List, Filter, Plus, Edit2, Trash2, Search } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getUserAvatarUrl } from "@/lib/utils";
 import Image from "next/image";
 import { deleteEmployeeAction } from "@/server/actions/delete-employee";
 import { useRouter } from "next/navigation";
@@ -186,10 +186,7 @@ export default function EmployeeTableView({
                         >
                           <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-200">
                             <Image
-                              src={
-                                emp.avatar ||
-                                `https://ui-avatars.com/api/?name=${emp.first_name}+${emp.last_name}&background=random`
-                              }
+                              src={getUserAvatarUrl(emp.avatar)}
                               alt="avatar"
                               fill
                               className="object-cover"
@@ -299,10 +296,7 @@ export default function EmployeeTableView({
               >
                 <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-gray-50 mx-auto">
                   <Image
-                    src={
-                      emp.avatar ||
-                      `https://ui-avatars.com/api/?name=${emp.first_name}+${emp.last_name}&background=random`
-                    }
+                    src={getUserAvatarUrl(emp.avatar)}
                     alt="avatar"
                     fill
                     className="object-cover"

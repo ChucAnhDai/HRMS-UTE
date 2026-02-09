@@ -90,18 +90,77 @@ export const payrollService = {
         const actualWorkDays = attendanceStats.work_days
         const lateCount = attendanceStats.late_days
         
-        // 2. Approved Leaves
+        // 3. Approved Leaves & Quota Logic
+        // Define Quotas
+        const quotas = {
+            'Annual': emp.annual_leave_quota || 12,
+            'Sick': emp.sick_leave_quota || 5,
+            'Other': emp.other_leave_quota || 5
+        }
+
+        // Helper to calculate used quota year-to-date
+        const getUsedQuota = async (type: string) => {
+            const leaves = await leaveRepo.getYearlyApprovedLeaves(year, emp.id, type)
+            let used = 0
+            if (leaves) {
+                leaves.forEach(leave => {
+                    const start = new Date(leave.start_date)
+                    const end = new Date(leave.end_date)
+                    const leaveMonth = start.getMonth() + 1
+                    if (leaveMonth < month) {
+                        const diffTime = Math.abs(end.getTime() - start.getTime())
+                        const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 
+                        used += days
+                    }
+                })
+            }
+            return used
+        }
+
+        const usedAnnual = await getUsedQuota('Annual')
+        const usedSick = await getUsedQuota('Sick')
+        const usedOther = await getUsedQuota('Other')
+
+        const remainingAnnual = Math.max(0, quotas['Annual'] - usedAnnual)
+        const remainingSick = Math.max(0, quotas['Sick'] - usedSick)
+        const remainingOther = Math.max(0, quotas['Other'] - usedOther)
+
+        // Calculate leaves IN THIS MONTH
         const approvedLeaves = await leaveRepo.getApprovedLeaves(month, year, emp.id)
-        let paidLeaveDays = 0
+        
+        let totalLeaveDaysInMonth_Annual = 0
+        let totalLeaveDaysInMonth_Sick = 0
+        let totalLeaveDaysInMonth_Other = 0
+
+        let paidLeaveDays = 0 
+        let unpaidLeaveDays = 0 
+
         if (approvedLeaves && approvedLeaves.length > 0) {
              (approvedLeaves as LeaveRequest[]).forEach((leave: LeaveRequest) => {
                 const start = new Date(leave.start_date)
                 const end = new Date(leave.end_date)
                 const diffTime = Math.abs(end.getTime() - start.getTime())
                 const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 
-                paidLeaveDays += days
+                
+                if (leave.leave_type === 'Annual') totalLeaveDaysInMonth_Annual += days
+                else if (leave.leave_type === 'Sick') totalLeaveDaysInMonth_Sick += days
+                else totalLeaveDaysInMonth_Other += days
             })
         }
+
+        // Apply Quotas
+        const processLeaveType = (total: number, remaining: number) => {
+            const paid = Math.min(total, remaining)
+            const unpaid = total - paid
+            return { paid, unpaid }
+        }
+
+        const annualCalc = processLeaveType(totalLeaveDaysInMonth_Annual, remainingAnnual)
+        const sickCalc = processLeaveType(totalLeaveDaysInMonth_Sick, remainingSick)
+        const otherCalc = processLeaveType(totalLeaveDaysInMonth_Other, remainingOther)
+
+        paidLeaveDays = annualCalc.paid + sickCalc.paid + otherCalc.paid
+        unpaidLeaveDays = annualCalc.unpaid + sickCalc.unpaid + otherCalc.unpaid
 
         // 3. Overtime
         const otHours = await overtimeRepo.getMonthlyApprovedHours(emp.id, month, year)
@@ -163,7 +222,7 @@ export const payrollService = {
             advance_amount: advanceAmount,
             net_pay: netPay,
             status: 'Pending', 
-            notes: `Công: ${actualWorkDays}/${standardWorkDays}. Nghỉ: ${paidLeaveDays}. Trễ: ${lateCount}. ${advanceAmount > 0 ? `Tạm ứng: ${advanceAmount.toLocaleString('vi-VN')}đ.` : ''}`
+            notes: `Công: ${actualWorkDays}/${standardWorkDays}. Nghỉ: ${paidLeaveDays}. Không lương: ${unpaidLeaveDays}. Trễ: ${lateCount}. ${advanceAmount > 0 ? `Tạm ứng: ${advanceAmount.toLocaleString('vi-VN')}đ.` : ''}`
         })
     }
     
