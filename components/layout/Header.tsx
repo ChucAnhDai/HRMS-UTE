@@ -14,6 +14,7 @@ import { useSidebar } from "@/context/SidebarContext";
 import Link from "next/link";
 import { cn, getUserAvatarUrl } from "@/lib/utils";
 import { logoutAction } from "@/server/actions/auth-actions";
+import UserAvatar from "@/components/common/UserAvatar";
 
 export interface HeaderUserProps {
   name: string;
@@ -72,17 +73,15 @@ export default function Header({ user }: { user: HeaderUserProps | null }) {
 
         <div className="relative group">
           <button className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-50 transition-colors">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={avatarSrc}
-              alt="Profile"
-              className="w-8 h-8 rounded-full border border-gray-200 object-cover"
+            <UserAvatar
+              avatarUrl={avatarSrc}
+              name={displayName}
+              className="w-8 h-8 rounded-full border border-gray-200"
             />
             <span className="hidden md:block text-sm font-semibold text-gray-700">
               {displayName}
             </span>
           </button>
-
           <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-lg shadow-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right">
             <Link
               href="/"

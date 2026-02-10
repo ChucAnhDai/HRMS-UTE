@@ -14,6 +14,7 @@ export const employeeRepo = {
         *,
         auth_user_id,
         departments (
+          id,
           name
         )
       `)

@@ -23,9 +23,20 @@ export const rewardPenaltyRepo = {
 
     const { data, error } = await supabase
       .from('rewards_penalties')
-      .select('*')
+      .select(`
+        *,
+        employees (
+          id,
+          first_name,
+          last_name,
+          departments (
+            name
+          )
+        )
+      `)
       .gte('date', startDate)
       .lte('date', endDate)
+      .order('date', { ascending: false })
 
     if (error) throw new Error(error.message)
     return data

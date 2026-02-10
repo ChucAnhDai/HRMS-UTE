@@ -23,11 +23,13 @@ interface Holiday {
 interface SettingsPageProps {
   settings: Record<string, string>;
   holidays: Holiday[];
+  readOnly?: boolean;
 }
 
 export default function SettingsView({
   settings,
   holidays,
+  readOnly,
 }: SettingsPageProps) {
   const [activeTab, setActiveTab] = useState<"general" | "holidays">("general");
 
@@ -66,9 +68,9 @@ export default function SettingsView({
       {/* Content */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         {activeTab === "general" ? (
-          <GeneralSettingsForm settings={settings} />
+          <GeneralSettingsForm settings={settings} readOnly={readOnly} />
         ) : (
-          <HolidaysManager holidays={holidays} />
+          <HolidaysManager holidays={holidays} readOnly={readOnly} />
         )}
       </div>
     </div>
@@ -87,8 +89,10 @@ const DEFAULT_TAX_BRACKETS = [
 
 function GeneralSettingsForm({
   settings,
+  readOnly,
 }: {
   settings: Record<string, string>;
+  readOnly?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -409,18 +413,24 @@ function GeneralSettingsForm({
       <div className="pt-6 border-t border-gray-200 flex justify-end sticky bottom-0 bg-white/95 backdrop-blur-sm p-4 -mx-6 -mb-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-20">
         <button
           type="submit"
-          disabled={loading}
-          className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all transform hover:-translate-y-0.5"
+          disabled={loading || readOnly}
+          className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all transform hover:-translate-y-0.5 disabled:cursor-not-allowed"
         >
           <Save className="w-5 h-5" />
-          Lưu toàn bộ Cài đặt
+          {readOnly ? "Chỉ xem" : "Lưu toàn bộ Cài đặt"}
         </button>
       </div>
     </form>
   );
 }
 
-function HolidaysManager({ holidays }: { holidays: Holiday[] }) {
+function HolidaysManager({
+  holidays,
+  readOnly,
+}: {
+  holidays: Holiday[];
+  readOnly?: boolean;
+}) {
   // Basic optimistic add roughly implemented via revalidatePath in action
 
   async function handleDelete(id: number) {
@@ -431,7 +441,7 @@ function HolidaysManager({ holidays }: { holidays: Holiday[] }) {
 
   return (
     <div className="space-y-6">
-      <HolidayAddForm />
+      {!readOnly && <HolidayAddForm />}
 
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
@@ -469,12 +479,14 @@ function HolidaysManager({ holidays }: { holidays: Holiday[] }) {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDelete(h.id)}
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {!readOnly && (
+                  <button
+                    onClick={() => handleDelete(h.id)}
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             ))}
           </div>

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 import { CurrentUser } from "@/lib/auth-helpers";
 import { getUserAvatarUrl } from "@/lib/utils";
+import UserAvatar from "@/components/common/UserAvatar";
 
 export default function PublicHeader({ user }: { user: CurrentUser | null }) {
   const pathname = usePathname();
@@ -60,11 +61,10 @@ export default function PublicHeader({ user }: { user: CurrentUser | null }) {
               {user ? (
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={avatarSrc}
-                      alt="Avatar"
-                      className="w-8 h-8 rounded-full border border-gray-200 object-cover"
+                    <UserAvatar
+                      avatarUrl={avatarSrc}
+                      name={user.name || user.email}
+                      className="w-8 h-8 rounded-full border border-gray-200"
                     />
                     <span className="text-sm font-medium text-gray-700 hidden lg:block">
                       {user.name || user.email}

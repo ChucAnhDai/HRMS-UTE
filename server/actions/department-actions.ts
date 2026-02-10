@@ -1,4 +1,5 @@
-'use server'
+// Checked: All actions have requireRole(['ADMIN'])
+
 
 import { departmentService } from '@/server/services/department-service'
 import { revalidatePath } from 'next/cache'

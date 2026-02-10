@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Grid, List, Filter, Plus, Edit2, Trash2, Search } from "lucide-react";
+import UserAvatar from "@/components/common/UserAvatar";
 import { cn, getUserAvatarUrl } from "@/lib/utils";
-import Image from "next/image";
 import { deleteEmployeeAction } from "@/server/actions/delete-employee";
 import { useRouter } from "next/navigation";
 
@@ -185,11 +185,10 @@ export default function EmployeeTableView({
                           className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                         >
                           <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-200">
-                            <Image
-                              src={getUserAvatarUrl(emp.avatar)}
-                              alt="avatar"
-                              fill
-                              className="object-cover"
+                            <UserAvatar
+                              avatarUrl={getUserAvatarUrl(emp.avatar)}
+                              name={`${emp.last_name} ${emp.first_name}`}
+                              className="w-full h-full"
                             />
                           </div>
                           <div>
@@ -295,11 +294,10 @@ export default function EmployeeTableView({
                 className="mb-4 relative block mx-auto"
               >
                 <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-gray-50 mx-auto">
-                  <Image
-                    src={getUserAvatarUrl(emp.avatar)}
-                    alt="avatar"
-                    fill
-                    className="object-cover"
+                  <UserAvatar
+                    avatarUrl={getUserAvatarUrl(emp.avatar)}
+                    name={`${emp.last_name} ${emp.first_name}`}
+                    className="w-full h-full"
                   />
                 </div>
               </Link>

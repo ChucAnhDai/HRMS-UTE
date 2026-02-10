@@ -25,8 +25,8 @@ import {
 import { useSidebar } from "@/context/SidebarContext";
 import { cn, getUserAvatarUrl } from "@/lib/utils";
 import { logoutAction } from "@/server/actions/auth-actions";
-import Image from "next/image";
 import { HeaderUserProps } from "./Header";
+import UserAvatar from "@/components/common/UserAvatar";
 
 type UserRole = "ADMIN" | "MANAGER" | "EMPLOYEE";
 
@@ -41,7 +41,7 @@ const menuItems = [
     name: "Tổng quan",
     icon: Home,
     href: "/dashboard",
-    roles: ["ADMIN", "MANAGER", "EMPLOYEE"] as UserRole[],
+    roles: ["ADMIN", "MANAGER"] as UserRole[],
   },
   {
     name: "Nhân viên",
@@ -113,7 +113,7 @@ const menuItems = [
     name: "Cài đặt hệ thống",
     icon: Settings,
     href: "/settings",
-    roles: ["ADMIN"] as UserRole[],
+    roles: ["ADMIN", "MANAGER"] as UserRole[],
   },
 ];
 
@@ -174,11 +174,10 @@ export default function Sidebar({ user }: { user: HeaderUserProps | null }) {
         {!isCollapsed && user && (
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
             <div className="relative w-10 h-10 rounded-full overflow-hidden border border-gray-100 shrink-0">
-              <Image
-                src={getUserAvatarUrl(user.avatar)}
-                alt="User"
-                fill
-                className="object-cover"
+              <UserAvatar
+                avatarUrl={getUserAvatarUrl(user.avatar)}
+                name={user.name}
+                className="w-full h-full"
               />
             </div>
             <div className="overflow-hidden">

@@ -7,11 +7,19 @@ export const metadata = {
 };
 
 export default async function SettingsPage() {
-  await requireRoleForPage(["ADMIN"]);
+  const currentUser = await requireRoleForPage(["ADMIN", "MANAGER"]);
 
   const settings = await settingRepo.getSettings();
   const currentYear = new Date().getFullYear();
   const holidays = await settingRepo.getHolidays(currentYear);
 
-  return <SettingsView settings={settings} holidays={holidays || []} />;
+  const isReadOnly = currentUser?.role !== "ADMIN";
+
+  return (
+    <SettingsView
+      settings={settings}
+      holidays={holidays || []}
+      readOnly={isReadOnly}
+    />
+  );
 }

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn, getUserAvatarUrl } from "@/lib/utils";
-import Image from "next/image";
+import UserAvatar from "@/components/common/UserAvatar";
 import ContractList from "@/components/contracts/ContractList";
 import PayrollTable from "@/components/payroll/PayrollTable";
 import LeaveTableView from "@/components/leave/LeaveTableView";
@@ -91,11 +91,10 @@ export default function EmployeeProfileView({
           <div className="relative flex flex-col md:flex-row items-end gap-6 -mt-12">
             <div className="relative group shrink-0">
               <div className="w-32 h-32 rounded-3xl border-4 border-white shadow-lg bg-white overflow-hidden relative">
-                <Image
-                  src={getUserAvatarUrl(employee.avatar)}
-                  alt="Profile"
-                  fill
-                  className="object-cover"
+                <UserAvatar
+                  avatarUrl={getUserAvatarUrl(employee.avatar)}
+                  name={`${employee.last_name} ${employee.first_name}`}
+                  className="w-full h-full"
                 />
               </div>
             </div>
