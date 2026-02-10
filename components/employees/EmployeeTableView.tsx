@@ -8,7 +8,7 @@ import { cn, getUserAvatarUrl } from "@/lib/utils";
 import { deleteEmployeeAction } from "@/server/actions/delete-employee";
 import { useRouter } from "next/navigation";
 
-import { CurrentUser } from "@/lib/auth-helpers";
+import { CurrentUser } from "@/types/auth";
 
 interface Employee {
   id: number;

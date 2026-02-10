@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-import { CurrentUser } from "@/lib/auth-helpers";
+import { CurrentUser } from "@/types/auth";
 import { getUserAvatarUrl } from "@/lib/utils";
 import UserAvatar from "@/components/common/UserAvatar";
 

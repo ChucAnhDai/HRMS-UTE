@@ -166,6 +166,7 @@ function GeneralSettingsForm({
                   name="weekend_days"
                   value={d.id}
                   checked={weekendDays.includes(d.id)}
+                  disabled={readOnly}
                   onChange={(e) => {
                     if (e.target.checked) {
                       setWeekendDays([...weekendDays, d.id]);
@@ -173,7 +174,7 @@ function GeneralSettingsForm({
                       setWeekendDays(weekendDays.filter((id) => id !== d.id));
                     }
                   }}
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+                  className={`w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300 ${readOnly ? "cursor-not-allowed opacity-50" : ""}`}
                 />
                 <span
                   className={`text-sm font-medium ${weekendDays.includes(d.id) ? "text-blue-900" : "text-gray-700"}`}
@@ -194,7 +195,8 @@ function GeneralSettingsForm({
               type="time"
               name="work_start_time"
               defaultValue={settings["work_start_time"] || "08:00"}
-              className="w-full p-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-gray-900"
+              className={`w-full p-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-gray-900 ${readOnly ? "cursor-not-allowed opacity-70" : ""}`}
+              disabled={readOnly}
             />
           </div>
           <div className="space-y-2">
@@ -205,7 +207,8 @@ function GeneralSettingsForm({
               type="time"
               name="work_end_time"
               defaultValue={settings["work_end_time"] || "17:00"}
-              className="w-full p-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-gray-900"
+              className={`w-full p-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-gray-900 ${readOnly ? "cursor-not-allowed opacity-70" : ""}`}
+              disabled={readOnly}
             />
           </div>
         </div>
@@ -233,8 +236,9 @@ function GeneralSettingsForm({
                 type="number"
                 name="penalty_late"
                 defaultValue={settings["penalty_late"] || "50000"}
-                className="w-full p-3 pl-4 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm"
+                className={`w-full p-3 pl-4 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
                 placeholder="0"
+                disabled={readOnly}
               />
               <span className="absolute right-4 top-3 text-gray-400 text-sm font-medium">
                 VNĐ
@@ -250,8 +254,9 @@ function GeneralSettingsForm({
                 type="number"
                 name="penalty_absence"
                 defaultValue={settings["penalty_absence"] || "200000"}
-                className="w-full p-3 pl-4 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm"
+                className={`w-full p-3 pl-4 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
                 placeholder="0"
+                disabled={readOnly}
               />
               <span className="absolute right-4 top-3 text-gray-400 text-sm font-medium">
                 VNĐ
@@ -283,7 +288,8 @@ function GeneralSettingsForm({
               step="0.1"
               name="insurance_percent"
               defaultValue={settings["insurance_percent"]}
-              className="w-full p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm"
+              className={`w-full p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
+              disabled={readOnly}
             />
           </div>
           <div className="space-y-2">
@@ -294,7 +300,8 @@ function GeneralSettingsForm({
               type="number"
               name="standard_work_days"
               defaultValue={settings["standard_work_days"]}
-              className="w-full p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm"
+              className={`w-full p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
+              disabled={readOnly}
             />
           </div>
           <div className="space-y-2">
@@ -305,7 +312,8 @@ function GeneralSettingsForm({
               type="number"
               name="personal_deduction"
               defaultValue={settings["personal_deduction"]}
-              className="w-full p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm"
+              className={`w-full p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
+              disabled={readOnly}
             />
           </div>
           <div className="space-y-2">
@@ -316,7 +324,8 @@ function GeneralSettingsForm({
               type="number"
               name="dependent_deduction"
               defaultValue={settings["dependent_deduction"]}
-              className="w-full p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm"
+              className={`w-full p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
+              disabled={readOnly}
             />
           </div>
         </div>
@@ -372,7 +381,8 @@ function GeneralSettingsForm({
                             style={{
                               width: `${(row.limit / 1000000).toString().length + 0.6}ch`,
                             }}
-                            className="p-0 text-center bg-transparent outline-none text-blue-700 font-bold text-sm h-4 min-w-[2ch] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            className={`p-0 text-center bg-transparent outline-none text-blue-700 font-bold text-sm h-4 min-w-[2ch] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${readOnly ? "cursor-not-allowed opacity-70" : ""}`}
+                            disabled={readOnly}
                           />
                           <span>tr</span>
                         </div>
@@ -396,7 +406,8 @@ function GeneralSettingsForm({
                       setTaxBrackets(newVal);
                     }}
                     step="0.1"
-                    className="flex-1 min-w-0 px-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className={`flex-1 min-w-0 px-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
+                    disabled={readOnly}
                   />
 
                   {/* Suffix: % */}
@@ -410,16 +421,18 @@ function GeneralSettingsForm({
         </div>
       </div>
 
-      <div className="pt-6 border-t border-gray-200 flex justify-end sticky bottom-0 bg-white/95 backdrop-blur-sm p-4 -mx-6 -mb-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-20">
-        <button
-          type="submit"
-          disabled={loading || readOnly}
-          className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all transform hover:-translate-y-0.5 disabled:cursor-not-allowed"
-        >
-          <Save className="w-5 h-5" />
-          {readOnly ? "Chỉ xem" : "Lưu toàn bộ Cài đặt"}
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="pt-6 border-t border-gray-200 flex justify-end sticky bottom-0 bg-white/95 backdrop-blur-sm p-4 -mx-6 -mb-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-20">
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all transform hover:-translate-y-0.5 disabled:cursor-not-allowed"
+          >
+            <Save className="w-5 h-5" />
+            Lưu toàn bộ Cài đặt
+          </button>
+        </div>
+      )}
     </form>
   );
 }

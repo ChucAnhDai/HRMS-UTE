@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SalaryAdvance } from "@/types";
-import { CurrentUser } from "@/lib/auth-helpers";
+import { CurrentUser } from "@/types/auth";
 import {
   Table,
   TableBody,

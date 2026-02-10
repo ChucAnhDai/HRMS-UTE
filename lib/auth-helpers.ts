@@ -1,17 +1,6 @@
 import { createClient } from '@/lib/supabase.server'
-
-export type UserRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
-
-export interface CurrentUser {
-  id: string
-  userId?: number
-  email: string
-  role: UserRole
-  employeeId: number | null
-  employeeData?: Record<string, unknown>
-  name?: string
-  avatar?: string | null
-}
+import { CurrentUser, UserRole } from '@/types/auth'
+export type { CurrentUser, UserRole }
 
 /**
  * Lấy thông tin user hiện tại từ session

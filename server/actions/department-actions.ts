@@ -1,4 +1,4 @@
-// Checked: All actions have requireRole(['ADMIN'])
+'use server'
 
 
 import { departmentService } from '@/server/services/department-service'
