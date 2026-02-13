@@ -10,6 +10,22 @@ export const LeaveRequestSchema = z.object({
   const start = new Date(data.start_date);
   const end = new Date(data.end_date);
   
+  // Normalize current date to start of day for accurate comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Normalize start date to start of day (in case it comes with time)
+  const startCheck = new Date(start);
+  startCheck.setHours(0, 0, 0, 0);
+
+  if (startCheck < today) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Ngày bắt đầu không được trong quá khứ",
+      path: ["start_date"],
+    });
+  }
+
   if (end < start) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,

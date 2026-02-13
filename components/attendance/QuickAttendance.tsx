@@ -30,8 +30,23 @@ export default function QuickAttendance({ initialStatus }: Props) {
     setIsLoading(false);
 
     if (result.success) {
-      setMessage({ type: "success", text: "Check In thành công!" });
-      setTimeout(() => window.location.reload(), 1500);
+      if (result.status === "Late") {
+        setMessage({
+          type: "error",
+          text: `Check In thành công nhưng bạn đã đi muộn! (${new Date().toLocaleTimeString("vi-VN")})`,
+        });
+      } else if (result.forgotCheckout) {
+        setMessage({
+          type: "error",
+          text: "Check In thành công. Cảnh báo: Bạn đã quên Checkout ngày hôm trước!",
+        });
+      } else {
+        setMessage({
+          type: "success",
+          text: result.message || "Check In thành công!",
+        });
+      }
+      setTimeout(() => window.location.reload(), 2500);
     } else {
       setMessage({ type: "error", text: result.error || "Có lỗi xảy ra" });
     }
@@ -45,8 +60,18 @@ export default function QuickAttendance({ initialStatus }: Props) {
     setIsLoading(false);
 
     if (result.success) {
-      setMessage({ type: "success", text: "Check Out thành công!" });
-      setTimeout(() => window.location.reload(), 1500);
+      if (result.warning) {
+        setMessage({
+          type: "error",
+          text: `Check Out thành công. ${result.warning}`,
+        });
+      } else {
+        setMessage({
+          type: "success",
+          text: result.message || "Check Out thành công!",
+        });
+      }
+      setTimeout(() => window.location.reload(), 2500);
     } else {
       setMessage({ type: "error", text: result.error || "Có lỗi xảy ra" });
     }

@@ -126,9 +126,25 @@ export const leaveRepo = {
       .eq('status', 'Approved')
       .eq('leave_type', leaveType)
       .gte('start_date', startDate)
-      .lte('start_date', endDate) // Note: This checks start_date. Simple logic.
+      .lte('start_date', endDate) 
 
     if (error) throw new Error(error.message)
     return data
+  },
+
+  // NEW: Tính tổng số ngày đã nghỉ trong năm theo loại
+  async getUsedLeaveDays(year: number, employeeId: number, leaveType: string): Promise<number> {
+      const leaves = await this.getYearlyApprovedLeaves(year, employeeId, leaveType)
+      if (!leaves || leaves.length === 0) return 0
+
+      let totalDays = 0
+      leaves.forEach(leave => {
+          const start = new Date(leave.start_date)
+          const end = new Date(leave.end_date)
+          const diffTime = Math.abs(end.getTime() - start.getTime())
+          const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+          totalDays += days
+      })
+      return totalDays
   }
 }

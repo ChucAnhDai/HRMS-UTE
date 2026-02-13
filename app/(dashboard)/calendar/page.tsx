@@ -3,6 +3,7 @@ import AttendanceLogTable from "@/components/attendance/AttendanceLogTable";
 import { attendanceService } from "@/server/services/attendance-service";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { getTodayAttendanceStatus } from "@/server/actions/quick-attendance";
+import { employeeRepo } from "@/server/repositories/employee-repo";
 
 interface PageProps {
   searchParams: Promise<{ date?: string }>;
@@ -21,7 +22,18 @@ export default async function CalendarPage({ searchParams }: PageProps) {
   // Lấy trạng thái chấm công của user hiện tại (để hiển thị quick action)
   const todayStatus = await getTodayAttendanceStatus();
 
-  // Map lại logs cho khớp interface components (nếu cần xử lý thêm)
+  // Lấy danh sách nhân viên + phòng ban (cho Admin/Manager tạo chấm công thủ công)
+  const isAdmin =
+    currentUser?.role === "ADMIN" || currentUser?.role === "MANAGER";
+
+  const [rawEmployees, departments] = isAdmin
+    ? await Promise.all([
+        employeeRepo.getEmployees(),
+        employeeRepo.getDepartments(),
+      ])
+    : [[], []];
+
+  // Map lại logs cho khớp interface components
   const formattedLogs =
     logs?.map(
       (log: {
@@ -43,6 +55,25 @@ export default async function CalendarPage({ searchParams }: PageProps) {
       }),
     ) || [];
 
+  // Map employees (id, tên, email, department_id)
+  const simpleEmployees = (rawEmployees || []).map(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (emp: any) => ({
+      id: emp.id,
+      first_name: emp.first_name,
+      last_name: emp.last_name,
+      email: emp.email || "",
+      department_id: emp.department_id || null,
+    }),
+  );
+
+  // Map departments
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const simpleDepartments = (departments || []).map((d: any) => ({
+    id: d.id,
+    name: d.name,
+  }));
+
   return (
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
@@ -63,7 +94,13 @@ export default async function CalendarPage({ searchParams }: PageProps) {
         </div>
 
         {/* Table View - Danh sách chấm công trong ngày */}
-        <AttendanceLogTable logs={formattedLogs} currentDate={selectedDate} />
+        <AttendanceLogTable
+          logs={formattedLogs}
+          currentDate={selectedDate}
+          userRole={currentUser?.role}
+          employees={simpleEmployees}
+          departments={simpleDepartments}
+        />
       </div>
     </div>
   );

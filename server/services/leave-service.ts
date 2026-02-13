@@ -37,8 +37,44 @@ export const leaveService = {
       throw new Error('Thiếu thông tin bắt buộc')
     }
 
-    if (new Date(end_date) < new Date(start_date)) {
+    const start = new Date(start_date)
+    const end = new Date(end_date)
+
+    if (end < start) {
       throw new Error('Ngày kết thúc không được nhỏ hơn ngày bắt đầu')
+    }
+
+    // --- Clean Code: Extract Quota Logic ---
+    const calculateDuration = (d1: Date, d2: Date) => {
+        const diffTime = Math.abs(d2.getTime() - d1.getTime())
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 
+    }
+
+    const requestDuration = calculateDuration(start, end)
+    
+    // 1. Validate Max Duration Per Request (Safety Check)
+    const MAX_DURATION_PER_REQUEST = 30
+    if (requestDuration > MAX_DURATION_PER_REQUEST) {
+        throw new Error(`Bạn không thể xin nghỉ quá ${MAX_DURATION_PER_REQUEST} ngày trong một lần gửi.`)
+    }
+
+    // 2. Validate Quota Availability
+    // Fetch employee info to get quota limits
+    const { employeeRepo } = await import('@/server/repositories/employee-repo')
+    const employee = await employeeRepo.getEmployeeById(employee_id)
+    
+    if (employee) {
+        let limit = 0
+        if (leave_type === 'Annual Leave' || leave_type === 'Annual') limit = employee.annual_leave_quota || 12
+        else if (leave_type === 'Sick Leave' || leave_type === 'Sick') limit = employee.sick_leave_quota || 5
+        else limit = employee.other_leave_quota || 5
+
+        const currentYear = new Date().getFullYear()
+        const usedDays = await leaveRepo.getUsedLeaveDays(currentYear, employee_id, leave_type)
+        
+        if (usedDays + requestDuration > limit) {
+             throw new Error(`Bạn đã dùng quá số ngày nghỉ phép quy định. (Hạn mức: ${limit}, Đã dùng: ${usedDays}, Đang xin: ${requestDuration})`)
+        }
     }
 
     return await leaveRepo.createLeaveRequest({

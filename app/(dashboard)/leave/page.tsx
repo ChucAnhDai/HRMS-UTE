@@ -10,9 +10,10 @@ export const dynamic = "force-dynamic";
 export default async function LeavePage() {
   const currentUser = await getCurrentUser();
 
-  const [leavesData, rawEmployees] = await Promise.all([
+  const [leavesData, rawEmployees, departments] = await Promise.all([
     leaveRepo.getLeaveRequests(),
     employeeRepo.getEmployees(),
+    employeeRepo.getDepartments(),
   ]);
 
   // Ensure employees data matches expected type (handle array/object for departments if needed)
@@ -50,6 +51,7 @@ export default async function LeavePage() {
         <LeaveTableView
           leaves={leaves}
           employees={formattedEmployees}
+          departments={departments || []}
           currentUser={
             currentUser
               ? {

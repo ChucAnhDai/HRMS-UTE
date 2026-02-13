@@ -19,11 +19,12 @@ import {
 } from "@/server/actions/leave-actions";
 import { useRouter } from "next/navigation";
 import LeaveRequestForm from "@/components/leave/LeaveRequestForm";
-import { Employee, LeaveRequest } from "@/types";
+import { Employee, LeaveRequest, Department } from "@/types";
 
 interface Props {
   leaves: LeaveRequest[];
   employees?: Employee[];
+  departments?: Department[];
   currentUser?: {
     employeeId: number | null;
     role: string;
@@ -34,6 +35,7 @@ interface Props {
 export default function LeaveTableView({
   leaves,
   employees = [],
+  departments = [],
   currentUser = null,
 }: Props) {
   const router = useRouter();
@@ -134,11 +136,11 @@ export default function LeaveTableView({
           </button>
         </div>
         <button
-          onClick={() =>
-            document
-              .getElementById("leave-form-modal")
-              ?.classList.remove("hidden")
-          }
+          onClick={() => {
+            const el = document.getElementById("leave-form-modal");
+            el?.classList.remove("hidden");
+            el?.classList.add("flex");
+          }}
           className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-blue-700 transition-colors"
         >
           <Plus className="h-4 w-4" /> Tạo đơn nghỉ
@@ -324,7 +326,11 @@ export default function LeaveTableView({
       </div>
 
       {/* Modal tạo đơn nghỉ */}
-      <LeaveRequestForm employees={employees} currentUser={currentUser} />
+      <LeaveRequestForm
+        employees={employees}
+        departments={departments}
+        currentUser={currentUser}
+      />
 
       {/* Modal từ chối đơn nghỉ */}
       {rejectModalOpen && (

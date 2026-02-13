@@ -4,6 +4,8 @@ import { getCurrentUser } from '@/lib/auth-helpers'
 import { createClient } from '@/lib/supabase.server'
 import { revalidatePath } from 'next/cache'
 
+import { settingRepo } from '@/server/repositories/setting-repo'
+
 export async function checkInAction() {
   try {
     const currentUser = await getCurrentUser()
@@ -14,7 +16,7 @@ export async function checkInAction() {
     const supabase = await createClient()
     const today = new Date().toISOString().split('T')[0]
 
-    // Kiểm tra xem hôm nay đã check in chưa
+    // 1. Check existing check-in
     const { data: existing } = await supabase
       .from('attendances')
       .select('*')
@@ -26,18 +28,37 @@ export async function checkInAction() {
       return { success: false, error: 'Bạn đã check in hôm nay rồi!' }
     }
 
-    // Tạo bản ghi attendance mới
+    // 2. Settings & Logic
+    const settings = await settingRepo.getSettings()
+    const workStartTime = settings['work_start_time'] || '08:00:00'
+    // Ensure format HH:mm:ss for comparison
+    const workStartTimeFull = workStartTime.length === 5 ? `${workStartTime}:00` : workStartTime
+
     const now = new Date()
     const time = now.toTimeString().split(' ')[0] // HH:mm:ss
-
-    // Logic đi muộn: Nếu check-in sau 08:30:00 thì tính là Late
-    // Đây là hardcode ví dụ, thực tế có thể lấy từ bảng Settings
+    
     let status: 'Present' | 'Late' = 'Present'
-    const WORK_START_TIME = '08:30:00'
-    if (time > WORK_START_TIME) {
+    if (time > workStartTimeFull) {
         status = 'Late'
     }
 
+    // 3. Check Prev Day Checkout (Forgot Checkout)
+    // Simple logic: Find last attendance record before today. If check_out_time is null -> Forgot.
+    let forgotCheckout = false
+    const { data: lastAttendance } = await supabase
+        .from('attendances')
+        .select('*')
+        .eq('employee_id', currentUser.employeeId)
+        .lt('date', today)
+        .order('date', { ascending: false })
+        .limit(1)
+        .single()
+    
+    if (lastAttendance && !lastAttendance.check_out_time) {
+        forgotCheckout = true
+    }
+
+    // 4. Insert
     const { error } = await supabase
       .from('attendances')
       .insert({
@@ -52,8 +73,11 @@ export async function checkInAction() {
     }
 
     revalidatePath('/calendar')
+    
     return { 
       success: true, 
+      status, // 'Late' or 'Present'
+      forgotCheckout, // true/false
       message: `Check in thành công lúc ${now.toLocaleTimeString('vi-VN')}!` 
     }
   } catch (error: unknown) {
@@ -71,7 +95,6 @@ export async function checkOutAction() {
     const supabase = await createClient()
     const today = new Date().toISOString().split('T')[0]
 
-    // Tìm bản ghi attendance hôm nay
     const { data: existing } = await supabase
       .from('attendances')
       .select('*')
@@ -87,7 +110,7 @@ export async function checkOutAction() {
       return { success: false, error: 'Bạn đã check out rồi!' }
     }
 
-    // Cập nhật check_out
+    // Update
     const now = new Date()
     const time = now.toTimeString().split(' ')[0]
 
@@ -100,9 +123,28 @@ export async function checkOutAction() {
       return { success: false, error: error.message }
     }
 
+    // Warning Logic
+    const settings = await settingRepo.getSettings()
+    const workEndTime = settings['work_end_time'] || '17:00:00'
+    const workEndTimeFull = workEndTime.length === 5 ? `${workEndTime}:00` : workEndTime
+    
+    // Add 30 mins buffer? Or just strict? User said "Checkout quá muộn". 
+    // Let's say if > 30 mins after end time.
+    // Parsing time to minutes for comparison
+    const [h, m] = time.split(':').map(Number)
+    const [eh, em] = workEndTimeFull.split(':').map(Number)
+    const currentMins = h * 60 + m
+    const endMins = eh * 60 + em
+    
+    let warning = null
+    if (currentMins > endMins + 30) {
+        warning = 'Bạn đang về trễ hơn quy định. Nếu có làm thêm giờ, hãy nhớ đăng ký OT!'
+    }
+
     revalidatePath('/calendar')
     return { 
       success: true, 
+      warning,
       message: `Check out thành công lúc ${now.toLocaleTimeString('vi-VN')}!` 
     }
   } catch (error: unknown) {

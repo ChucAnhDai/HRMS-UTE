@@ -128,5 +128,34 @@ export const attendanceRepo = {
         work_days: totalWorkDays,
         late_days: totalLate
     }
+  },
+
+  // Admin: Update attendance record trực tiếp theo ID
+  async updateAttendance(id: number, data: { 
+    check_in_time?: string, 
+    check_out_time?: string | null, 
+    status?: 'Present' | 'Late' 
+  }) {
+    const supabase = await createClient()
+    const { data: updated, error } = await supabase
+      .from('attendances')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+    return updated
+  },
+
+  // Admin: Xóa attendance record theo ID
+  async deleteAttendance(id: number) {
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from('attendances')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw new Error(error.message)
   }
 }

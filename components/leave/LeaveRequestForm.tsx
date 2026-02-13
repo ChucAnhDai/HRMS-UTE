@@ -3,10 +3,12 @@
 import { createLeaveRequestAction } from "@/server/actions/leave-actions";
 import { useActionState } from "react";
 import { FileText, CheckCircle, AlertCircle, Clock } from "lucide-react";
-import { Employee } from "@/types";
+import { Employee, Department } from "@/types";
+import { useState, useMemo } from "react";
 
 interface Props {
   employees: Employee[];
+  departments?: Department[];
   currentUser?: {
     employeeId: number | null;
     role: string;
@@ -20,28 +22,51 @@ const initialState = {
   message: "",
 };
 
-export default function LeaveRequestForm({ employees, currentUser }: Props) {
+export default function LeaveRequestForm({
+  employees,
+  departments = [],
+  currentUser,
+}: Props) {
   const [state, formAction, isPending] = useActionState(
     createLeaveRequestAction,
     initialState,
   );
 
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");
+
   const isEmployee = currentUser?.role === "EMPLOYEE";
   const currentEmployeeId = currentUser?.employeeId;
+
+  // Filter employees based on selected department
+  const filteredEmployees = useMemo(() => {
+    if (!selectedDepartmentId) return employees;
+    return employees.filter(
+      (emp) => emp.department_id === Number(selectedDepartmentId),
+    );
+  }, [employees, selectedDepartmentId]);
+
+  const selectedEmployee = useMemo(() => {
+    return employees.find((emp) => emp.id === Number(selectedEmployeeId));
+  }, [employees, selectedEmployeeId]);
 
   return (
     <div
       id="leave-form-modal"
-      className="fixed inset-0 z-50 items-center justify-center bg-black/50 hidden backdrop-blur-sm"
+      className="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm"
     >
       <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-2xl m-4 overflow-hidden relative animate-in fade-in zoom-in duration-200">
+        {/* ... (Header remains same) */}
         <button
           type="button"
-          onClick={() =>
-            document.getElementById("leave-form-modal")?.classList.add("hidden")
-          }
+          onClick={() => {
+            const el = document.getElementById("leave-form-modal");
+            el?.classList.add("hidden");
+            el?.classList.remove("flex");
+          }}
           className="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-10"
         >
+          {/* ... (SVG) ... */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -91,23 +116,62 @@ export default function LeaveRequestForm({ employees, currentUser }: Props) {
                   value={currentEmployeeId || ""}
                 />
               ) : (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Nhân viên gửi đơn <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    name="employee_id"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900"
-                  >
-                    <option value="">-- Chọn nhân viên --</option>
-                    {employees?.map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.first_name} {emp.last_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Lọc theo phòng ban
+                    </label>
+                    <select
+                      value={selectedDepartmentId}
+                      onChange={(e) => {
+                        setSelectedDepartmentId(e.target.value);
+                        setSelectedEmployeeId("");
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900"
+                    >
+                      <option value="">-- Tất cả phòng ban --</option>
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Nhân viên gửi đơn <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="employee_id"
+                      required
+                      value={selectedEmployeeId}
+                      onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900"
+                    >
+                      <option value="">-- Chọn nhân viên --</option>
+                      {filteredEmployees?.map((emp) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.last_name} {emp.first_name} (#{emp.id})
+                        </option>
+                      ))}
+                    </select>
+                    {filteredEmployees.length === 0 && (
+                      <p className="text-xs text-red-500">
+                        Không tìm thấy nhân viên nào trong phòng ban này.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Email nhân viên
+                    </label>
+                    <div className="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-600 truncate h-[42px] flex items-center">
+                      {selectedEmployee?.email || "---"}
+                    </div>
+                  </div>
+                </>
               )}
 
               <div className="space-y-2">
@@ -172,11 +236,11 @@ export default function LeaveRequestForm({ employees, currentUser }: Props) {
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
               <button
                 type="button"
-                onClick={() =>
-                  document
-                    .getElementById("leave-form-modal")
-                    ?.classList.add("hidden")
-                }
+                onClick={() => {
+                  const el = document.getElementById("leave-form-modal");
+                  el?.classList.add("hidden");
+                  el?.classList.remove("flex");
+                }}
                 className="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Hủy

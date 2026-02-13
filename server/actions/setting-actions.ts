@@ -3,34 +3,55 @@
 import { revalidatePath } from 'next/cache'
 import { settingRepo } from '../repositories/setting-repo'
 import { requireRole } from '@/lib/auth-helpers'
+import { SettingsSchema } from '@/lib/schemas/setting.schema'
 
 // --- Settings ---
 export async function updateSettingsAction(formData: FormData) {
   await requireRole(['ADMIN'])
 
-  // 1. Basic Key-Values
+  // 1. Extract raw form data
+  const rawData = {
+    base_salary_min: formData.get('base_salary_min'),
+    insurance_percent: formData.get('insurance_percent'),
+    standard_work_days: formData.get('standard_work_days'),
+    personal_deduction: formData.get('personal_deduction'),
+    dependent_deduction: formData.get('dependent_deduction'),
+    work_start_time: formData.get('work_start_time'),
+    work_end_time: formData.get('work_end_time'),
+    penalty_late: formData.get('penalty_late'),
+    penalty_absence: formData.get('penalty_absence'),
+    tax_brackets: formData.get('tax_brackets'),
+  }
+
+  // 2. Validate with Zod
+  const result = SettingsSchema.safeParse(rawData)
+  if (!result.success) {
+    const firstError = result.error.issues[0]
+    return { success: false, message: firstError.message }
+  }
+
+  // 3. Prepare updates (key-value pairs for DB)
   const simpleKeys = [
     'base_salary_min', 'insurance_percent', 'standard_work_days',
     'personal_deduction', 'dependent_deduction',
     'work_start_time', 'work_end_time',
-    'penalty_late', 'penalty_absence', // New Penalty Keys
-    'tax_brackets' // Expected as JSON string from hidden input
+    'penalty_late', 'penalty_absence',
+    'tax_brackets'
   ]
 
   const updates = simpleKeys.map(key => ({
-      key, 
-      value: formData.get(key) as string
+    key,
+    value: formData.get(key) as string
   }))
 
-  // 2. Handle Checkboxes (Weekend Days)
-  // formData.getAll returns an array of values for checked boxes
+  // 4. Handle Checkboxes (Weekend Days)
   const weekendDays = formData.getAll('weekend_days')
   updates.push({
-      key: 'weekend_days',
-      value: JSON.stringify(weekendDays)
+    key: 'weekend_days',
+    value: JSON.stringify(weekendDays)
   })
 
-  // 3. Save to DB
+  // 5. Save to DB
   for (const update of updates) {
     if (update.value !== null && update.value !== undefined) {
       await settingRepo.updateSetting(update.key, update.value)
