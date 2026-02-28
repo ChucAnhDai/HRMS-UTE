@@ -28,9 +28,11 @@ export default function LoginView() {
           {/* Logo / Brand */}
           <div>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 bg-transparent">
-              <img
+              <Image
                 src="/ute_logo.png"
                 alt="HCMUTE Logo"
+                width={24}
+                height={24}
                 className="h-6 w-6 object-contain"
               />
               <span className="text-gray-700 font-medium">HCMUTE</span>

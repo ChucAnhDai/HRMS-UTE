@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -18,9 +19,11 @@ export default function PublicHeader({ user }: { user: CurrentUser | null }) {
         <div className="flex items-center justify-between whitespace-nowrap">
           <Link href="/" className="flex items-center gap-3 text-[#111318]">
             <div className="size-8 flex items-center justify-center">
-              <img
+              <Image
                 src="/ute_logo.png"
                 alt="HCMUTE Logo"
+                width={32}
+                height={32}
                 className="h-8 w-8 object-contain"
               />
             </div>

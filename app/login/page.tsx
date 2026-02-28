@@ -3,6 +3,7 @@
 import React, { useState, useTransition } from "react";
 import { Mail, Lock, Eye, Facebook, Chrome, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { loginAction } from "@/server/actions/auth-actions";
 
 export default function LoginPage() {
@@ -30,9 +31,11 @@ export default function LoginPage() {
 
           <div className="relative z-10 flex items-center gap-3">
             <div className="p-2 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20">
-              <img
+              <Image
                 src="/ute_logo.png"
                 alt="HCMUTE Logo"
+                width={32}
+                height={32}
                 className="h-8 w-8 object-contain"
               />
             </div>

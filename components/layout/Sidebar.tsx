@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Home,
@@ -156,9 +157,11 @@ export default function Sidebar({ user }: { user: HeaderUserProps | null }) {
             className="flex items-center gap-2 overflow-hidden"
           >
             {/* Logo */}
-            <img
+            <Image
               src="/ute_logo.png"
               alt="HCMUTE Logo"
+              width={32}
+              height={32}
               className="h-8 w-8 rounded-lg object-contain shrink-0"
             />
             {!isCollapsed && (
