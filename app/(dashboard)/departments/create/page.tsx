@@ -1,6 +1,9 @@
 import { requireRoleForPage } from '@/lib/auth-helpers'
 import DepartmentForm from '@/components/departments/DepartmentForm'
 
+export const metadata = { title: "Tạo phòng ban | HCMUTE" };
+
+
 export const dynamic = 'force-dynamic'
 
 export default async function CreateDepartmentPage() {

@@ -56,15 +56,16 @@ export default function AssetTable({ assets }: { assets: AssetWithDetails[] }) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Available":
-      case "Sẵn sàng":
         return "bg-green-100 text-green-700";
+      case "In Use":
       case "Assigned":
-      case "Đang sử dụng":
-      case "Da cap":
         return "bg-blue-100 text-blue-700";
       case "Broken":
-      case "Hỏng":
         return "bg-red-100 text-red-700";
+      case "Lost":
+        return "bg-orange-100 text-orange-700";
+      case "Liquidated":
+        return "bg-gray-100 text-gray-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
@@ -74,10 +75,16 @@ export default function AssetTable({ assets }: { assets: AssetWithDetails[] }) {
     switch (status) {
       case "Available":
         return "Sẵn sàng";
-      case "Assigned":
+      case "In Use":
         return "Đang sử dụng";
+      case "Assigned":
+        return "Đã cấp";
       case "Broken":
         return "Hỏng";
+      case "Lost":
+        return "Mất";
+      case "Liquidated":
+        return "Thanh lý";
       default:
         return status;
     }
@@ -216,8 +223,10 @@ export default function AssetTable({ assets }: { assets: AssetWithDetails[] }) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:ring-2 focus:ring-blue-500 outline-none bg-white"
               >
                 <option value="Available">Available (Sẵn sàng)</option>
-                <option value="Assigned">Assigned (Đã cấp)</option>
+                <option value="In Use">In Use (Đang sử dụng)</option>
                 <option value="Broken">Broken (Hỏng)</option>
+                <option value="Lost">Lost (Mất)</option>
+                <option value="Liquidated">Liquidated (Thanh lý)</option>
               </select>
             </div>
 

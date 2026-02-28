@@ -1,3 +1,6 @@
+
+export const metadata = { title: "Hợp đồng | HCMUTE" };
+
 export default function ContractsPage() {
   return (
     <div className="p-4 md:p-6 lg:p-8">

@@ -2,7 +2,11 @@ import { getCurrentUser } from "@/lib/auth-helpers";
 import { Employee } from "@/types";
 import { overtimeRepo } from "@/server/repositories/overtime-repo";
 import { employeeRepo } from "@/server/repositories/employee-repo";
+import { settingRepo } from "@/server/repositories/setting-repo";
 import OvertimeClientView from "@/components/overtime/OvertimeClientView";
+
+export const metadata = { title: "Tăng ca | HCMUTE" };
+
 
 export default async function OvertimePage() {
   const user = await getCurrentUser();
@@ -25,12 +29,17 @@ export default async function OvertimePage() {
     employees = await employeeRepo.getEmployees();
   }
 
+  // Lấy giờ tan làm từ cấu hình hệ thống (dùng làm giờ bắt đầu OT mặc định)
+  const settings = await settingRepo.getSettings();
+  const workEndTime = settings["work_end_time"] || "17:00";
+
   return (
     <div className="p-8 max-w-[1600px] mx-auto">
       <OvertimeClientView
         initialRequests={requests || []}
         isAdmin={isAdmin}
         employees={employees}
+        workEndTime={workEndTime}
       />
     </div>
   );

@@ -7,6 +7,9 @@ import { salaryHistoryRepo } from "@/server/repositories/salary-history-repo";
 import { notFound } from "next/navigation";
 import { requireRoleForPage } from "@/lib/auth-helpers";
 
+export const metadata = { title: "Sửa nhân viên | HCMUTE" };
+
+
 export const dynamic = "force-dynamic";
 
 interface PageProps {

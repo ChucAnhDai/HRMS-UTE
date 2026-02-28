@@ -11,6 +11,7 @@ interface Props {
   onClose: () => void;
   onSuccess?: () => void;
   employees?: Employee[];
+  workEndTime?: string;
 }
 
 export default function OvertimeRequestModal({
@@ -18,17 +19,28 @@ export default function OvertimeRequestModal({
   onClose,
   onSuccess,
   employees = [],
+  workEndTime = "17:00",
 }: Props) {
+  // Tính giờ kết thúc mặc định = giờ bắt đầu + 1 tiếng
+  const calculateDefaultEndTime = (startTime: string) => {
+    const [hours, minutes] = startTime.split(":").map(Number);
+    const endHours = Math.min(hours + 1, 23); // Không vượt quá 23:xx
+    return `${String(endHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  };
+
   const [formData, setFormData] = useState({
     employee_id: 0,
     date: new Date().toISOString().split("T")[0],
-    start_time: "17:00",
-    end_time: "18:00",
+    start_time: workEndTime,
+    end_time: calculateDefaultEndTime(workEndTime),
     reason: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Hằng số giới hạn độ dài lý do
+  const MAX_REASON_LENGTH = 500;
 
   // Calculate hours dynamically
   const calculateHours = () => {
@@ -53,8 +65,36 @@ export default function OvertimeRequestModal({
     setLoading(true);
     setError(null);
 
+    // Validate: Không cho đăng ký OT cho ngày trong quá khứ
+    const today = new Date().toISOString().split("T")[0];
+    if (formData.date < today) {
+      setError(
+        `Không thể đăng ký OT cho ngày trong quá khứ (${formData.date}). Vui lòng chọn ngày hôm nay hoặc trong tương lai.`,
+      );
+      setLoading(false);
+      return;
+    }
+
     if (hours <= 0) {
       setError("Thời gian kết thúc phải lớn hơn thời gian bắt đầu");
+      setLoading(false);
+      return;
+    }
+
+    // Validate: Giới hạn độ dài lý do
+    if (formData.reason.length > MAX_REASON_LENGTH) {
+      setError(
+        `Lý do không được vượt quá ${MAX_REASON_LENGTH} ký tự. Hiện tại: ${formData.reason.length} ký tự.`,
+      );
+      setLoading(false);
+      return;
+    }
+
+    // Validate: Giờ bắt đầu OT phải >= giờ tan làm (không trùng giờ hành chính)
+    if (formData.start_time < workEndTime) {
+      setError(
+        `Giờ bắt đầu OT (${formData.start_time}) không được trước giờ tan làm (${workEndTime}). Tăng ca chỉ được đăng ký sau giờ hành chính.`,
+      );
       setLoading(false);
       return;
     }
@@ -71,8 +111,8 @@ export default function OvertimeRequestModal({
       setFormData({
         employee_id: 0,
         date: new Date().toISOString().split("T")[0],
-        start_time: "17:00",
-        end_time: "18:00",
+        start_time: workEndTime,
+        end_time: calculateDefaultEndTime(workEndTime),
         reason: "",
       });
     } else {
@@ -137,6 +177,7 @@ export default function OvertimeRequestModal({
             <input
               type="date"
               value={formData.date}
+              min={new Date().toISOString().split("T")[0]}
               onChange={(e) =>
                 setFormData({ ...formData, date: e.target.value })
               }
@@ -190,11 +231,25 @@ export default function OvertimeRequestModal({
               onChange={(e) =>
                 setFormData({ ...formData, reason: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+              maxLength={MAX_REASON_LENGTH}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none ${
+                formData.reason.length > MAX_REASON_LENGTH * 0.9
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-300"
+              }`}
               rows={3}
               placeholder="Mô tả công việc cần làm thêm..."
               required
             />
+            <div
+              className={`text-xs text-right mt-1 ${
+                formData.reason.length > MAX_REASON_LENGTH * 0.9
+                  ? "text-red-500 font-medium"
+                  : "text-gray-400"
+              }`}
+            >
+              {formData.reason.length}/{MAX_REASON_LENGTH} ký tự
+            </div>
           </div>
 
           <div className="pt-2 flex justify-end gap-3 border-t border-gray-100 mt-4">

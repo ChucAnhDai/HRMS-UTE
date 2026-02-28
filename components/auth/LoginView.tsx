@@ -27,8 +27,13 @@ export default function LoginView() {
         <div className="w-full lg:w-5/12 p-6 lg:p-8 flex flex-col justify-between relative bg-linear-to-br from-[#FAF9F5] to-[#F2EFE5]">
           {/* Logo / Brand */}
           <div>
-            <div className="inline-flex px-6 py-2 rounded-full border border-gray-300 text-gray-700 font-medium bg-transparent">
-              Crextio
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 bg-transparent">
+              <img
+                src="/ute_logo.png"
+                alt="HCMUTE Logo"
+                className="h-6 w-6 object-contain"
+              />
+              <span className="text-gray-700 font-medium">HCMUTE</span>
             </div>
           </div>
 

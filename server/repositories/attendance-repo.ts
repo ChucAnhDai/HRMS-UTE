@@ -157,5 +157,19 @@ export const attendanceRepo = {
       .eq('id', id)
 
     if (error) throw new Error(error.message)
+  },
+
+  // Kiểm tra nhân viên đã check-in trong ngày chưa (dùng cho ràng buộc OT)
+  async hasCheckedIn(employeeId: number, date: string): Promise<boolean> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('attendances')
+      .select('id')
+      .eq('employee_id', employeeId)
+      .eq('date', date)
+      .maybeSingle()
+
+    if (error) throw new Error(error.message)
+    return !!data
   }
 }

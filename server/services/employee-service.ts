@@ -28,6 +28,7 @@ export const employeeService = {
 
     const employment_status = formData.get('employment_status') as string || 'Probation'
     const probation_end_date = formData.get('probation_end_date') as string || null
+    const termination_date = formData.get('termination_date') as string || null
     const annual_leave_quota = formData.get('annual_leave_quota') ? Number(formData.get('annual_leave_quota')) : 12
     const sick_leave_quota = formData.get('sick_leave_quota') ? Number(formData.get('sick_leave_quota')) : 5
     const other_leave_quota = formData.get('other_leave_quota') ? Number(formData.get('other_leave_quota')) : 5
@@ -37,7 +38,29 @@ export const employeeService = {
         throw new Error('Vui lòng điền đầy đủ thông tin bắt buộc')
     }
 
-    // Chuẩn bị data để lưu xuống DB
+    const hireDateObj = new Date(hire_date);
+    const maxHireDate = new Date();
+    maxHireDate.setFullYear(maxHireDate.getFullYear() + 1);
+    if (hireDateObj > maxHireDate) {
+        throw new Error('Ngày vào làm không được vượt quá 1 năm trong tương lai');
+    }
+
+    if (employment_status === 'Probation' && !probation_end_date) {
+        throw new Error('Vui lòng chọn ngày kết thúc thử việc');
+    }
+
+    if (probation_end_date && new Date(probation_end_date) < hireDateObj) {
+        throw new Error('Ngày kết thúc thử việc phải sau hoặc bằng ngày vào làm');
+    }
+
+    if ((employment_status === 'Resigned' || employment_status === 'Terminated') && !termination_date) {
+        throw new Error('Vui lòng chọn ngày nghỉ việc');
+    }
+
+    if (termination_date && new Date(termination_date) < hireDateObj) {
+        throw new Error('Ngày nghỉ việc phải sau ngày vào làm');
+    }
+
     const newEmployee = {
         first_name,
         last_name,
@@ -51,6 +74,7 @@ export const employeeService = {
         tax_code,
         dependents,
         employment_status,
+        termination_date,
         annual_leave_quota,
         sick_leave_quota,
         other_leave_quota
@@ -131,6 +155,33 @@ export const employeeService = {
     const sick_leave_quota = formData.get('sick_leave_quota') ? Number(formData.get('sick_leave_quota')) : 5
     const other_leave_quota = formData.get('other_leave_quota') ? Number(formData.get('other_leave_quota')) : 5
     
+    // Validate Important Dates
+    if (!hire_date) {
+        throw new Error('Ngày vào làm là bắt buộc');
+    }
+
+    const hireDateObj = new Date(hire_date);
+    const maxHireDate = new Date();
+    maxHireDate.setFullYear(maxHireDate.getFullYear() + 1);
+    if (hireDateObj > maxHireDate) {
+        throw new Error('Ngày vào làm không được vượt quá 1 năm trong tương lai');
+    }
+
+    if (employment_status === 'Probation' && !probation_end_date) {
+        throw new Error('Vui lòng chọn ngày kết thúc thử việc');
+    }
+
+    if (probation_end_date && new Date(probation_end_date) < hireDateObj) {
+        throw new Error('Ngày kết thúc thử việc phải sau hoặc bằng ngày vào làm');
+    }
+
+    if ((employment_status === 'Resigned' || employment_status === 'Terminated') && !termination_date) {
+        throw new Error('Vui lòng chọn ngày nghỉ việc');
+    }
+
+    if (termination_date && new Date(termination_date) < hireDateObj) {
+        throw new Error('Ngày nghỉ việc phải sau ngày vào làm');
+    }
     // Handle Avatar Upload
     const avatarFile = formData.get('avatarFile') as File | null
     let avatar = formData.get('avatar') as string || null

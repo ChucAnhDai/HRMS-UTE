@@ -9,6 +9,9 @@ import EmployeeProfileView from '@/components/employees/EmployeeProfileView'
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
 
+export const metadata = { title: "Hồ sơ cá nhân | HCMUTE" };
+
+
 export const dynamic = 'force-dynamic'
 
 export default async function ProfilePage() {

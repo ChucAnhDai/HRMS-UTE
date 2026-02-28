@@ -6,8 +6,8 @@ import { redirect } from "next/navigation";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Dashboard | Payroll System",
-  description: "HRM Dashboard",
+  title: "Dashboard | HCMUTE HRM System",
+  description: "HCMUTE HRM Dashboard",
 };
 
 export default async function DashboardLayout({

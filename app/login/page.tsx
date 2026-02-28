@@ -1,15 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import {
-  Mail,
-  Lock,
-  Eye,
-  Facebook,
-  Chrome,
-  ArrowRight,
-  ShieldCheck,
-} from "lucide-react";
+import { Mail, Lock, Eye, Facebook, Chrome, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { loginAction } from "@/server/actions/auth-actions";
 
@@ -37,11 +29,15 @@ export default function LoginPage() {
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-400/20 rounded-full blur-[80px] -ml-20 -mb-20"></div>
 
           <div className="relative z-10 flex items-center gap-3">
-            <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20">
-              <ShieldCheck className="h-6 w-6 text-white" />
+            <div className="p-2 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20">
+              <img
+                src="/ute_logo.png"
+                alt="HCMUTE Logo"
+                className="h-8 w-8 object-contain"
+              />
             </div>
             <span className="text-2xl font-black text-white tracking-tight uppercase">
-              HR System
+              HCMUTE <br /> HRM System
             </span>
           </div>
 
@@ -83,7 +79,7 @@ export default function LoginPage() {
               ))}
             </div>
             <p className="text-xs font-bold text-blue-100">
-              Tham gia cùng cộng đồng HR
+              Tham gia cùng cộng đồng HCMUTE
             </p>
           </div>
         </div>

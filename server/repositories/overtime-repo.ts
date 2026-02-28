@@ -50,15 +50,32 @@ export const overtimeRepo = {
     return data 
   },
 
-  // Cập nhật trạng thái (Approve/Reject)
-  async updateStatus(id: number, status: 'Approved' | 'Rejected', approverId: number) {
+  // Lấy chi tiết 1 request theo ID
+  async getRequestById(id: number) {
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('overtime_requests')
-      .update({ 
-          status,
-          approved_by: approverId
-      })
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) throw new Error(error.message)
+    return data as OvertimeRequest
+  },
+
+  // Cập nhật trạng thái (Approve/Reject)
+  async updateStatus(id: number, status: 'Approved' | 'Rejected', approverId: number, rejectionReason?: string) {
+    const supabase = await createClient()
+
+    const updateData: Record<string, unknown> = {
+      status,
+      approved_by: approverId,
+      rejection_reason: status === 'Rejected' && rejectionReason ? rejectionReason : null
+    }
+
+    const { data, error } = await supabase
+      .from('overtime_requests')
+      .update(updateData)
       .eq('id', id)
       .select()
       .single()

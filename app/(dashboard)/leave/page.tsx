@@ -5,6 +5,9 @@ import { getCurrentUser } from "@/lib/auth-helpers";
 
 import { Employee } from "@/types";
 
+export const metadata = { title: "Nghỉ phép | HCMUTE" };
+
+
 export const dynamic = "force-dynamic";
 
 export default async function LeavePage() {

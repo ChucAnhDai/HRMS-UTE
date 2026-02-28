@@ -2,6 +2,9 @@ import AssetTable from "@/components/assets/AssetTable";
 import { assetService } from "@/server/services/asset-service";
 import { requireRoleForPage } from "@/lib/auth-helpers";
 
+export const metadata = { title: "Tài sản | HCMUTE" };
+
+
 export const dynamic = "force-dynamic";
 
 export default async function InstrumentsPage() {

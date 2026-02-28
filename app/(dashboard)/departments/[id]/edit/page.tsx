@@ -3,6 +3,9 @@ import { departmentService } from '@/server/services/department-service'
 import { notFound } from 'next/navigation'
 import DepartmentForm from '@/components/departments/DepartmentForm'
 
+export const metadata = { title: "Sửa phòng ban | HCMUTE" };
+
+
 export const dynamic = 'force-dynamic'
 
 interface Props {

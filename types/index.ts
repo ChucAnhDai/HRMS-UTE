@@ -174,6 +174,7 @@ export interface OvertimeRequest {
   reason: string
   status: 'Pending' | 'Approved' | 'Rejected'
   approved_by?: number | null
+  rejection_reason?: string | null
   created_at?: string
   
   // Relations

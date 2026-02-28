@@ -73,6 +73,25 @@ export const departmentRepo = {
     return data
   },
 
+  // Tìm phòng ban theo tên (dùng cho kiểm tra trùng lặp)
+  async getDepartmentByName(name: string, excludeId?: number): Promise<Department | null> {
+    const supabase = await createClient()
+    let query = supabase
+      .from('departments')
+      .select('*')
+      .ilike('name', name.trim()) // So sánh không phân biệt hoa/thường
+
+    // Loại trừ phòng ban đang sửa (tránh trùng với chính nó)
+    if (excludeId) {
+      query = query.neq('id', excludeId)
+    }
+
+    const { data, error } = await query.maybeSingle()
+
+    if (error) throw new Error(error.message)
+    return data
+  },
+
   // Tạo phòng ban mới
   async createDepartment(name: string): Promise<Department> {
     const supabase = await createClient()

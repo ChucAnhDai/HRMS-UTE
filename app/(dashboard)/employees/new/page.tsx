@@ -4,6 +4,9 @@ import Link from 'next/link'
 
 export default async function NewEmployeePage() {
   // 1. Fetch departments from DB to populate dropdown
+
+export const metadata = { title: "Thêm nhân viên | HCMUTE" };
+
   const departments = await employeeService.getDepartments()
 
   return (

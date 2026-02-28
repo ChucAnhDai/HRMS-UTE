@@ -4,6 +4,9 @@ import PayrollTable from '@/components/payroll/PayrollTable'
 import { payrollService } from '@/server/services/payroll-service'
 import { requireRoleForPage } from '@/lib/auth-helpers'
 
+export const metadata = { title: "Lương thưởng | HCMUTE" };
+
+
 export const dynamic = 'force-dynamic'
 
 interface Props {

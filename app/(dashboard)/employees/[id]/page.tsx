@@ -7,6 +7,9 @@ import { assetService } from "@/server/services/asset-service";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-helpers";
 
+export const metadata = { title: "Chi tiết nhân viên | HCMUTE" };
+
+
 export const dynamic = "force-dynamic";
 
 interface PageProps {

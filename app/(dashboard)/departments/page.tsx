@@ -2,6 +2,9 @@ import { departmentService } from "@/server/services/department-service";
 import { requireRoleForPage } from "@/lib/auth-helpers";
 import DepartmentTableView from "@/components/departments/DepartmentTableView";
 
+export const metadata = { title: "Phòng ban | HCMUTE" };
+
+
 export const dynamic = "force-dynamic";
 
 export default async function DepartmentsPage() {

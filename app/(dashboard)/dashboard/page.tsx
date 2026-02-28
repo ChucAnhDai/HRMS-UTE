@@ -1,6 +1,9 @@
 import { dashboardService } from '@/server/services/dashboard-service'
 import DashboardView from '@/components/dashboard/DashboardView'
 
+export const metadata = { title: "Tổng quan | HCMUTE" };
+
+
 export default async function DashboardPage() {
   const stats = await dashboardService.getStats()
 

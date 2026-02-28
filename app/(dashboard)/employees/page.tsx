@@ -2,6 +2,9 @@ import { employeeService } from "@/server/services/employee-service";
 import EmployeeTableView from "@/components/employees/EmployeeTableView";
 import { getCurrentUser, requireRoleForPage } from "@/lib/auth-helpers";
 
+export const metadata = { title: "Nhân viên | HCMUTE" };
+
+
 export const dynamic = "force-dynamic";
 
 export default async function EmployeesPage() {

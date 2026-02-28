@@ -1,3 +1,6 @@
+
+export const metadata = { title: "Đánh giá | HCMUTE" };
+
 export default function ReviewPage() {
   return (
     <div className="p-4 md:p-6 lg:p-8">

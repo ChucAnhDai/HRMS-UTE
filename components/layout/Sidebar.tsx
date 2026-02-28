@@ -156,11 +156,13 @@ export default function Sidebar({ user }: { user: HeaderUserProps | null }) {
             className="flex items-center gap-2 overflow-hidden"
           >
             {/* Logo */}
-            <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shrink-0">
-              C
-            </div>
+            <img
+              src="/ute_logo.png"
+              alt="HCMUTE Logo"
+              className="h-8 w-8 rounded-lg object-contain shrink-0"
+            />
             {!isCollapsed && (
-              <span className="font-bold text-xl text-gray-800">Crextio</span>
+              <span className="font-bold text-xl text-gray-800">HCMUTE</span>
             )}
           </Link>
           {!isCollapsed && (

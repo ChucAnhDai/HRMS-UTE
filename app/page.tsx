@@ -1,5 +1,11 @@
 import PublicHeader from "@/components/layout/PublicHeader";
 import { getCurrentUser } from "@/lib/auth-helpers";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Trang chủ | HCMUTE HRM System",
+  description: "Trang chủ hệ thống quản lý nhân sự HCMUTE",
+};
 
 export default async function LandingPage() {
   const user = await getCurrentUser();

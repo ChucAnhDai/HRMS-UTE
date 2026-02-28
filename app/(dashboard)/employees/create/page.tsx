@@ -2,6 +2,9 @@ import CreateEmployeeForm from '@/components/employees/CreateEmployeeForm'
 import { employeeService } from '@/server/services/employee-service'
 import { requireRoleForPage } from '@/lib/auth-helpers'
 
+export const metadata = { title: "Thêm nhân viên | HCMUTE" };
+
+
 export const dynamic = 'force-dynamic'
 
 export default async function CreateEmployeePage() {

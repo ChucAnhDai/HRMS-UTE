@@ -5,7 +5,7 @@ import { departmentRepo } from "@/server/repositories/department-repo";
 import RewardAdjustmentView from "@/components/rewards/RewardAdjustmentView";
 
 export const metadata = {
-  title: "Rewards & Penalties - Payroll System",
+  title: "Thưởng phạt | HCMUTE",
 };
 
 interface PageProps {

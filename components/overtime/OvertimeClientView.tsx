@@ -13,50 +13,103 @@ interface Props {
   initialRequests: OvertimeRequest[];
   isAdmin: boolean;
   employees?: Employee[];
+  workEndTime?: string;
 }
 
 export default function OvertimeClientView({
   initialRequests,
   isAdmin,
   employees = [],
+  workEndTime = "17:00",
 }: Props) {
   const [requests] = useState<OvertimeRequest[]>(initialRequests);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<
     "All" | "Pending" | "Approved" | "Rejected"
   >("All");
+  const [confirmingId, setConfirmingId] = useState<number | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    "approve" | "reject" | null
+  >(null);
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [actionMessage, setActionMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const handleSuccess = () => {
-    // Refresh data logic could be here, but for now we rely on server action revalidation
-    // and maybe router.refresh() if we imported useRouter.
-    // However, simplest is to just reload or let Next.js handle it if this was a server component parent updating.
-    // Since this is client view, we might want to trigger a refresh.
     window.location.reload();
   };
 
-  const handleApprove = async (id: number) => {
-    if (!confirm("Xác nhận DUYỆT yêu cầu này?")) return;
-    setProcessingId(id);
-    const res = await approveOvertimeRequestAction(id);
-    if (res.success) {
-      window.location.reload();
-    } else {
-      alert(res.error);
-    }
-    setProcessingId(null);
+  const handleApproveClick = (id: number) => {
+    setConfirmingId(id);
+    setConfirmAction("approve");
+    setActionMessage(null);
   };
 
-  const handleReject = async (id: number) => {
-    if (!confirm("Xác nhận TỪ CHỐI yêu cầu này?")) return;
-    setProcessingId(id);
-    const res = await rejectOvertimeRequestAction(id);
-    if (res.success) {
-      window.location.reload();
-    } else {
-      alert(res.error);
+  const handleRejectClick = (id: number) => {
+    setConfirmingId(id);
+    setConfirmAction("reject");
+    setRejectReason("");
+    setActionMessage(null);
+  };
+
+  const handleCancelConfirm = () => {
+    setConfirmingId(null);
+    setConfirmAction(null);
+    setRejectReason("");
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmingId || !confirmAction) return;
+    setProcessingId(confirmingId);
+    setActionMessage(null);
+
+    try {
+      if (confirmAction === "approve") {
+        const res = await approveOvertimeRequestAction(confirmingId);
+        if (res.success) {
+          setActionMessage({
+            type: "success",
+            text: "\u0110\u00e3 duy\u1ec7t y\u00eau c\u1ea7u th\u00e0nh c\u00f4ng!",
+          });
+        } else {
+          setActionMessage({ type: "error", text: res.error });
+        }
+      } else {
+        if (!rejectReason.trim()) {
+          setActionMessage({
+            type: "error",
+            text: "Vui l\u00f2ng nh\u1eadp l\u00fd do t\u1eeb ch\u1ed1i.",
+          });
+          setProcessingId(null);
+          return;
+        }
+        const res = await rejectOvertimeRequestAction(
+          confirmingId,
+          rejectReason.trim(),
+        );
+        if (res.success) {
+          setActionMessage({
+            type: "success",
+            text: "\u0110\u00e3 t\u1eeb ch\u1ed1i y\u00eau c\u1ea7u th\u00e0nh c\u00f4ng!",
+          });
+        } else {
+          setActionMessage({ type: "error", text: res.error });
+        }
+      }
+    } catch {
+      setActionMessage({
+        type: "error",
+        text: "\u0110\u00e3 x\u1ea3y ra l\u1ed7i kh\u00f4ng x\u00e1c \u0111\u1ecbnh.",
+      });
     }
+
     setProcessingId(null);
+    setConfirmingId(null);
+    setConfirmAction(null);
+    setRejectReason("");
   };
 
   const filteredRequests = requests.filter((r) => {
@@ -109,6 +162,135 @@ export default function OvertimeClientView({
           </button>
         ))}
       </div>
+
+      {/* Action Message Modal Popup */}
+      {actionMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center border border-gray-200">
+            <div
+              className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                actionMessage.type === "success"
+                  ? "bg-green-50 border-2 border-green-200"
+                  : "bg-red-50 border-2 border-red-200"
+              }`}
+            >
+              {actionMessage.type === "success" ? (
+                <Check className="w-8 h-8 text-green-500" />
+              ) : (
+                <X className="w-8 h-8 text-red-500" />
+              )}
+            </div>
+            <p
+              className={`text-lg font-semibold mb-6 ${
+                actionMessage.type === "success"
+                  ? "text-gray-900"
+                  : "text-red-700"
+              }`}
+            >
+              {actionMessage.text}
+            </p>
+            <button
+              onClick={() => {
+                setActionMessage(null);
+                if (actionMessage.type === "success") {
+                  window.location.reload();
+                }
+              }}
+              className={`px-8 py-2 rounded-lg font-medium transition-colors ${
+                actionMessage.type === "success"
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-red-600 text-white hover:bg-red-700"
+              }`}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Confirmation Modal */}
+      {confirmAction === "approve" && confirmingId && !actionMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 text-center border border-gray-200">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-green-50 border-2 border-green-200">
+              <Check className="w-8 h-8 text-green-500" />
+            </div>
+            <p className="text-lg font-semibold text-gray-900 mb-6">
+              Bạn có muốn duyệt yêu cầu này không?
+            </p>
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={handleCancelConfirm}
+                disabled={processingId !== null}
+                className="px-6 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium border border-gray-300"
+              >
+                Không
+              </button>
+              <button
+                onClick={handleConfirmAction}
+                disabled={processingId !== null}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50"
+              >
+                {processingId ? "Đang xử lý..." : "Có"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Reason Modal */}
+      {confirmAction === "reject" && confirmingId && !actionMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-xl w-full mx-4 border border-gray-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <X className="w-5 h-5 text-red-500" /> Từ chối yêu cầu OT
+            </h3>
+            <div className="space-y-2 mb-4">
+              <label className="text-sm font-semibold text-gray-700">
+                Lý do từ chối <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                maxLength={500}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all resize-none ${
+                  rejectReason.length > 450
+                    ? "border-red-300 bg-red-50"
+                    : "border-gray-300"
+                }`}
+                rows={5}
+                placeholder="Nhập lý do từ chối..."
+                autoFocus
+              />
+              <div
+                className={`text-xs text-right ${
+                  rejectReason.length > 450
+                    ? "text-red-500 font-medium"
+                    : "text-gray-400"
+                }`}
+              >
+                {rejectReason.length}/500 ký tự
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={handleCancelConfirm}
+                disabled={processingId !== null}
+                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium border border-gray-300"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleConfirmAction}
+                disabled={processingId !== null || !rejectReason.trim()}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50"
+              >
+                {processingId ? "Đang xử lý..." : "Xác nhận từ chối"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-white border boundary-gray-200 rounded-xl overflow-hidden shadow-sm">
@@ -212,22 +394,28 @@ export default function OvertimeClientView({
                             ? "Từ chối"
                             : "Chờ duyệt"}
                       </span>
+                      {req.status === "Rejected" && req.rejection_reason && (
+                        <div
+                          className="text-xs text-red-500 mt-1 max-w-[120px] truncate"
+                          title={req.rejection_reason}
+                        >
+                          Lý do: {req.rejection_reason}
+                        </div>
+                      )}
                     </td>
                     {isAdmin && (
                       <td className="px-6 py-4 text-right">
                         {req.status === "Pending" && (
                           <div className="flex justify-end gap-2">
                             <button
-                              onClick={() => handleApprove(req.id)}
-                              disabled={processingId === req.id}
+                              onClick={() => handleApproveClick(req.id)}
                               className="p-1.5 bg-green-50 text-green-600 rounded hover:bg-green-100 border border-green-200 transition-colors"
                               title="Duyệt"
                             >
                               <Check className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleReject(req.id)}
-                              disabled={processingId === req.id}
+                              onClick={() => handleRejectClick(req.id)}
                               className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 border border-red-200 transition-colors"
                               title="Từ chối"
                             >
@@ -250,6 +438,7 @@ export default function OvertimeClientView({
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleSuccess}
         employees={employees}
+        workEndTime={workEndTime}
       />
     </div>
   );

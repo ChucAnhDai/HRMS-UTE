@@ -1,3 +1,6 @@
+
+export const metadata = { title: "Báo cáo | HCMUTE" };
+
 export default function ReportPage() {
   return (
     <div className="p-4 md:p-6 lg:p-8">

@@ -3,6 +3,9 @@ import Link from "next/link";
 import { ArrowLeft, Printer, Download, User, Building } from "lucide-react";
 import Image from "next/image";
 
+export const metadata = { title: "Chi tiết lương | HCMUTE" };
+
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }

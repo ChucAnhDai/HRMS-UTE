@@ -3,7 +3,7 @@ import SettingsView from "@/components/settings/SettingsView";
 import { requireRoleForPage } from "@/lib/auth-helpers";
 
 export const metadata = {
-  title: "Settings - Payroll System",
+  title: "Cài đặt | HCMUTE",
 };
 
 export default async function SettingsPage() {

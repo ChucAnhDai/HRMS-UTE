@@ -17,13 +17,15 @@ export default function PublicHeader({ user }: { user: CurrentUser | null }) {
       <div className="max-w-[1280px] mx-auto px-4 sm:px-10 py-3">
         <div className="flex items-center justify-between whitespace-nowrap">
           <Link href="/" className="flex items-center gap-3 text-[#111318]">
-            <div className="size-8 text-[#0d59f2] flex items-center justify-center">
-              <span className="material-symbols-outlined text-[32px]!">
-                dataset
-              </span>
+            <div className="size-8 flex items-center justify-center">
+              <img
+                src="/ute_logo.png"
+                alt="HCMUTE Logo"
+                className="h-8 w-8 object-contain"
+              />
             </div>
             <h2 className="text-[#111318] text-xl font-bold leading-tight tracking-[-0.015em]">
-              HRM System
+              HCMUTE <br /> HRM System
             </h2>
           </Link>
 

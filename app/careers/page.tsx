@@ -4,6 +4,12 @@ import Footer from "../../components/layout/Footer";
 import PublicHeader from "@/components/layout/PublicHeader";
 
 import { getCurrentUser } from "@/lib/auth-helpers";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Tuyển dụng | HCMUTE HRM System",
+  description: "Cơ hội nghề nghiệp tại HCMUTE",
+};
 
 export default async function CareersPage() {
   const user = await getCurrentUser();

@@ -1,5 +1,8 @@
 import { assetRepo } from '@/server/repositories/asset-repo'
 
+// Danh sách trạng thái tài sản hợp lệ (không bao gồm "Assigned" - trạng thái này chỉ được set tự động khi gán thiết bị)
+const VALID_ASSET_STATUSES = ['Available', 'In Use', 'Broken', 'Lost', 'Liquidated'] as const
+
 export const assetService = {
   async getAssets() {
     const assets = await assetRepo.getAssets()
@@ -19,6 +22,11 @@ export const assetService = {
 
     if (!name || !asset_tag) throw new Error('Thiếu thông tin bắt buộc')
 
+    // Validate trạng thái hợp lệ (phòng vệ theo chiều sâu)
+    if (!VALID_ASSET_STATUSES.includes(status as typeof VALID_ASSET_STATUSES[number])) {
+      throw new Error(`Trạng thái không hợp lệ: "${status}". Các trạng thái cho phép: ${VALID_ASSET_STATUSES.join(', ')}`)
+    }
+
     return await assetRepo.createAsset({
       name,
       asset_tag,
@@ -36,6 +44,11 @@ export const assetService = {
     const status = formData.get('status') as string
 
     if (!name || !asset_tag) throw new Error('Thiếu thông tin bắt buộc')
+
+    // Validate trạng thái hợp lệ (phòng vệ theo chiều sâu)
+    if (!VALID_ASSET_STATUSES.includes(status as typeof VALID_ASSET_STATUSES[number])) {
+      throw new Error(`Trạng thái không hợp lệ: "${status}". Các trạng thái cho phép: ${VALID_ASSET_STATUSES.join(', ')}`)
+    }
 
     return await assetRepo.updateAsset(id, {
       name,

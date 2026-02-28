@@ -5,6 +5,9 @@ import { getCurrentUser } from "@/lib/auth-helpers";
 import { getTodayAttendanceStatus } from "@/server/actions/quick-attendance";
 import { employeeRepo } from "@/server/repositories/employee-repo";
 
+export const metadata = { title: "Chấm công | HCMUTE" };
+
+
 interface PageProps {
   searchParams: Promise<{ date?: string }>;
 }
