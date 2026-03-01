@@ -46,11 +46,11 @@ export async function approveSalaryAdvanceAction(requestId: number) {
         if (!user || !['ADMIN', 'MANAGER'].includes(user.role)) {
             throw new Error('Không có quyền thực hiện')
         }
-        if (!user.userId) {
-             throw new Error('Không tìm thấy thông tin User ID')
+        if (!user.employeeId) {
+             throw new Error('Không tìm thấy thông tin nhân viên (Employee ID)')
         }
 
-        await salaryAdvanceRepo.updateStatus(requestId, 'Approved', user.userId)
+        await salaryAdvanceRepo.updateStatus(requestId, 'Approved', user.employeeId)
         revalidatePath('/salary-advances')
         return { success: true }
     } catch (error: unknown) {
@@ -64,11 +64,11 @@ export async function rejectSalaryAdvanceAction(requestId: number, reason: strin
         if (!user || !['ADMIN', 'MANAGER'].includes(user.role)) {
             throw new Error('Không có quyền thực hiện')
         }
-        if (!user.userId) {
-             throw new Error('Không tìm thấy thông tin User ID')
+        if (!user.employeeId) {
+             throw new Error('Không tìm thấy thông tin nhân viên (Employee ID)')
         }
 
-        await salaryAdvanceRepo.updateStatus(requestId, 'Rejected', user.userId, reason)
+        await salaryAdvanceRepo.updateStatus(requestId, 'Rejected', user.employeeId, reason)
         revalidatePath('/salary-advances')
         return { success: true }
     } catch (error: unknown) {

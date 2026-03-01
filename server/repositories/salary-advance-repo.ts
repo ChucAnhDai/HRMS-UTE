@@ -25,7 +25,7 @@ export const salaryAdvanceRepo = {
       .from('salary_advances')
       .select(`
         *,
-        employees (
+        employees!salary_advances_employee_id_fkey (
           id,
           first_name,
           last_name,
@@ -64,7 +64,7 @@ export const salaryAdvanceRepo = {
     return data as unknown as SalaryAdvance[]
   },
 
-  async updateStatus(id: number, status: 'Approved' | 'Rejected', approverId: number, rejectionReason?: string) {
+  async updateStatus(id: number, status: 'Approved' | 'Rejected', approverEmployeeId: number, rejectionReason?: string) {
     const supabase = await createClient()
     const updateData: {
       status: string;
@@ -73,7 +73,7 @@ export const salaryAdvanceRepo = {
       rejection_reason?: string;
     } = {
       status,
-      approved_by: approverId,
+      approved_by: approverEmployeeId,
       approved_at: new Date().toISOString()
     }
 

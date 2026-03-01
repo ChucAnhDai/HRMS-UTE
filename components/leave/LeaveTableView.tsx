@@ -41,6 +41,10 @@ export default function LeaveTableView({
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<number | null>(null);
 
+  // State cho modal duyệt
+  const [approveModalOpen, setApproveModalOpen] = useState(false);
+  const [approvingLeaveId, setApprovingLeaveId] = useState<number | null>(null);
+
   // State cho modal từ chối
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectingLeaveId, setRejectingLeaveId] = useState<number | null>(null);
@@ -51,14 +55,25 @@ export default function LeaveTableView({
   const canApprove =
     currentUser?.role && ["ADMIN", "MANAGER"].includes(currentUser.role);
 
-  const handleApprove = async (id: number) => {
+  // Mở modal duyệt
+  const openApproveModal = (id: number) => {
     if (!canApprove) {
       alert("Bạn không có quyền duyệt đơn nghỉ phép!");
       return;
     }
-    setLoadingId(id);
-    await approveLeaveAction(id);
+    setApprovingLeaveId(id);
+    setApproveModalOpen(true);
+  };
+
+  const handleApprove = async () => {
+    if (!approvingLeaveId) return;
+
+    setLoadingId(approvingLeaveId);
+    await approveLeaveAction(approvingLeaveId);
     setLoadingId(null);
+
+    setApproveModalOpen(false);
+    setApprovingLeaveId(null);
     router.refresh();
   };
 
@@ -284,7 +299,7 @@ export default function LeaveTableView({
                       {canApprove && leave.status === "Pending" ? (
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => handleApprove(leave.id)}
+                            onClick={() => openApproveModal(leave.id)}
                             disabled={loadingId === leave.id}
                             className="p-1.5 bg-green-50 text-green-600 rounded hover:bg-green-100 disabled:opacity-50"
                             title="Duyệt"
@@ -331,6 +346,49 @@ export default function LeaveTableView({
         departments={departments}
         currentUser={currentUser}
       />
+
+      {/* Modal xác nhận duyệt đơn nghỉ */}
+      {approveModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md m-4 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-green-50/30">
+              <h3 className="font-bold text-gray-800 flex items-center gap-2 text-lg">
+                <Check className="w-5 h-5 text-green-600" />
+                Xác nhận duyệt đơn nghỉ phép
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Bạn có chắc chắn muốn duyệt đơn nghỉ phép này không?
+              </p>
+            </div>
+
+            <div className="p-6 flex justify-end gap-3 bg-gray-50/50">
+              <button
+                type="button"
+                onClick={() => {
+                  setApproveModalOpen(false);
+                  setApprovingLeaveId(null);
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-white transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleApprove}
+                disabled={loadingId !== null}
+                className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-70 flex items-center gap-2"
+              >
+                {loadingId !== null ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
+                Xác nhận duyệt
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal từ chối đơn nghỉ */}
       {rejectModalOpen && (
