@@ -13,7 +13,6 @@ export async function updateSettingsAction(formData: FormData) {
   const rawData = {
     base_salary_min: formData.get('base_salary_min'),
     insurance_percent: formData.get('insurance_percent'),
-    standard_work_days: formData.get('standard_work_days'),
     personal_deduction: formData.get('personal_deduction'),
     dependent_deduction: formData.get('dependent_deduction'),
     work_start_time: formData.get('work_start_time'),
@@ -32,7 +31,7 @@ export async function updateSettingsAction(formData: FormData) {
 
   // 3. Prepare updates (key-value pairs for DB)
   const simpleKeys = [
-    'base_salary_min', 'insurance_percent', 'standard_work_days',
+    'base_salary_min', 'insurance_percent',
     'personal_deduction', 'dependent_deduction',
     'work_start_time', 'work_end_time',
     'penalty_late', 'penalty_absence',

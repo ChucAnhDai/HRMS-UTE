@@ -24,12 +24,16 @@ interface SettingsPageProps {
   settings: Record<string, string>;
   holidays: Holiday[];
   readOnly?: boolean;
+  workingDaysPerMonth: Record<number, number>;
+  currentYear: number;
 }
 
 export default function SettingsView({
   settings,
   holidays,
   readOnly,
+  workingDaysPerMonth,
+  currentYear,
 }: SettingsPageProps) {
   const [activeTab, setActiveTab] = useState<"general" | "holidays">("general");
 
@@ -68,7 +72,12 @@ export default function SettingsView({
       {/* Content */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         {activeTab === "general" ? (
-          <GeneralSettingsForm settings={settings} readOnly={readOnly} />
+          <GeneralSettingsForm
+            settings={settings}
+            readOnly={readOnly}
+            workingDaysPerMonth={workingDaysPerMonth}
+            currentYear={currentYear}
+          />
         ) : (
           <HolidaysManager holidays={holidays} readOnly={readOnly} />
         )}
@@ -90,9 +99,13 @@ const DEFAULT_TAX_BRACKETS = [
 function GeneralSettingsForm({
   settings,
   readOnly,
+  workingDaysPerMonth,
+  currentYear,
 }: {
   settings: Record<string, string>;
   readOnly?: boolean;
+  workingDaysPerMonth: Record<number, number>;
+  currentYear: number;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -292,17 +305,45 @@ function GeneralSettingsForm({
               disabled={readOnly}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-bold text-gray-900">
-              Số ngày công chuẩn (Ngày/Tháng)
+              📅 Số ngày công chuẩn {currentYear} (Tự động tính)
             </label>
-            <input
-              type="number"
-              name="standard_work_days"
-              defaultValue={settings["standard_work_days"]}
-              className={`w-full p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
-              disabled={readOnly}
-            />
+            <p className="text-xs text-gray-500 mb-2">
+              Dựa trên ngày nghỉ cố định trong tuần và ngày lễ đã cấu hình.
+            </p>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
+                const currentMonth = new Date().getMonth() + 1;
+                const isCurrentMonth = m === currentMonth;
+                return (
+                  <div
+                    key={m}
+                    className={`p-2 rounded-lg border text-center transition-all ${
+                      isCurrentMonth
+                        ? "bg-blue-50 border-blue-300 ring-2 ring-blue-200"
+                        : "bg-gray-50 border-gray-200"
+                    }`}
+                  >
+                    <div
+                      className={`text-xs font-medium ${
+                        isCurrentMonth ? "text-blue-600" : "text-gray-500"
+                      }`}
+                    >
+                      T{m}
+                    </div>
+                    <div
+                      className={`text-lg font-bold ${
+                        isCurrentMonth ? "text-blue-700" : "text-gray-800"
+                      }`}
+                    >
+                      {workingDaysPerMonth[m]}
+                    </div>
+                    <div className="text-[10px] text-gray-400">ngày</div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-bold text-gray-900">

@@ -10,7 +10,6 @@ const TaxBracketSchema = z.object({
 export const SettingsSchema = z.object({
   base_salary_min: z.coerce.number().min(0, "Lương cơ bản tối thiểu không được âm"),
   insurance_percent: z.coerce.number().min(0, "Tỷ lệ bảo hiểm không được âm").max(100, "Tỷ lệ bảo hiểm không được vượt quá 100%"),
-  standard_work_days: z.coerce.number().min(1, "Số ngày công chuẩn phải ít nhất là 1").max(31, "Số ngày công chuẩn không được vượt quá 31"),
   personal_deduction: z.coerce.number().min(0, "Giảm trừ bản thân không được âm"),
   dependent_deduction: z.coerce.number().min(0, "Giảm trừ gia cảnh không được âm"),
   work_start_time: z.string().min(1, "Giờ vào làm là bắt buộc"),
