@@ -19,6 +19,7 @@ import {
   rejectSalaryAdvanceAction,
 } from "@/server/actions/salary-advance-actions";
 import { useToast } from "@/hooks/use-toast";
+import { TruncatedTextWithView } from "@/components/ui/ContentViewerModal";
 interface Props {
   advances: SalaryAdvance[];
   currentUser: CurrentUser | null;
@@ -215,14 +216,18 @@ export default function SalaryAdvanceTable({ advances, currentUser }: Props) {
                   <TableCell className="font-semibold text-blue-600">
                     {formatMoney(Number(item.amount))}
                   </TableCell>
-                  <TableCell
-                    className="text-sm text-gray-900 truncate max-w-[200px]"
-                    title={item.reason || ""}
-                  >
-                    {item.reason}
+                  <TableCell className="text-sm text-gray-900 max-w-[200px]">
+                    <TruncatedTextWithView
+                      text={item.reason || ""}
+                      modalTitle="Lý do tạm ứng"
+                    />
                     {item.rejection_reason && (
                       <div className="text-red-500 text-xs mt-1">
-                        Lý do từ chối: {item.rejection_reason}
+                        <TruncatedTextWithView
+                          text={`Lý do từ chối: ${item.rejection_reason}`}
+                          maxLength={20}
+                          modalTitle="Lý do từ chối tạm ứng"
+                        />
                       </div>
                     )}
                   </TableCell>

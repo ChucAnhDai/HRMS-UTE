@@ -7,6 +7,7 @@ import {
   rejectLeaveAction,
 } from "@/server/actions/leave-actions";
 import Image from "next/image";
+import { TruncatedTextWithView } from "@/components/ui/ContentViewerModal";
 
 interface LeaveRequestItem {
   id: number;
@@ -127,11 +128,11 @@ export default function LeaveRequestsList({ requests }: Props) {
                       </span>
                     </div>
                   </td>
-                  <td
-                    className="px-6 py-4 text-gray-600 max-w-xs truncate"
-                    title={req.reason}
-                  >
-                    {req.reason}
+                  <td className="px-6 py-4 text-gray-600 max-w-xs">
+                    <TruncatedTextWithView
+                      text={req.reason}
+                      modalTitle="Lý do nghỉ phép"
+                    />
                   </td>
                   <td className="px-6 py-4">{getStatusBadge(req.status)}</td>
                   <td className="px-6 py-4 text-right">

@@ -8,6 +8,7 @@ import {
   rejectOvertimeRequestAction,
 } from "@/server/actions/overtime-actions";
 import OvertimeRequestModal from "./OvertimeRequestModal";
+import { TruncatedTextWithView } from "@/components/ui/ContentViewerModal";
 
 interface Props {
   initialRequests: OvertimeRequest[];
@@ -365,11 +366,11 @@ export default function OvertimeClientView({
                         {req.hours}h
                       </span>
                     </td>
-                    <td
-                      className="px-6 py-4 max-w-xs truncate text-gray-600"
-                      title={req.reason}
-                    >
-                      {req.reason}
+                    <td className="px-6 py-4 max-w-xs text-gray-600">
+                      <TruncatedTextWithView
+                        text={req.reason}
+                        modalTitle="Lý do làm thêm giờ"
+                      />
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span
@@ -395,11 +396,12 @@ export default function OvertimeClientView({
                             : "Chờ duyệt"}
                       </span>
                       {req.status === "Rejected" && req.rejection_reason && (
-                        <div
-                          className="text-xs text-red-500 mt-1 max-w-[120px] truncate"
-                          title={req.rejection_reason}
-                        >
-                          Lý do: {req.rejection_reason}
+                        <div className="text-xs text-red-500 mt-1 max-w-[160px]">
+                          <TruncatedTextWithView
+                            text={`Lý do: ${req.rejection_reason}`}
+                            maxLength={20}
+                            modalTitle="Lý do từ chối"
+                          />
                         </div>
                       )}
                     </td>

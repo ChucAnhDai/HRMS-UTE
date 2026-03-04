@@ -20,6 +20,7 @@ import {
 import { useRouter } from "next/navigation";
 import LeaveRequestForm from "@/components/leave/LeaveRequestForm";
 import { Employee, LeaveRequest, Department } from "@/types";
+import { TruncatedTextWithView } from "@/components/ui/ContentViewerModal";
 
 interface Props {
   leaves: LeaveRequest[];
@@ -258,11 +259,11 @@ export default function LeaveTableView({
                     <td className="px-6 py-4 text-sm text-gray-800 font-bold text-center">
                       {calculateDays(leave.start_date, leave.end_date)}
                     </td>
-                    <td
-                      className="px-6 py-4 text-sm text-gray-500 max-w-[150px] truncate"
-                      title={leave.reason || ""}
-                    >
-                      {leave.reason || "---"}
+                    <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px]">
+                      <TruncatedTextWithView
+                        text={leave.reason || ""}
+                        modalTitle="Lý do nghỉ phép"
+                      />
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex flex-col items-center gap-1">
@@ -285,12 +286,13 @@ export default function LeaveTableView({
                         {/* Hiển thị lý do từ chối nếu có */}
                         {leave.status === "Rejected" &&
                           leave.rejection_reason && (
-                            <span
-                              className="text-xs text-red-600 max-w-[120px] truncate cursor-help"
-                              title={leave.rejection_reason}
-                            >
-                              {leave.rejection_reason}
-                            </span>
+                            <div className="text-xs text-red-600 max-w-[160px]">
+                              <TruncatedTextWithView
+                                text={leave.rejection_reason}
+                                maxLength={20}
+                                modalTitle="Lý do từ chối"
+                              />
+                            </div>
                           )}
                       </div>
                     </td>
