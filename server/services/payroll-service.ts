@@ -6,16 +6,17 @@ import { leaveRepo } from '../repositories/leave-repo'
 import { settingRepo } from '../repositories/setting-repo'
 import { rewardPenaltyRepo } from '../repositories/reward-penalty-repo'
 import { salaryAdvanceRepo } from '../repositories/salary-advance-repo'
-import { Payslip, PayslipUpdateDTO, LeaveRequest } from '../../types'
+import { Payslip, PayslipUpdateDTO, LeaveRequest, Employee } from '../../types'
 
 // ─── Import helpers (clean code) ─────────────────────────────────────
-import { calculateWorkingDays, parseWeekendDays } from '@/lib/working-days'
+import { calculateWorkingDays, parseWeekendDays, countBusinessDays } from '@/lib/working-days'
 import {
   calculateProgressiveTax,
   calculateSocialInsurance,
   clampDeductions,
   parseTaxBrackets,
   TaxBracket,
+  safeNum
 } from '@/lib/payroll-helpers'
 import pLimit from 'p-limit'
 
@@ -27,6 +28,8 @@ interface PayrollSettings {
   dependentDeductionVal: number
   penaltyLateAmount: number
   taxBrackets: TaxBracket[]
+  weekendDays: number[]
+  holidays: { date: string; name?: string }[]
 }
 
 // ─── Service ──────────────────────────────────────────────────────────
@@ -47,7 +50,6 @@ export const payrollService = {
     }
 
     // 2. Fetch Global Settings & Data
-    await payrollRepo.deleteMonthlyPayroll(month, year)
     const settings = await settingRepo.getSettings()
     const holidays = await settingRepo.getHolidays(year)
 
@@ -70,7 +72,7 @@ export const payrollService = {
 
     // 4. Lưu xuống DB
     if (payslips.length > 0) {
-      return (await payrollRepo.createPayslips(payslips)) as Payslip[]
+      return (await payrollRepo.replaceMonthlyPayroll(month, year, payslips as Partial<Payslip>[])) as Payslip[]
     }
 
     return [] as Payslip[]
@@ -100,9 +102,6 @@ export const payrollService = {
     const { standardWorkDays, insuranceRate, personalDeduction, dependentDeductionVal } = payrollSettings
     const taxBrackets = payrollSettings.taxBrackets
 
-    // Convert all inputs to number strictly
-    const safeNum = (val: number | string | null | undefined) => val ? Number(val) : 0
-
     // Giữ nguyên các giá trị cũ nếu không update
     const newSalaryBase = data.salary !== undefined ? Number(data.salary) : safeNum(current.salary)
     const newOtHours = data.ot_hours !== undefined ? Number(data.ot_hours) : safeNum(current.ot_hours)
@@ -118,16 +117,19 @@ export const payrollService = {
     const newNote = data.note !== undefined ? data.note : current.notes
 
     // Thu nhập từ công (Recalculate logic)
-    const oldDeductions = safeNum(current.social_insurance) + safeNum(current.tax) + safeNum(current.penalties) + safeNum(current.advance_amount)
-    const oldGrossTotal = safeNum(current.net_pay) + oldDeductions
-    const oldGrossStart = oldGrossTotal - safeNum(current.ot_salary) - safeNum(current.bonus)
-
-    // Nếu Salary Base thay đổi, GrossFromWork cũng phải đổi theo tỷ lệ
-    let newGrossFromWork = oldGrossStart
+    let newGrossFromWork = safeNum(current.gross_from_work)
     const oldSalaryBase = safeNum(current.salary)
+    
+    // Fallback if legacy record without gross_from_work
+    if (newGrossFromWork === 0 && Number(current.net_pay) > 0) {
+      const oldDeductions = safeNum(current.social_insurance) + safeNum(current.tax) + safeNum(current.penalties) + safeNum(current.advance_amount)
+      const oldGrossTotal = safeNum(current.net_pay) + oldDeductions
+      newGrossFromWork = oldGrossTotal - safeNum(current.ot_salary) - safeNum(current.bonus)
+    }
+
     if (oldSalaryBase !== newSalaryBase && oldSalaryBase > 0) {
       const ratio = newSalaryBase / oldSalaryBase
-      newGrossFromWork = oldGrossStart * ratio
+      newGrossFromWork = newGrossFromWork * ratio
     } else if (oldSalaryBase === 0 && newSalaryBase > 0) {
       newGrossFromWork = newSalaryBase
     }
@@ -215,6 +217,8 @@ function parsePayrollSettings(
     dependentDeductionVal: parseInt(settings['dependent_deduction'] || '4400000'),
     penaltyLateAmount: parseInt(settings['penalty_late'] || '50000'),
     taxBrackets: parseTaxBrackets(settings['tax_brackets']),
+    weekendDays,
+    holidays
   }
 }
 
@@ -223,8 +227,7 @@ function parsePayrollSettings(
  * Logic chính đã tách helpers ra ngoài → clean, dễ maintain.
  */
 async function calculateEmployeePayslip(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emp: any,
+  emp: Employee,
   month: number,
   year: number,
   settings: PayrollSettings,
@@ -244,7 +247,7 @@ async function calculateEmployeePayslip(
   const lateCount = attendanceStats.late_days
 
   // 2. Approved Leaves & Quota Logic
-  const { paidLeaveDays, unpaidLeaveDays } = await calculateLeaves(emp, month, year)
+  const { paidLeaveDays, unpaidLeaveDays } = await calculateLeaves(emp, month, year, settings.weekendDays, settings.holidays)
 
   // 3. Overtime
   const otHours = await overtimeRepo.getMonthlyApprovedHours(emp.id, month, year)
@@ -305,15 +308,23 @@ async function calculateEmployeePayslip(
     advance_amount: result.advanceAmount,
     net_pay: result.netPay,
     status: 'Pending',
-    notes: `Công: ${actualWorkDays}/${standardWorkDays}. Nghỉ có lương: ${paidLeaveDays}. Nghỉ không lương: ${unpaidLeaveDays}. Trễ: ${lateCount}. Ngày công chuẩn tháng: ${standardWorkDays}.${advanceAmount > 0 ? ` Tạm ứng: ${advanceAmount.toLocaleString('vi-VN')}đ.` : ''}`
+    notes: `Công: ${actualWorkDays}/${standardWorkDays}. Nghỉ có lương: ${paidLeaveDays}. Nghỉ không lương: ${unpaidLeaveDays}. Trễ: ${lateCount}. Ngày công chuẩn tháng: ${standardWorkDays}.${advanceAmount > 0 ? ` Tạm ứng: ${advanceAmount.toLocaleString('vi-VN')}đ.` : ''}`,
+    gross_from_work: grossSalaryByWorkDays,
+    actual_work_days: actualWorkDays,
+    paid_leave_days: paidLeaveDays
   }
 }
 
 /**
  * Tính toán nghỉ phép (có lương / không lương) cho 1 nhân viên trong tháng.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function calculateLeaves(emp: any, month: number, year: number) {
+async function calculateLeaves(
+  emp: Employee, 
+  month: number, 
+  year: number,
+  weekendDays: number[],
+  holidays: { date: string; name?: string }[]
+) {
   // Quotas
   const quotas = {
     'Annual': emp.annual_leave_quota || 12,
@@ -322,27 +333,22 @@ async function calculateLeaves(emp: any, month: number, year: number) {
   }
 
   // Helper: Tính số ngày nghỉ đã dùng year-to-date (trước tháng hiện tại)
-  const getUsedQuota = async (type: string) => {
-    const leaves = await leaveRepo.getYearlyApprovedLeaves(year, emp.id, type)
-    let used = 0
-    if (leaves) {
-      leaves.forEach(leave => {
-        const start = new Date(leave.start_date)
-        const end = new Date(leave.end_date)
-        const leaveMonth = start.getMonth() + 1
-        if (leaveMonth < month) {
-          const diffTime = Math.abs(end.getTime() - start.getTime())
-          const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-          used += days
-        }
-      })
-    }
-    return used
-  }
+  const allLeaves = await leaveRepo.getAllYearlyApprovedLeaves(year, emp.id)
+  let usedAnnual = 0, usedSick = 0, usedOther = 0
 
-  const usedAnnual = await getUsedQuota('Annual')
-  const usedSick = await getUsedQuota('Sick')
-  const usedOther = await getUsedQuota('Other')
+  if (allLeaves && allLeaves.length > 0) {
+    allLeaves.forEach(leave => {
+      const start = new Date(leave.start_date)
+      const leaveMonth = start.getMonth() + 1
+      if (leaveMonth < month) {
+        const end = new Date(leave.end_date)
+        const days = countBusinessDays(start, end, weekendDays, holidays)
+        if (leave.leave_type === 'Annual') usedAnnual += days
+        else if (leave.leave_type === 'Sick') usedSick += days
+        else usedOther += days
+      }
+    })
+  }
 
   const remainingAnnual = Math.max(0, quotas['Annual'] - usedAnnual)
   const remainingSick = Math.max(0, quotas['Sick'] - usedSick)
@@ -359,8 +365,7 @@ async function calculateLeaves(emp: any, month: number, year: number) {
     (approvedLeaves as LeaveRequest[]).forEach((leave: LeaveRequest) => {
       const start = new Date(leave.start_date)
       const end = new Date(leave.end_date)
-      const diffTime = Math.abs(end.getTime() - start.getTime())
-      const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+      const days = countBusinessDays(start, end, weekendDays, holidays)
 
       if (leave.leave_type === 'Annual') totalLeaveDaysInMonth_Annual += days
       else if (leave.leave_type === 'Sick') totalLeaveDaysInMonth_Sick += days

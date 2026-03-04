@@ -106,3 +106,48 @@ export function parseWeekendDays(weekendDaysJson: string | undefined): number[] 
     return DEFAULT_WEEKEND
   }
 }
+
+/**
+ * Đếm số ngày làm việc giữa 2 khoảng thời gian (inclusive), trừ T7/CN và ngày lễ.
+ * 
+ * @param start - Ngày bắt đầu
+ * @param end - Ngày kết thúc
+ * @param weekendDays - Mảng các ngày nghỉ (vd: [0, 6] cho CN và T7)
+ * @param holidays - Danh sách các ngày lễ
+ */
+export function countBusinessDays(
+  start: Date,
+  end: Date,
+  weekendDays: number[],
+  holidays: HolidayEntry[] = []
+): number {
+  let count = 0
+  const current = new Date(start)
+  
+  // Normalize time to midnight for accurate comparison
+  current.setHours(0, 0, 0, 0)
+  const endDate = new Date(end)
+  endDate.setHours(0, 0, 0, 0)
+
+  // Pre-process holidays into a Set
+  const holidaySet = new Set<string>()
+  for (const h of holidays) {
+    holidaySet.add(h.date)
+  }
+
+  while (current <= endDate) {
+    const dayOfWeek = current.getDay()
+    const dateStr = formatDateStr(current.getFullYear(), current.getMonth() + 1, current.getDate())
+    
+    const isWeekend = weekendDays.includes(dayOfWeek)
+    const isHoliday = holidaySet.has(dateStr)
+
+    if (!isWeekend && !isHoliday) {
+      count++
+    }
+
+    current.setDate(current.getDate() + 1)
+  }
+
+  return count
+}

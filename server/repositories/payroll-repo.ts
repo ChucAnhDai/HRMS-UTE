@@ -67,7 +67,7 @@ export const payrollRepo = {
       }
   },
 
-  // Xóa danh sách lương của tháng (để tính lại)
+  // Xóa danh sách lương của tháng (để tính lại) - DEPRECATED: use replaceMonthlyPayroll instead
   async deleteMonthlyPayroll(month: number, year: number) {
       const supabase = await createClient()
       const { error } = await supabase
@@ -78,6 +78,19 @@ export const payrollRepo = {
           .neq('status', 'Paid') 
       
       if (error) throw new Error(error.message)
+  },
+  
+  // Replace monthly payroll atomatically using RPC function
+  async replaceMonthlyPayroll(month: number, year: number, payslips: Partial<Payslip>[]) {
+      const supabase = await createClient()
+      const { error } = await supabase.rpc('replace_monthly_payroll', {
+        p_month: month.toString(),
+        p_year: year.toString(),
+        p_payslips: payslips
+      })
+      
+      if (error) throw new Error(error.message)
+      return payslips
   },
   
   // Bulk Insert sau khi xóa

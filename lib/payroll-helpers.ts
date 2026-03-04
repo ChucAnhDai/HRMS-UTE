@@ -43,6 +43,17 @@ export const DEFAULT_TAX_BRACKETS: TaxBracket[] = [
 // ─── Minimum days for BHXH (Luật BHXH Việt Nam) ─────────────────────
 const MIN_DAYS_FOR_INSURANCE = 14
 
+// ─── Utilities ────────────────────────────────────────────────────────
+
+/**
+ * Xử lý an toàn các giá trị số từ form input hoặc DB
+ * Chữa lỗi falsy: safeNum(0) -> 0, safeNum('0') -> 0, safeNum('') -> 0
+ */
+export function safeNum(val: unknown): number {
+  const n = Number(val ?? 0)
+  return Number.isFinite(n) ? n : 0
+}
+
 // ─── Functions ────────────────────────────────────────────────────────
 
 /**

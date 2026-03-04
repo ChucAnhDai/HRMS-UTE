@@ -147,6 +147,11 @@ export interface Payslip {
   status: 'Pending' | 'Paid'
   notes?: string | null
   
+  // Work Info
+  gross_from_work?: number
+  actual_work_days?: number
+  paid_leave_days?: number
+  
   created_at?: string
   updated_at?: string
   

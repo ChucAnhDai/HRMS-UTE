@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase.server'
 import { Database } from '@/types/database'
+import { countBusinessDays, parseWeekendDays } from '@/lib/working-days'
+import { settingRepo } from './setting-repo'
 
 export const leaveRepo = {
   // Lấy danh sách đơn nghỉ phép (Có thể lọc theo trạng thái)
@@ -113,7 +115,25 @@ export const leaveRepo = {
     return data
   },
 
-  // NEW: Lấy danh sách nghỉ phép được duyệt trong năm (để tính quota)
+  // NEW: Lấy danh sách tất cả các loại nghỉ phép được duyệt trong năm (để tránh N+1 Query)
+  async getAllYearlyApprovedLeaves(year: number, employeeId: number) {
+    const supabase = await createClient()
+    const startDate = `${year}-01-01`
+    const endDate = `${year}-12-31`
+
+    const { data, error } = await supabase
+      .from('leave_requests')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .eq('status', 'Approved')
+      .gte('start_date', startDate)
+      .lte('start_date', endDate) 
+
+    if (error) throw new Error(error.message)
+    return data
+  },
+
+  // NEW: Lấy danh sách nghỉ phép được duyệt trong năm (theo loại)
   async getYearlyApprovedLeaves(year: number, employeeId: number, leaveType: string = 'Annual') {
     const supabase = await createClient()
     const startDate = `${year}-01-01`
@@ -132,17 +152,21 @@ export const leaveRepo = {
     return data
   },
 
-  // NEW: Tính tổng số ngày đã nghỉ trong năm theo loại
+  // Theo logic cũ nhưng fix số ngày làm việc bị tính cuối tuần/lễ
   async getUsedLeaveDays(year: number, employeeId: number, leaveType: string): Promise<number> {
       const leaves = await this.getYearlyApprovedLeaves(year, employeeId, leaveType)
       if (!leaves || leaves.length === 0) return 0
+
+      // Để đếm ngày làm việc cần thông tin về settings và holidays
+      const settingsTable = await settingRepo.getSettings()
+      const weekendDays = parseWeekendDays(settingsTable['weekend_days'])
+      const holidays = await settingRepo.getHolidays(year)
 
       let totalDays = 0
       leaves.forEach(leave => {
           const start = new Date(leave.start_date)
           const end = new Date(leave.end_date)
-          const diffTime = Math.abs(end.getTime() - start.getTime())
-          const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+          const days = countBusinessDays(start, end, weekendDays, holidays)
           totalDays += days
       })
       return totalDays
