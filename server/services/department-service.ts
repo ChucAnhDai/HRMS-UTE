@@ -16,6 +16,21 @@ export const departmentService = {
     return await departmentRepo.getDepartmentById(id)
   },
 
+  // Lấy chi tiết phòng ban và danh sách nhân viên
+  async getDepartmentDetail(id: number) {
+    const [department, employees] = await Promise.all([
+      departmentRepo.getDepartmentById(id),
+      departmentRepo.getEmployeesByDepartmentId(id)
+    ])
+
+    if (!department) return null;
+
+    return {
+      department,
+      employees
+    }
+  },
+
   // Tạo phòng ban mới
   async createDepartment(name: string) {
     // Validate

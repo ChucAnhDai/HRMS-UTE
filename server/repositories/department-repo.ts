@@ -73,6 +73,19 @@ export const departmentRepo = {
     return data
   },
 
+  // Lấy danh sách nhân viên theo ID phòng ban
+  async getEmployeesByDepartmentId(departmentId: number) {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('employees')
+      .select('id, first_name, last_name, email, phone, salary, hire_date, employment_status')
+      .eq('department_id', departmentId)
+      .order('first_name', { ascending: true })
+
+    if (error) throw new Error(error.message)
+    return data || []
+  },
+
   // Tìm phòng ban theo tên (dùng cho kiểm tra trùng lặp)
   async getDepartmentByName(name: string, excludeId?: number): Promise<Department | null> {
     const supabase = await createClient()

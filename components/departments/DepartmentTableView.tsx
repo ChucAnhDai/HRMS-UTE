@@ -10,6 +10,7 @@ import {
   Search,
   AlertCircle,
   Loader2,
+  Eye,
 } from "lucide-react";
 import Link from "next/link";
 import { deleteDepartmentAction } from "@/server/actions/department-actions";
@@ -134,11 +135,9 @@ export default function DepartmentTableView({ departments, canManage }: Props) {
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">
                   Ngày tạo
                 </th>
-                {canManage && (
-                  <th className="px-6 py-4 text-sm font-bold text-gray-700 text-right">
-                    Thao tác
-                  </th>
-                )}
+                <th className="px-6 py-4 text-sm font-bold text-gray-700 text-right">
+                  Thao tác
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -180,31 +179,40 @@ export default function DepartmentTableView({ departments, canManage }: Props) {
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {new Date(dept.created_at).toLocaleDateString("vi-VN")}
                     </td>
-                    {canManage && (
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link
-                            href={`/departments/${dept.id}/edit`}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                            title="Sửa"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Link>
-                          <button
-                            onClick={() => handleDelete(dept.id, dept.name)}
-                            disabled={deletingId === dept.id}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
-                            title="Xóa"
-                          >
-                            {deletingId === dept.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
-                      </td>
-                    )}
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Link
+                          href={`/departments/${dept.id}`}
+                          className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                          title="Xem chi tiết"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Link>
+                        {canManage && (
+                          <>
+                            <Link
+                              href={`/departments/${dept.id}/edit`}
+                              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                              title="Sửa"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(dept.id, dept.name)}
+                              disabled={deletingId === dept.id}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
+                              title="Xóa"
+                            >
+                              {deletingId === dept.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
