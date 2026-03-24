@@ -84,8 +84,8 @@ export const payrollRepo = {
   async replaceMonthlyPayroll(month: number, year: number, payslips: Partial<Payslip>[]) {
       const supabase = await createClient()
       const { error } = await supabase.rpc('replace_monthly_payroll', {
-        p_month: month.toString(),
-        p_year: year.toString(),
+        p_month: month,
+        p_year: year,
         p_payslips: payslips
       })
       
