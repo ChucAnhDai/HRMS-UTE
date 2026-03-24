@@ -12,9 +12,22 @@ export async function createRewardPenaltyAction(formData: FormData) {
   const amount = Number(formData.get('amount'))
   const reason = formData.get('reason') as string
   const date = formData.get('date') as string
+  const viewMonth = formData.get('month') ? Number(formData.get('month')) : null
+  const viewYear = formData.get('year') ? Number(formData.get('year')) : null
 
   if (!employee_id || !type || !amount || !date) {
     return { success: false, message: 'Vui lòng điền đầy đủ thông tin' }
+  }
+
+  // Server-side validation: ensure date matches the management context
+  if (viewMonth && viewYear) {
+    const selectedDate = new Date(date)
+    const selectedMonth = selectedDate.getMonth() + 1
+    const selectedYear = selectedDate.getFullYear()
+
+    if (selectedMonth !== viewMonth || selectedYear !== viewYear) {
+      return { success: false, message: 'Thời gian chọn không hợp lệ. Vui lòng chọn ngày trong tháng hiện tại.' }
+    }
   }
 
   try {

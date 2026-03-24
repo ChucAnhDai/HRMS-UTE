@@ -16,7 +16,7 @@ export const EmployeeSchema = z.object({
   annual_leave_quota: z.coerce.number().min(0, "Phép năm không được âm").default(12),
   sick_leave_quota: z.coerce.number().min(0, "Phép ốm không được âm").default(5),
   other_leave_quota: z.coerce.number().min(0, "Phép khác không được âm").default(5),
-  employment_status: z.string().default("Probation"),
+  employment_status: z.enum(["Active", "Probation", "Resigned", "Terminated", "On Leave", "Intern", "Part-time"]).default("Probation"),
   avatar: z.string().optional().nullable(),
 }).superRefine((data, ctx) => {
   const hireDate = new Date(data.hire_date);

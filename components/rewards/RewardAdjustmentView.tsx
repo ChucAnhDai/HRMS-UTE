@@ -200,6 +200,8 @@ export default function RewardAdjustmentView({
           departments={departments}
           close={() => setIsModalOpen(false)}
           defaultDate={`${year}-${month.toString().padStart(2, "0")}-01`}
+          month={month}
+          year={year}
         />
       )}
     </div>
@@ -211,11 +213,15 @@ function RewardModal({
   departments,
   close,
   defaultDate,
+  month,
+  year,
 }: {
   employees: Employee[];
   departments: Department[];
   close: () => void;
   defaultDate: string;
+  month: number;
+  year: number;
 }) {
   const [loading, setLoading] = useState(false);
   const [selectedDeptId, setSelectedDeptId] = useState<number | "">("");
@@ -237,6 +243,23 @@ function RewardModal({
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
+
+    // Client-side validation: check if selected date matches management month/year
+    const dateStr = formData.get("date") as string;
+    if (dateStr) {
+      const selectedDate = new Date(dateStr);
+      const selectedMonth = selectedDate.getMonth() + 1;
+      const selectedYear = selectedDate.getFullYear();
+
+      if (selectedMonth !== month || selectedYear !== year) {
+        alert(
+          `Thời gian chọn không hợp lệ. Vui lòng chọn ngày trong tháng hiện tại (Tháng ${month}/${year}).`
+        );
+        setLoading(false);
+        return;
+      }
+    }
+
     const res = await createRewardPenaltyAction(formData);
     if (res.success) {
       close();
@@ -370,6 +393,10 @@ function RewardModal({
               placeholder="Nhập lý do thưởng/phạt..."
             ></textarea>
           </div>
+
+          {/* Hidden fields for backend validation */}
+          <input type="hidden" name="month" value={month} />
+          <input type="hidden" name="year" value={year} />
 
           <div className="pt-4 flex justify-end gap-3">
             <button
