@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<!-- Use case tuong tac cho he thong HRMS -->
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HRMS Use Case</title>
+  <style>
+    :root {
+      --bg: #ece5d6;
+      --panel: rgba(255, 252, 247, 0.96);
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: #c6b18d;
+      --actor: #355c7d;
+      --usecase: #8b5e34;
+      --include: #456b52;
+      --shadow: 0 18px 42px rgba(62, 43, 17, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(53, 92, 125, 0.11), transparent 22%),
+        radial-gradient(circle at bottom right, rgba(139, 94, 52, 0.14), transparent 25%),
+        linear-gradient(180deg, #f9f6ef 0%, var(--bg) 100%);
+    }
+
+    .page { padding: 18px; }
+
+    .topbar, .panel, .diagram-shell {
+      background: var(--panel);
+      border-radius: 22px;
+      border: 1px solid rgba(198, 177, 141, 0.5);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      padding: 18px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .title h1 {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 4vw, 38px);
+    }
+
+    .title p {
+      margin: 0;
+      line-height: 1.65;
+      color: #4b5563;
+      max-width: 820px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .toolbar a,
+    .toolbar button {
+      padding: 11px 14px;
+      border-radius: 14px;
+      border: 0;
+      text-decoration: none;
+      font-weight: 700;
+      cursor: pointer;
+      color: white;
+    }
+
+    .toolbar .ghost { background: #6f4c2d; }
+    .toolbar .secondary { background: #355c7d; }
+    .toolbar .primary { background: #a9552b; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 18px;
+      position: sticky;
+      top: 18px;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .panel ul {
+      margin: 0 0 12px;
+      padding-left: 18px;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+
+    .note-box {
+      min-height: 250px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px dashed #d7c4a4;
+      background: rgba(255,255,255,0.82);
+      outline: none;
+      line-height: 1.6;
+    }
+
+    .diagram-shell {
+      padding: 14px;
+    }
+
+    .board-wrap {
+      overflow: auto;
+      border-radius: 18px;
+      border: 1px dashed rgba(198, 177, 141, 0.58);
+      background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(252,248,241,0.9));
+    }
+
+    .board {
+      position: relative;
+      width: 2100px;
+      height: 1350px;
+      background-image:
+        linear-gradient(rgba(198, 177, 141, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(198, 177, 141, 0.12) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .boundary {
+      position: absolute;
+      left: 370px;
+      top: 90px;
+      width: 1280px;
+      height: 1080px;
+      border: 3px dashed rgba(106, 90, 62, 0.35);
+      border-radius: 28px;
+      background: rgba(255,255,255,0.22);
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding: 18px 20px;
+      color: #6b4f2a;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    svg.links {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .edge {
+      fill: none;
+      stroke: rgba(92, 70, 44, 0.56);
+      stroke-width: 2.2;
+    }
+
+    .edge.dashed {
+      stroke-dasharray: 8 6;
+      stroke: rgba(69, 107, 82, 0.85);
+    }
+
+    .edge-label rect {
+      fill: rgba(255,255,255,0.9);
+      stroke: rgba(198, 177, 141, 0.5);
+    }
+
+    .edge-label text {
+      font-size: 11px;
+      font-weight: 800;
+      fill: #5a4124;
+    }
+
+    .node {
+      position: absolute;
+      width: 220px;
+      border-radius: 22px;
+      box-shadow: 0 14px 28px rgba(74, 54, 27, 0.12);
+      overflow: hidden;
+      background: rgba(255,255,255,0.96);
+      border: 2px solid rgba(198, 177, 141, 0.75);
+    }
+
+    .node .handle {
+      padding: 8px 12px;
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: grab;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    .node .body {
+      padding: 14px;
+      outline: none;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .actor {
+      border-radius: 18px;
+    }
+
+    .actor .handle { background: var(--actor); }
+
+    .usecase {
+      border-radius: 999px;
+      width: 250px;
+      min-height: 120px;
+      border-width: 3px;
+    }
+
+    .usecase .handle { background: var(--usecase); }
+
+    .include {
+      border-style: dashed;
+    }
+
+    .include .handle { background: var(--include); }
+
+    .hint {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 1fr; }
+      .panel {
+        position: static;
+        max-height: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="topbar">
+      <div class="title">
+        <h1>Use Case Diagram - HRMS</h1>
+        <p>
+          So do nay mo ta cac vai tro chinh trong he thong va cac chuc nang ma ho duoc phep tuong tac.
+          Ban co the doi ten actor, them mo ta ngan, hoac sap xep lai de hop voi form bao cao cua ban.
+        </p>
+      </div>
+      <div class="toolbar">
+        <a class="ghost" href="index.html">Trang tong</a>
+        <a class="secondary" href="erd.html">ERD</a>
+        <a class="secondary" href="dfd.html">DFD</a>
+        <button class="primary" id="resetBtn" type="button">Khoi phuc mac dinh</button>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Ghi chu Use Case</h2>
+        <ul>
+          <li><strong>Actor</strong>: nguoi hoac he thong ben ngoai tac dong vao HRMS.</li>
+          <li><strong>Use Case</strong>: mot chuc nang nghiep vu ma he thong cung cap.</li>
+          <li><strong>Net lien</strong>: actor su dung truc tiep chuc nang.</li>
+          <li><strong>Net dut</strong>: quan he <code>&lt;&lt;include&gt;&gt;</code> hoac phu thuoc nghiep vu.</li>
+          <li><strong>Khung lon</strong>: pham vi he thong HRMS.</li>
+        </ul>
+        <div id="noteBox" class="note-box" contenteditable="true" spellcheck="false"></div>
+        <div class="hint">
+          Khi thuyet trinh, ban co the noi: Use Case duoc suy ra tu bang du lieu va quy trinh nghiep vu,
+          vi du bang <code>leave_requests</code> dan den use case “Gui nghi phep” va “Duyet nghi phep”.
+        </div>
+      </aside>
+
+      <section class="diagram-shell">
+        <div class="board-wrap">
+          <div class="board" id="board">
+            <div class="boundary">Pham vi he thong HRMS</div>
+            <svg class="links" id="links">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(92, 70, 44, 0.7)"></path>
+                </marker>
+                <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(69, 107, 82, 0.9)"></path>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "hrms-usecase-v1";
+    const BOARD_W = 2100;
+    const BOARD_H = 1350;
+
+    const noteDefault = `
+      <strong>Goi y thuyet trinh:</strong>
+      <ul>
+        <li><strong>Ung vien</strong> lam viec voi module tuyen dung.</li>
+        <li><strong>Nhan vien</strong> tao du lieu van hanh: cham cong, nghi phep, tang ca.</li>
+        <li><strong>HR / Quan ly / Ke toan / Admin</strong> la nhom xu ly, phe duyet va quan tri.</li>
+        <li>Cac use case lien quan den luong su dung du lieu tong hop tu attendance, leave, overtime, reward/penalty, advance.</li>
+      </ul>
+    `;
+
+    const defaultNodes = [
+      { id: "candidate_actor", className: "actor", x: 70, y: 180, html: "<div>Ung vien</div>" },
+      { id: "employee_actor", className: "actor", x: 80, y: 520, html: "<div>Nhan vien</div>" },
+      { id: "manager_actor", className: "actor", x: 1750, y: 210, html: "<div>Quan ly</div>" },
+      { id: "hr_actor", className: "actor", x: 1760, y: 520, html: "<div>HR</div>" },
+      { id: "accountant_actor", className: "actor", x: 1740, y: 840, html: "<div>Ke toan</div>" },
+      { id: "admin_actor", className: "actor", x: 80, y: 930, html: "<div>Admin / He thong</div>" },
+      { id: "uc_apply", className: "usecase", x: 500, y: 150, html: "<div>Nop ho so ung tuyen</div>" },
+      { id: "uc_recruit", className: "usecase", x: 900, y: 140, html: "<div>Dang tuyen & quan ly ung vien</div>" },
+      { id: "uc_profile", className: "usecase", x: 1260, y: 260, html: "<div>Tao / cap nhat ho so nhan vien</div>" },
+      { id: "uc_contract", className: "usecase", x: 870, y: 380, html: "<div>Quan ly hop dong lao dong</div>" },
+      { id: "uc_attendance", className: "usecase", x: 520, y: 470, html: "<div>Cham cong hang ngay</div>" },
+      { id: "uc_leave", className: "usecase", x: 880, y: 560, html: "<div>Gui yeu cau nghi phep</div>" },
+      { id: "uc_overtime", className: "usecase", x: 1260, y: 560, html: "<div>Gui yeu cau tang ca</div>" },
+      { id: "uc_approve", className: "usecase", x: 1440, y: 420, html: "<div>Duyet nghi phep / tang ca / tam ung</div>" },
+      { id: "uc_assets", className: "usecase", x: 1260, y: 800, html: "<div>Quan ly cap phat tai san</div>" },
+      { id: "uc_payroll", className: "usecase", x: 890, y: 860, html: "<div>Tinh luong & phat hanh payslip</div>" },
+      { id: "uc_reward", className: "usecase", x: 500, y: 860, html: "<div>Ghi nhan thuong / phat / tam ung</div>" },
+      { id: "uc_report", className: "usecase", x: 1210, y: 1020, html: "<div>Xem bao cao & lich su hoat dong</div>" },
+      { id: "uc_admin", className: "usecase", x: 520, y: 1040, html: "<div>Quan ly tai khoan, role, cau hinh</div>" },
+      { id: "inc_attendance", className: "usecase include", x: 680, y: 690, html: "<div>&lt;&lt;include&gt;&gt;<br>Lay du lieu cong</div>" },
+      { id: "inc_adjust", className: "usecase include", x: 1080, y: 700, html: "<div>&lt;&lt;include&gt;&gt;<br>Lay thuong / phat / tam ung</div>" }
+    ];
+
+    const edges = [
+      { from: "candidate_actor", to: "uc_apply" },
+      { from: "employee_actor", to: "uc_attendance" },
+      { from: "employee_actor", to: "uc_leave" },
+      { from: "employee_actor", to: "uc_overtime" },
+      { from: "employee_actor", to: "uc_payroll" },
+      { from: "employee_actor", to: "uc_assets" },
+      { from: "manager_actor", to: "uc_approve" },
+      { from: "manager_actor", to: "uc_report" },
+      { from: "hr_actor", to: "uc_recruit" },
+      { from: "hr_actor", to: "uc_profile" },
+      { from: "hr_actor", to: "uc_contract" },
+      { from: "hr_actor", to: "uc_assets" },
+      { from: "accountant_actor", to: "uc_payroll" },
+      { from: "accountant_actor", to: "uc_reward" },
+      { from: "accountant_actor", to: "uc_report" },
+      { from: "admin_actor", to: "uc_admin" },
+      { from: "admin_actor", to: "uc_report" },
+      { from: "uc_recruit", to: "uc_profile", label: "<<include>>", dashed: true },
+      { from: "uc_payroll", to: "inc_attendance", label: "<<include>>", dashed: true },
+      { from: "uc_payroll", to: "inc_adjust", label: "<<include>>", dashed: true },
+      { from: "uc_leave", to: "uc_approve", label: "duyet", dashed: true },
+      { from: "uc_overtime", to: "uc_approve", label: "duyet", dashed: true },
+      { from: "uc_reward", to: "uc_payroll", label: "anh huong", dashed: true }
+    ];
+
+    const board = document.getElementById("board");
+    const svg = document.getElementById("links");
+    const noteBox = document.getElementById("noteBox");
+    const nodeElements = new Map();
+    let dragState = null;
+    const state = loadState();
+
+    noteBox.innerHTML = state.noteHtml;
+    noteBox.addEventListener("input", () => {
+      state.noteHtml = noteBox.innerHTML;
+      persist();
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      if (!window.confirm("Khoi phuc Use Case ve trang thai mac dinh?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      window.location.reload();
+    });
+
+    renderNodes();
+    drawEdges();
+    window.addEventListener("resize", drawEdges);
+
+    function loadState() {
+      const cloned = defaultNodes.map((node) => ({ ...node }));
+      const fallback = { nodes: cloned, noteHtml: noteDefault };
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return {
+          nodes: cloned.map((node) => {
+            const saved = parsed.nodes?.find((item) => item.id === node.id);
+            return saved ? { ...node, ...saved } : node;
+          }),
+          noteHtml: parsed.noteHtml || noteDefault
+        };
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function renderNodes() {
+      state.nodes.forEach((node) => {
+        const el = document.createElement("article");
+        el.className = `node ${node.className}`;
+        el.style.left = `${node.x}px`;
+        el.style.top = `${node.y}px`;
+        el.dataset.id = node.id;
+        el.innerHTML = `
+          <div class="handle">Keo doi tuong</div>
+          <div class="body" contenteditable="true" spellcheck="false">${node.html}</div>
+        `;
+        el.querySelector(".handle").addEventListener("mousedown", (event) => startDrag(event, node.id));
+        el.querySelector(".body").addEventListener("input", () => {
+          state.nodes.find((item) => item.id === node.id).html = el.querySelector(".body").innerHTML;
+          persist();
+          drawEdges();
+        });
+        board.appendChild(el);
+        nodeElements.set(node.id, el);
+      });
+    }
+
+    function startDrag(event, id) {
+      const node = state.nodes.find((item) => item.id === id);
+      const rect = board.getBoundingClientRect();
+      dragState = {
+        id,
+        offsetX: event.clientX - rect.left - node.x,
+        offsetY: event.clientY - rect.top - node.y
+      };
+      document.addEventListener("mousemove", onDrag);
+      document.addEventListener("mouseup", stopDrag);
+    }
+
+    function onDrag(event) {
+      if (!dragState) return;
+      const rect = board.getBoundingClientRect();
+      const node = state.nodes.find((item) => item.id === dragState.id);
+      const el = nodeElements.get(dragState.id);
+      const maxX = BOARD_W - el.offsetWidth - 10;
+      const maxY = BOARD_H - el.offsetHeight - 10;
+      node.x = clamp(event.clientX - rect.left - dragState.offsetX, 8, maxX);
+      node.y = clamp(event.clientY - rect.top - dragState.offsetY, 8, maxY);
+      el.style.left = `${node.x}px`;
+      el.style.top = `${node.y}px`;
+      drawEdges();
+    }
+
+    function stopDrag() {
+      if (!dragState) return;
+      dragState = null;
+      document.removeEventListener("mousemove", onDrag);
+      document.removeEventListener("mouseup", stopDrag);
+      persist();
+    }
+
+    function drawEdges() {
+      svg.querySelectorAll(".edge-group").forEach((item) => item.remove());
+      edges.forEach((edge) => {
+        const fromEl = nodeElements.get(edge.from);
+        const toEl = nodeElements.get(edge.to);
+        if (!fromEl || !toEl) return;
+        const a = anchorPoint(fromEl, toEl);
+        const b = anchorPoint(toEl, fromEl);
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("class", "edge-group");
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", curvedPath(a, b));
+        path.setAttribute("class", `edge ${edge.dashed ? "dashed" : ""}`.trim());
+        path.setAttribute("marker-end", edge.dashed ? "url(#arrowGreen)" : "url(#arrow)");
+        group.appendChild(path);
+
+        if (edge.label) group.appendChild(createLabel(edge.label, midpoint(a, b)));
+        svg.appendChild(group);
+      });
+    }
+
+    function anchorPoint(sourceEl, targetEl) {
+      const sx = parseFloat(sourceEl.style.left);
+      const sy = parseFloat(sourceEl.style.top);
+      const sw = sourceEl.offsetWidth;
+      const sh = sourceEl.offsetHeight;
+      const tx = parseFloat(targetEl.style.left);
+      const ty = parseFloat(targetEl.style.top);
+      const tw = targetEl.offsetWidth;
+      const th = targetEl.offsetHeight;
+      const sc = { x: sx + sw / 2, y: sy + sh / 2 };
+      const tc = { x: tx + tw / 2, y: ty + th / 2 };
+      const dx = tc.x - sc.x;
+      const dy = tc.y - sc.y;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        return dx > 0 ? { x: sx + sw, y: sy + sh / 2 } : { x: sx, y: sy + sh / 2 };
+      }
+      return dy > 0 ? { x: sx + sw / 2, y: sy + sh } : { x: sx + sw / 2, y: sy };
+    }
+
+    function curvedPath(a, b) {
+      const dx = (b.x - a.x) * 0.45;
+      const dy = (b.y - a.y) * 0.2;
+      return `M ${a.x} ${a.y} C ${a.x + dx} ${a.y + dy}, ${b.x - dx} ${b.y - dy}, ${b.x} ${b.y}`;
+    }
+
+    function midpoint(a, b) {
+      return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    }
+
+    function createLabel(text, point) {
+      const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      group.setAttribute("class", "edge-label");
+      group.setAttribute("transform", `translate(${point.x - 42}, ${point.y - 13})`);
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("rx", "10");
+      rect.setAttribute("ry", "10");
+      rect.setAttribute("width", "84");
+      rect.setAttribute("height", "24");
+      group.appendChild(rect);
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      label.setAttribute("x", "42");
+      label.setAttribute("y", "16");
+      label.setAttribute("text-anchor", "middle");
+      label.textContent = text;
+      group.appendChild(label);
+      return group;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+  </script>
+</body>
+</html>

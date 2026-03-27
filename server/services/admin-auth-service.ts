@@ -75,5 +75,29 @@ export const adminAuthService = {
     }
 
     return { success: true, user: userData.user }
+  },
+
+  // Đổi mật khẩu nhân viên
+  async updateEmployeePassword(employeeId: number, newPassword: string) {
+    const { data: emp, error: fetchError } = await supabaseAdmin
+      .from('employees')
+      .select('auth_user_id')
+      .eq('id', employeeId)
+      .single()
+
+    if (fetchError || !emp?.auth_user_id) {
+      throw new Error("Không tìm thấy tài khoản liên kết với nhân viên này.")
+    }
+
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+      emp.auth_user_id,
+      { password: newPassword }
+    )
+
+    if (updateError) {
+      throw new Error(`Lỗi cập nhật mật khẩu: ${updateError.message}`)
+    }
+
+    return { success: true }
   }
 }

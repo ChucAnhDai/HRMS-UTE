@@ -280,4 +280,43 @@ graph TB
 ```
 
 ---
+---
+
+## 7. Luồng Xử lý Mã nguồn (Source Code Flow)
+
+Phần này phân tích chi tiết cách các tệp tin (files) phối hợp để thực hiện các thao tác CRUD nhân viên:
+
+### 🛠️ Các Tệp tin (Files) Chính:
+1.  **Page (Route)**:
+    *   Danh sách: [app/(dashboard)/employees/page.tsx]du_an/cnkt_cnpm/app/(dashboard)/employees/page.tsx
+    *   Chi tiết: [app/(dashboard)/employees/[id]/page.tsx]du_an/cnkt_cnpm/app/(dashboard)/employees/[id]/page.tsx
+    *   Thêm mới: [app/(dashboard)/employees/create/page.tsx]du_an/cnkt_cnpm/app/(dashboard)/employees/create/page.tsx
+    *   Chỉnh sửa: [app/(dashboard)/employees/[id]/edit/page.tsx]du_an/cnkt_cnpm/app/(dashboard)/employees/[id]/edit/page.tsx
+2.  **Server Actions (Xử lý Form & CUD)**:
+    *   [server/actions/create-employee.ts]du_an/cnkt_cnpm/server/actions/create-employee.ts
+    *   [server/actions/update-employee.ts]du_an/cnkt_cnpm/server/actions/update-employee.ts
+    *   [server/actions/delete-employee.ts]du_an/cnkt_cnpm/server/actions/delete-employee.ts
+3.  **Service & Repository (Giao tiếp Database)**:
+    *   Service: [server/services/employee-service.ts]du_an/cnkt_cnpm/server/services/employee-service.ts
+    *   Repository: [server/repositories/employee-repo.ts]du_an/cnkt_cnpm/server/repositories/employee-repo.ts
+4.  **Schema (Validation)**:
+    *   [lib/schemas/employee.schema.ts]du_an/cnkt_cnpm/lib/schemas/employee.schema.ts
+
+### 🔄 Trình tự Xử lý (Logic Flow):
+
+*   **Quy trình Đọc (Read)**:
+    1.  Người dùng vào trang Danh sách hoặc Chi tiết.
+    2.  `page.tsx` (Server Component) gọi trực tiếp `employeeService.getEmployeesList()` hoặc `getEmployee(id)`.
+    3.  Dữ liệu được truyền xuống các Client Component (`EmployeeTableView` hoặc `EmployeeProfileView`) để hiển thị.
+
+*   **Quy trình Ghi (Create/Update/Delete)**:
+    1.  Người dùng submit Form (ví dụ: `CreateEmployeeForm`).
+    2.  Form gọi đến một **Server Action** (ví dụ: `createEmployeeAction`).
+    3.  Server Action sử dụng **Zod Schema** (`employee.schema.ts`) để kiểm tra dữ liệu đầu vào.
+    4.  Nếu dữ liệu hợp lệ, Server Action gọi hàm tương ứng trong `employeeService`.
+    5.  `employeeService` xử lý logic nghiệp vụ (như kiểm tra quyền, định dạng lại dữ liệu) trước khi gọi `employeeRepo`.
+    6.  `employeeRepo` thực hiện lệnh SQL (`INSERT`, `UPDATE`, `DELETE`) thông qua Supabase Client.
+    7.  Sau khi thành công, Server Action gọi `revalidatePath()` để làm mới dữ liệu trên giao diện mà không cần reload trang.
+
+---
 *Tài liệu dựa trên phân tích source code: `server/services/employee-service.ts`, `server/repositories/employee-repo.ts`, `server/actions/create-employee.ts`, `server/actions/update-employee.ts`, `server/actions/delete-employee.ts`, `lib/schemas/employee.schema.ts`.*

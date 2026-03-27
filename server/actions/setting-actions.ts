@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { settingRepo } from '../repositories/setting-repo'
 import { requireRole } from '@/lib/auth-helpers'
 import { SettingsSchema } from '@/lib/schemas/setting.schema'
+import { activityService } from '@/server/services/activity-service'
 
 // --- Settings ---
 export async function updateSettingsAction(formData: FormData) {
@@ -57,6 +58,8 @@ export async function updateSettingsAction(formData: FormData) {
     }
   }
 
+  await activityService.logActivity('CẬP NHẬT', 'Hệ thống', undefined, 'Đã thay đổi cấu hình cài đặt hệ thống')
+
   revalidatePath('/settings')
   return { success: true, message: 'Cập nhật cấu hình thành công' }
 }
@@ -74,6 +77,7 @@ export async function addHolidayAction(formData: FormData) {
 
     try {
         await settingRepo.addHoliday(name, date)
+        await activityService.logActivity('THÊM MỚI', 'Hệ thống', undefined, `Thêm ngày nghỉ lễ mới: ${name}`)
         revalidatePath('/settings')
         return { success: true, message: 'Thêm ngày lễ thành công' }
     } catch (error) {
@@ -86,6 +90,7 @@ export async function deleteHolidayAction(id: number) {
     
     try {
         await settingRepo.deleteHoliday(id)
+        await activityService.logActivity('XÓA', 'Hệ thống', id, `Xóa thông tin ngày nghỉ lễ ID ${id}`)
         revalidatePath('/settings')
         return { success: true, message: 'Xóa ngày lễ thành công' }
     } catch (error) {

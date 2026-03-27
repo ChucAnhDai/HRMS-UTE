@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<!-- DFD muc 0 cho HRMS -->
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HRMS DFD</title>
+  <style>
+    :root {
+      --bg: #ede5d7;
+      --panel: rgba(255, 252, 247, 0.96);
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --shadow: 0 18px 42px rgba(62, 43, 17, 0.12);
+      --external: #355c7d;
+      --process: #a9552b;
+      --store: #456b52;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(53,92,125,0.12), transparent 20%),
+        radial-gradient(circle at bottom right, rgba(169,85,43,0.12), transparent 24%),
+        linear-gradient(180deg, #faf6ef 0%, var(--bg) 100%);
+    }
+
+    .page { padding: 18px; }
+    .topbar, .panel, .diagram-shell {
+      background: var(--panel);
+      border-radius: 22px;
+      border: 1px solid rgba(186, 164, 130, 0.5);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .title h1 {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 4vw, 38px);
+    }
+
+    .title p {
+      margin: 0;
+      line-height: 1.65;
+      color: #4b5563;
+      max-width: 820px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .toolbar a,
+    .toolbar button {
+      padding: 11px 14px;
+      border: 0;
+      border-radius: 14px;
+      text-decoration: none;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .toolbar .ghost { background: #6f4c2d; }
+    .toolbar .secondary { background: #355c7d; }
+    .toolbar .primary { background: #a9552b; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 18px;
+      position: sticky;
+      top: 18px;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .panel ul {
+      margin: 0 0 12px;
+      padding-left: 18px;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+
+    .note-box {
+      min-height: 260px;
+      border: 1px dashed #d5c1a0;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.82);
+      padding: 14px;
+      outline: none;
+      line-height: 1.6;
+    }
+
+    .diagram-shell { padding: 14px; }
+    .board-wrap {
+      overflow: auto;
+      border-radius: 18px;
+      border: 1px dashed rgba(186, 164, 130, 0.58);
+      background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(250,246,239,0.92));
+    }
+
+    .board {
+      position: relative;
+      width: 2100px;
+      height: 1320px;
+      background-image:
+        linear-gradient(rgba(186, 164, 130, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(186, 164, 130, 0.12) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    svg.links {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .edge {
+      fill: none;
+      stroke: rgba(94, 74, 48, 0.6);
+      stroke-width: 2.3;
+    }
+
+    .edge-label rect {
+      fill: rgba(255,255,255,0.92);
+      stroke: rgba(186, 164, 130, 0.5);
+    }
+
+    .edge-label text {
+      font-size: 11px;
+      font-weight: 800;
+      fill: #5a4124;
+    }
+
+    .node {
+      position: absolute;
+      width: 240px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.96);
+      border: 2px solid rgba(186, 164, 130, 0.6);
+      box-shadow: 0 16px 28px rgba(74, 54, 27, 0.12);
+    }
+
+    .node .handle {
+      padding: 9px 12px;
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: grab;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      user-select: none;
+    }
+
+    .node .body {
+      padding: 14px;
+      outline: none;
+      text-align: center;
+      line-height: 1.55;
+      font-weight: 700;
+      min-height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .external {
+      border-radius: 18px;
+    }
+
+    .external .handle { background: var(--external); }
+
+    .process {
+      border-radius: 999px;
+      width: 260px;
+      border-width: 3px;
+    }
+
+    .process .handle { background: var(--process); }
+
+    .store {
+      border-radius: 18px;
+      border-left-width: 8px;
+      border-right-width: 8px;
+    }
+
+    .store .handle { background: var(--store); }
+
+    .hint {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 1fr; }
+      .panel { position: static; max-height: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="topbar">
+      <div class="title">
+        <h1>DFD Level 0 - HRMS</h1>
+        <p>
+          So do luong du lieu tong quat giua tac nhan ben ngoai, cac tien trinh chinh va kho du lieu
+          trong he thong quan ly nhan su.
+        </p>
+      </div>
+      <div class="toolbar">
+        <a class="ghost" href="index.html">Trang tong</a>
+        <a class="secondary" href="module-diagram.html">Module</a>
+        <a class="secondary" href="activity.html">Activity</a>
+        <button class="primary" id="resetBtn" type="button">Khoi phuc mac dinh</button>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Ghi chu DFD</h2>
+        <ul>
+          <li><strong>External Entity</strong>: doi tuong ngoai he thong.</li>
+          <li><strong>Process</strong>: tien trinh xu ly du lieu.</li>
+          <li><strong>Data Store</strong>: noi luu tru du lieu.</li>
+          <li><strong>Mui ten</strong>: huong di chuyen cua du lieu.</li>
+        </ul>
+        <div id="noteBox" class="note-box" contenteditable="true" spellcheck="false"></div>
+        <div class="hint">
+          DFD hop de tra loi cau hoi: “du lieu tu dau vao, di qua cac buoc nao va duoc luu o dau?”.
+        </div>
+      </aside>
+
+      <section class="diagram-shell">
+        <div class="board-wrap">
+          <div class="board" id="board">
+            <svg class="links" id="links">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(94, 74, 48, 0.7)"></path>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "hrms-dfd-v1";
+    const BOARD_W = 2100;
+    const BOARD_H = 1320;
+
+    const noteDefault = `
+      <strong>Tom tat luong du lieu:</strong>
+      <ul>
+        <li>Ung vien gui CV vao tien trinh tuyen dung.</li>
+        <li>Nhan vien tao du lieu cong, nghi phep, tang ca va xem payslip.</li>
+        <li>HR / Quan ly / Ke toan xu ly va phe duyet cac nghiep vu.</li>
+        <li>Du lieu duoc luu ve cac kho: Ho so nhan su, Tuyen dung, Cham cong, Payroll, Tai san / Hop dong.</li>
+      </ul>
+    `;
+
+    const defaultNodes = [
+      { id: "candidate", className: "external", x: 80, y: 120, html: "<div>Ung vien</div>" },
+      { id: "employee", className: "external", x: 90, y: 470, html: "<div>Nhan vien</div>" },
+      { id: "manager", className: "external", x: 1760, y: 180, html: "<div>HR / Quan ly</div>" },
+      { id: "accountant", className: "external", x: 1760, y: 560, html: "<div>Ke toan</div>" },
+      { id: "admin", className: "external", x: 1770, y: 910, html: "<div>Admin</div>" },
+      { id: "p1", className: "process", x: 430, y: 110, html: "<div>P1<br>Tuyen dung & tiep nhan</div>" },
+      { id: "p2", className: "process", x: 860, y: 110, html: "<div>P2<br>Quan ly ho so nhan su</div>" },
+      { id: "p3", className: "process", x: 430, y: 500, html: "<div>P3<br>Cham cong, nghi phep, OT</div>" },
+      { id: "p4", className: "process", x: 900, y: 520, html: "<div>P4<br>Tinh luong & phuc loi</div>" },
+      { id: "p5", className: "process", x: 1360, y: 500, html: "<div>P5<br>Quan ly hop dong & tai san</div>" },
+      { id: "p6", className: "process", x: 900, y: 900, html: "<div>P6<br>Cau hinh, phan quyen, audit</div>" },
+      { id: "d1", className: "store", x: 760, y: 300, html: "<div>D1<br>Ho so nhan vien</div>" },
+      { id: "d2", className: "store", x: 1120, y: 120, html: "<div>D2<br>Tuyen dung</div>" },
+      { id: "d3", className: "store", x: 420, y: 840, html: "<div>D3<br>Cham cong / nghi phep / OT</div>" },
+      { id: "d4", className: "store", x: 1120, y: 790, html: "<div>D4<br>Payroll / Payslip / Advance</div>" },
+      { id: "d5", className: "store", x: 1410, y: 860, html: "<div>D5<br>Hop dong / Tai san / Logs</div>" }
+    ];
+
+    const edges = [
+      { from: "candidate", to: "p1", label: "CV / thong tin ung tuyen" },
+      { from: "p1", to: "d2", label: "ho so ung vien" },
+      { from: "p1", to: "p2", label: "ung vien dat -> nhan vien" },
+      { from: "p2", to: "d1", label: "ho so nhan su" },
+      { from: "manager", to: "p2", label: "cap nhat / duyet ho so" },
+      { from: "employee", to: "p3", label: "check-in, leave, OT" },
+      { from: "p3", to: "d3", label: "du lieu cong / nghi / OT" },
+      { from: "manager", to: "p3", label: "duyet nghi / OT" },
+      { from: "p3", to: "p4", label: "tong hop cong" },
+      { from: "accountant", to: "p4", label: "tinh luong" },
+      { from: "p4", to: "d4", label: "payroll / payslip" },
+      { from: "employee", to: "p4", label: "xem payslip / tam ung" },
+      { from: "p2", to: "p5", label: "tham chieu nhan vien" },
+      { from: "manager", to: "p5", label: "quan ly hop dong / tai san" },
+      { from: "p5", to: "d5", label: "hop dong / cap phat" },
+      { from: "admin", to: "p6", label: "cau hinh / role" },
+      { from: "p6", to: "d5", label: "audit log" },
+      { from: "p6", to: "d1", label: "quyen truy cap" },
+      { from: "p4", to: "employee", label: "ket qua luong" }
+    ];
+
+    const board = document.getElementById("board");
+    const svg = document.getElementById("links");
+    const noteBox = document.getElementById("noteBox");
+    const nodeElements = new Map();
+    let dragState = null;
+    const state = loadState();
+
+    noteBox.innerHTML = state.noteHtml;
+    noteBox.addEventListener("input", () => {
+      state.noteHtml = noteBox.innerHTML;
+      persist();
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      if (!window.confirm("Khoi phuc DFD ve trang thai mac dinh?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      window.location.reload();
+    });
+
+    renderNodes();
+    drawEdges();
+    window.addEventListener("resize", drawEdges);
+
+    function loadState() {
+      const cloned = defaultNodes.map((node) => ({ ...node }));
+      const fallback = { nodes: cloned, noteHtml: noteDefault };
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return {
+          nodes: cloned.map((node) => {
+            const saved = parsed.nodes?.find((item) => item.id === node.id);
+            return saved ? { ...node, ...saved } : node;
+          }),
+          noteHtml: parsed.noteHtml || noteDefault
+        };
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function renderNodes() {
+      state.nodes.forEach((node) => {
+        const el = document.createElement("article");
+        el.className = `node ${node.className}`;
+        el.style.left = `${node.x}px`;
+        el.style.top = `${node.y}px`;
+        el.innerHTML = `
+          <div class="handle">Keo doi tuong</div>
+          <div class="body" contenteditable="true" spellcheck="false">${node.html}</div>
+        `;
+        el.querySelector(".handle").addEventListener("mousedown", (event) => startDrag(event, node.id));
+        el.querySelector(".body").addEventListener("input", () => {
+          state.nodes.find((item) => item.id === node.id).html = el.querySelector(".body").innerHTML;
+          persist();
+          drawEdges();
+        });
+        board.appendChild(el);
+        nodeElements.set(node.id, el);
+      });
+    }
+
+    function startDrag(event, id) {
+      const node = state.nodes.find((item) => item.id === id);
+      const rect = board.getBoundingClientRect();
+      dragState = { id, offsetX: event.clientX - rect.left - node.x, offsetY: event.clientY - rect.top - node.y };
+      document.addEventListener("mousemove", onDrag);
+      document.addEventListener("mouseup", stopDrag);
+    }
+
+    function onDrag(event) {
+      if (!dragState) return;
+      const rect = board.getBoundingClientRect();
+      const node = state.nodes.find((item) => item.id === dragState.id);
+      const el = nodeElements.get(dragState.id);
+      const maxX = BOARD_W - el.offsetWidth - 10;
+      const maxY = BOARD_H - el.offsetHeight - 10;
+      node.x = clamp(event.clientX - rect.left - dragState.offsetX, 8, maxX);
+      node.y = clamp(event.clientY - rect.top - dragState.offsetY, 8, maxY);
+      el.style.left = `${node.x}px`;
+      el.style.top = `${node.y}px`;
+      drawEdges();
+    }
+
+    function stopDrag() {
+      if (!dragState) return;
+      dragState = null;
+      document.removeEventListener("mousemove", onDrag);
+      document.removeEventListener("mouseup", stopDrag);
+      persist();
+    }
+
+    function drawEdges() {
+      svg.querySelectorAll(".edge-group").forEach((item) => item.remove());
+      edges.forEach((edge) => {
+        const fromEl = nodeElements.get(edge.from);
+        const toEl = nodeElements.get(edge.to);
+        if (!fromEl || !toEl) return;
+        const a = anchorPoint(fromEl, toEl);
+        const b = anchorPoint(toEl, fromEl);
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("class", "edge-group");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", smoothPath(a, b));
+        path.setAttribute("class", "edge");
+        path.setAttribute("marker-end", "url(#arrow)");
+        group.appendChild(path);
+        group.appendChild(createLabel(edge.label, midpoint(a, b)));
+        svg.appendChild(group);
+      });
+    }
+
+    function anchorPoint(sourceEl, targetEl) {
+      const sx = parseFloat(sourceEl.style.left);
+      const sy = parseFloat(sourceEl.style.top);
+      const sw = sourceEl.offsetWidth;
+      const sh = sourceEl.offsetHeight;
+      const tx = parseFloat(targetEl.style.left);
+      const ty = parseFloat(targetEl.style.top);
+      const tw = targetEl.offsetWidth;
+      const th = targetEl.offsetHeight;
+      const sc = { x: sx + sw / 2, y: sy + sh / 2 };
+      const tc = { x: tx + tw / 2, y: ty + th / 2 };
+      const dx = tc.x - sc.x;
+      const dy = tc.y - sc.y;
+      if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? { x: sx + sw, y: sy + sh / 2 } : { x: sx, y: sy + sh / 2 };
+      return dy > 0 ? { x: sx + sw / 2, y: sy + sh } : { x: sx + sw / 2, y: sy };
+    }
+
+    function smoothPath(a, b) {
+      const dx = (b.x - a.x) * 0.35;
+      return `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`;
+    }
+
+    function midpoint(a, b) {
+      return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    }
+
+    function createLabel(text, point) {
+      const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      group.setAttribute("class", "edge-label");
+      group.setAttribute("transform", `translate(${point.x - 66}, ${point.y - 13})`);
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("rx", "10");
+      rect.setAttribute("ry", "10");
+      rect.setAttribute("width", "132");
+      rect.setAttribute("height", "24");
+      group.appendChild(rect);
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      label.setAttribute("x", "66");
+      label.setAttribute("y", "16");
+      label.setAttribute("text-anchor", "middle");
+      label.textContent = text;
+      group.appendChild(label);
+      return group;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+  </script>
+</body>
+</html>

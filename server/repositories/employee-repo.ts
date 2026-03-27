@@ -99,7 +99,12 @@ export const employeeRepo = {
       .select()
       .single()
 
-    if (error) throw new Error(error.message)
+    if (error) {
+      if (error.code === 'PGRST116') {
+        throw new Error('Nhân viên không tồn tại hoặc đã bị xóa bởi quản trị viên khác.')
+      }
+      throw new Error(error.message)
+    }
     return data
   }
 }

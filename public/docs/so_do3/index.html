@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<!-- Trang tong hop cac so do cho du an HRMS -->
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HRMS Diagram Hub</title>
+  <style>
+    :root {
+      --bg: #f6f1e8;
+      --paper: #fffdf8;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: #d4c4a8;
+      --accent: #a9552b;
+      --accent-2: #355c7d;
+      --shadow: 0 18px 42px rgba(76, 55, 28, 0.14);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(169, 85, 43, 0.12), transparent 28%),
+        radial-gradient(circle at right bottom, rgba(53, 92, 125, 0.12), transparent 24%),
+        linear-gradient(180deg, #fbf7ef 0%, var(--bg) 100%);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 26px;
+    }
+
+    .hero-card,
+    .note-card,
+    .diagram-card {
+      background: rgba(255, 253, 248, 0.94);
+      border: 1px solid rgba(212, 196, 168, 0.85);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: 28px;
+    }
+
+    .hero-card h1 {
+      margin: 0 0 12px;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.08;
+    }
+
+    .hero-card p {
+      margin: 0 0 14px;
+      color: #374151;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #f4eadc;
+      border: 1px solid #e6cfab;
+      color: #7b451f;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .note-card {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .note-card h2,
+    .section-title {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .note-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #374151;
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .diagram-card {
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .diagram-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.75), rgba(255,255,255,0.18));
+      z-index: -1;
+    }
+
+    .diagram-card h3 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+
+    .diagram-card p {
+      margin: 0 0 14px;
+      line-height: 1.7;
+      color: #4b5563;
+      min-height: 96px;
+    }
+
+    .diagram-card .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .diagram-card .meta span {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(160, 137, 100, 0.25);
+      font-size: 12px;
+      color: #5b4b2f;
+      font-weight: 700;
+    }
+
+    .diagram-card a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: var(--accent-2);
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .diagram-card a:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(53, 92, 125, 0.24);
+    }
+
+    .footer-note {
+      margin-top: 24px;
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.8);
+      border: 1px dashed #d7c2a1;
+      line-height: 1.7;
+      color: #4b5563;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .diagram-card p {
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <article class="hero-card">
+        <h1>Bo so do de bao cao do an HRMS</h1>
+        <p>
+          Day la bo giao dien HTML minh dung san tu schema trong <code>hrms.sql</code>.
+          Moi so do duoc tach thanh 1 file HTML rieng, co lien ket qua lai, co the keo tha
+          sap xep lai va sua noi dung truc tiep de ban tuy bien theo cach giang vien yeu cau.
+        </p>
+        <p>
+          Neu mang di bao ve, thu tu nen trinh bay la:
+          <strong>Module tong quan -&gt; Use Case -&gt; DFD/Activity -&gt; ERD</strong>.
+          Cach nay giup giao vien thay duoc tu nghiep vu tong quat den thiet ke du lieu.
+        </p>
+        <div class="chips">
+          <span class="chip">HTML doc lap</span>
+          <span class="chip">Keo tha duoc</span>
+          <span class="chip">Sua noi dung duoc</span>
+          <span class="chip">Tu luu localStorage</span>
+          <span class="chip">Lien ket giua cac file</span>
+        </div>
+      </article>
+
+      <aside class="note-card">
+        <h2>Ban nen cho giao vien xem gi?</h2>
+        <ul>
+          <li><strong>ERD</strong>: cho thay bang, khoa va quan he trong CSDL.</li>
+          <li><strong>Use Case</strong>: cho thay ai su dung he thong va su dung chuc nang nao.</li>
+          <li><strong>Module Diagram</strong>: cho thay he thong duoc chia thanh cac phan he nao.</li>
+          <li><strong>DFD</strong>: cho thay du lieu di chuyen giua tac nhan, tien trinh va kho du lieu.</li>
+          <li><strong>Activity Diagram</strong>: cho thay quy trinh xu ly nghiep vu chinh.</li>
+        </ul>
+      </aside>
+    </section>
+
+    <h2 class="section-title">Danh sach so do da tao</h2>
+    <section class="grid">
+      <article class="diagram-card">
+        <h3>ERD</h3>
+        <div class="meta">
+          <span>Bang du lieu</span>
+          <span>PK / FK / UQ</span>
+          <span>1-1 / 1-N / N-N</span>
+        </div>
+        <p>
+          So do thuc the lien ket tu toan bo bang trong schema HRMS:
+          nhan su, tuyen dung, cham cong, luong, hop dong, tai san va he thong.
+        </p>
+        <a href="erd.html">Mo ERD</a>
+      </article>
+
+      <article class="diagram-card">
+        <h3>Use Case</h3>
+        <div class="meta">
+          <span>Nhan vien</span>
+          <span>HR</span>
+          <span>Quan ly / Ke toan / Admin</span>
+        </div>
+        <p>
+          Phan ra cac tac nhan va chuc nang chinh, phu hop khi giao vien hoi:
+          “he thong nay co nhung vai tro nao va moi vai tro lam gi?”.
+        </p>
+        <a href="usecase.html">Mo Use Case</a>
+      </article>
+
+      <article class="diagram-card">
+        <h3>Module Diagram</h3>
+        <div class="meta">
+          <span>Core</span>
+          <span>Tuyen dung</span>
+          <span>Payroll</span>
+        </div>
+        <p>
+          So do kien truc chuc nang theo nhom module nghiep vu.
+          Day la trang rat hop de mo dau phan gioi thieu de tai.
+        </p>
+        <a href="module-diagram.html">Mo Module Diagram</a>
+      </article>
+
+      <article class="diagram-card">
+        <h3>DFD Level 0</h3>
+        <div class="meta">
+          <span>External Entity</span>
+          <span>Process</span>
+          <span>Data Store</span>
+        </div>
+        <p>
+          Trinh bay luong du lieu tong quat giua ung vien, nhan vien, HR, ke toan,
+          admin voi cac tien trinh va kho du lieu cua he thong.
+        </p>
+        <a href="dfd.html">Mo DFD</a>
+      </article>
+
+      <article class="diagram-card">
+        <h3>Activity Diagram</h3>
+        <div class="meta">
+          <span>Nghi phep</span>
+          <span>Duyet</span>
+          <span>Tac dong den luong</span>
+        </div>
+        <p>
+          Minh chon quy trinh xin nghi phep vi no lien ket ro giua bang leave_requests,
+          attendances, payrolls va payslips.
+        </p>
+        <a href="activity.html">Mo Activity Diagram</a>
+      </article>
+    </section>
+
+    <div class="footer-note">
+      Moi file deu co huong dan ky hieu hien san tren giao dien. Neu muon reset ve trang thai ban dau,
+      vao tung file va bam nut <strong>Khoi phuc mac dinh</strong>. Noi dung ban sua va vi tri keo tha
+      se duoc luu tren trinh duyet bang <code>localStorage</code>.
+    </div>
+  </main>
+</body>
+</html>

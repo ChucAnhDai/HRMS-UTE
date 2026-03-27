@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<!-- So do module tong quan cho HRMS -->
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HRMS Module Diagram</title>
+  <style>
+    :root {
+      --bg: #efe7d8;
+      --panel: rgba(255, 251, 246, 0.96);
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --shadow: 0 18px 42px rgba(67, 46, 18, 0.12);
+      --core: #355c7d;
+      --recruitment: #8b5e34;
+      --attendance: #456b52;
+      --payroll: #7a4769;
+      --hr: #a9552b;
+      --assets: #66733c;
+      --system: #57534e;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(53,92,125,0.12), transparent 22%),
+        radial-gradient(circle at bottom right, rgba(169,85,43,0.12), transparent 25%),
+        linear-gradient(180deg, #faf6ef 0%, var(--bg) 100%);
+    }
+
+    .page { padding: 18px; }
+    .topbar, .panel, .diagram-shell {
+      background: var(--panel);
+      border-radius: 22px;
+      border: 1px solid rgba(186, 164, 130, 0.5);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .title h1 {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 4vw, 38px);
+    }
+
+    .title p {
+      margin: 0;
+      line-height: 1.65;
+      color: #4b5563;
+      max-width: 820px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .toolbar a,
+    .toolbar button {
+      padding: 11px 14px;
+      border: 0;
+      border-radius: 14px;
+      text-decoration: none;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .toolbar .ghost { background: #6f4c2d; }
+    .toolbar .secondary { background: #355c7d; }
+    .toolbar .primary { background: #a9552b; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 18px;
+      position: sticky;
+      top: 18px;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .panel ul {
+      margin: 0 0 12px;
+      padding-left: 18px;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+
+    .note-box {
+      min-height: 260px;
+      border: 1px dashed #d5c1a0;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.82);
+      padding: 14px;
+      outline: none;
+      line-height: 1.6;
+    }
+
+    .diagram-shell { padding: 14px; }
+    .board-wrap {
+      overflow: auto;
+      border-radius: 18px;
+      border: 1px dashed rgba(186, 164, 130, 0.58);
+      background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(250,246,239,0.92));
+    }
+
+    .board {
+      position: relative;
+      width: 1850px;
+      height: 1180px;
+      background-image:
+        linear-gradient(rgba(186, 164, 130, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(186, 164, 130, 0.12) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    svg.links {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .edge {
+      fill: none;
+      stroke: rgba(94, 74, 48, 0.6);
+      stroke-width: 2.4;
+    }
+
+    .edge-label rect {
+      fill: rgba(255,255,255,0.92);
+      stroke: rgba(186, 164, 130, 0.5);
+    }
+
+    .edge-label text {
+      font-size: 11px;
+      font-weight: 800;
+      fill: #5a4124;
+    }
+
+    .node {
+      position: absolute;
+      width: 290px;
+      border-radius: 24px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.96);
+      border: 2px solid rgba(186, 164, 130, 0.6);
+      box-shadow: 0 16px 28px rgba(74, 54, 27, 0.12);
+    }
+
+    .node .handle {
+      padding: 9px 12px;
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: grab;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      user-select: none;
+    }
+
+    .node .body {
+      padding: 14px;
+      outline: none;
+    }
+
+    .node h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .node p {
+      margin: 0 0 10px;
+      color: #4b5563;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .node ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #374151;
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .core .handle { background: var(--core); }
+    .recruitment .handle { background: var(--recruitment); }
+    .attendance .handle { background: var(--attendance); }
+    .payroll .handle { background: var(--payroll); }
+    .hr .handle { background: var(--hr); }
+    .assets .handle { background: var(--assets); }
+    .system .handle { background: var(--system); }
+
+    .hint {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 1fr; }
+      .panel { position: static; max-height: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="topbar">
+      <div class="title">
+        <h1>Module Diagram - HRMS</h1>
+        <p>
+          So do nay chia he thong theo cac phan he nghiep vu de ban gioi thieu tong quan.
+          Day la trang rat hop de mo dau bai bao cao truoc khi di vao Use Case va ERD.
+        </p>
+      </div>
+      <div class="toolbar">
+        <a class="ghost" href="index.html">Trang tong</a>
+        <a class="secondary" href="usecase.html">Use Case</a>
+        <a class="secondary" href="erd.html">ERD</a>
+        <button class="primary" id="resetBtn" type="button">Khoi phuc mac dinh</button>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Ghi chu Module</h2>
+        <ul>
+          <li><strong>Khoi mau</strong>: 1 module hoac 1 phan he.</li>
+          <li><strong>Mui ten</strong>: phu thuoc nghiep vu hoac du lieu.</li>
+          <li><strong>Noi dung trong khoi</strong>: muc tieu, bang chinh va chuc nang tieu bieu.</li>
+          <li><strong>Core</strong> dong vai tro trung tam, cac module con lai de dua tren nhan vien.</li>
+        </ul>
+        <div id="noteBox" class="note-box" contenteditable="true" spellcheck="false"></div>
+        <div class="hint">
+          Neu giao vien hoi “vi sao tach module?”, ban co the tra loi: tach theo nghiep vu giup
+          de phat trien, de phan quyen va de mo rong he thong trong tuong lai.
+        </div>
+      </aside>
+
+      <section class="diagram-shell">
+        <div class="board-wrap">
+          <div class="board" id="board">
+            <svg class="links" id="links">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(94, 74, 48, 0.7)"></path>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "hrms-module-v1";
+    const BOARD_W = 1850;
+    const BOARD_H = 1180;
+
+    const noteDefault = `
+      <strong>Tom tat module:</strong>
+      <ul>
+        <li><strong>Core</strong> gom phong ban, nhan vien va cau truc to chuc.</li>
+        <li><strong>Tuyen dung</strong> tiep nhan ung vien va co the chuyen hoa thanh nhan vien.</li>
+        <li><strong>Cham cong</strong> la nguon du lieu quan trong cho tinh luong.</li>
+        <li><strong>Luong &amp; Thuong</strong> tong hop cong, nghi, thuong phat, tam ung de tao payslip.</li>
+        <li><strong>He thong</strong> xu ly cau hinh, role va nhat ky hoat dong.</li>
+      </ul>
+    `;
+
+    const defaultNodes = [
+      { id: "core", className: "core", x: 740, y: 130, html: "<h3>Core (Loi)</h3><p>Trung tam du lieu nhan su va cau truc to chuc.</p><ul><li>Bang: employees, departments</li><li>Quan ly ho so nhan vien</li><li>Quan ly phong ban / chuc danh</li></ul>" },
+      { id: "recruitment", className: "recruitment", x: 170, y: 120, html: "<h3>Tuyen dung</h3><p>Quan ly nhu cau tuyen va danh sach ung vien.</p><ul><li>Bang: job_openings, candidates</li><li>Dang tin, nhan CV</li><li>Chuyen ung vien thanh nhan vien</li></ul>" },
+      { id: "attendance", className: "attendance", x: 150, y: 540, html: "<h3>Cham cong</h3><p>Ghi nhan ngay cong, nghi phep va tang ca.</p><ul><li>Bang: attendances, leave_requests, overtime_requests, holidays</li><li>Cham cong / nghi phep / tang ca</li></ul>" },
+      { id: "payroll", className: "payroll", x: 770, y: 610, html: "<h3>Luong &amp; Thuong</h3><p>Tong hop du lieu de tinh luong va tra luong.</p><ul><li>Bang: payrolls, payslips, rewards_penalties, salary_advances, salary_history</li><li>Tinh luong, tam ung, thuong phat</li></ul>" },
+      { id: "hr", className: "hr", x: 1360, y: 150, html: "<h3>Hop dong / HR</h3><p>Luu cac thong tin nhan su nang cao va rang buoc lao dong.</p><ul><li>Bang: contracts</li><li>Hop dong, muc luong, ghi chu HR</li></ul>" },
+      { id: "assets", className: "assets", x: 1380, y: 560, html: "<h3>Tai san</h3><p>Quan ly tai san cong ty va cap phat cho nhan vien.</p><ul><li>Bang: assets, asset_assignments</li><li>Theo doi cap phat va thu hoi</li></ul>" },
+      { id: "system", className: "system", x: 760, y: 920, html: "<h3>He thong</h3><p>Ho tro quan tri, phan quyen, cau hinh va nhat ky.</p><ul><li>Bang: users, settings, activity_logs</li><li>Role, account, audit trail</li></ul>" }
+    ];
+
+    const edges = [
+      { from: "recruitment", to: "core", label: "ung vien -> nhan vien" },
+      { from: "attendance", to: "core", label: "tham chieu nhan vien" },
+      { from: "hr", to: "core", label: "tham chieu nhan vien" },
+      { from: "assets", to: "core", label: "cap phat cho nhan vien" },
+      { from: "payroll", to: "core", label: "luong cua nhan vien" },
+      { from: "payroll", to: "attendance", label: "lay du lieu cong / nghi / OT" },
+      { from: "system", to: "core", label: "phan quyen / log" },
+      { from: "system", to: "payroll", label: "audit / cau hinh" },
+      { from: "system", to: "recruitment", label: "tai khoan HR" },
+      { from: "system", to: "assets", label: "ghi nhat ky" }
+    ];
+
+    const board = document.getElementById("board");
+    const svg = document.getElementById("links");
+    const noteBox = document.getElementById("noteBox");
+    const nodeElements = new Map();
+    let dragState = null;
+    const state = loadState();
+
+    noteBox.innerHTML = state.noteHtml;
+    noteBox.addEventListener("input", () => {
+      state.noteHtml = noteBox.innerHTML;
+      persist();
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      if (!window.confirm("Khoi phuc Module Diagram ve trang thai mac dinh?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      window.location.reload();
+    });
+
+    renderNodes();
+    drawEdges();
+    window.addEventListener("resize", drawEdges);
+
+    function loadState() {
+      const cloned = defaultNodes.map((node) => ({ ...node }));
+      const fallback = { nodes: cloned, noteHtml: noteDefault };
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return {
+          nodes: cloned.map((node) => {
+            const saved = parsed.nodes?.find((item) => item.id === node.id);
+            return saved ? { ...node, ...saved } : node;
+          }),
+          noteHtml: parsed.noteHtml || noteDefault
+        };
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function renderNodes() {
+      state.nodes.forEach((node) => {
+        const el = document.createElement("article");
+        el.className = `node ${node.className}`;
+        el.style.left = `${node.x}px`;
+        el.style.top = `${node.y}px`;
+        el.innerHTML = `
+          <div class="handle">Keo module</div>
+          <div class="body" contenteditable="true" spellcheck="false">${node.html}</div>
+        `;
+        el.querySelector(".handle").addEventListener("mousedown", (event) => startDrag(event, node.id));
+        el.querySelector(".body").addEventListener("input", () => {
+          state.nodes.find((item) => item.id === node.id).html = el.querySelector(".body").innerHTML;
+          persist();
+          drawEdges();
+        });
+        board.appendChild(el);
+        nodeElements.set(node.id, el);
+      });
+    }
+
+    function startDrag(event, id) {
+      const node = state.nodes.find((item) => item.id === id);
+      const rect = board.getBoundingClientRect();
+      dragState = { id, offsetX: event.clientX - rect.left - node.x, offsetY: event.clientY - rect.top - node.y };
+      document.addEventListener("mousemove", onDrag);
+      document.addEventListener("mouseup", stopDrag);
+    }
+
+    function onDrag(event) {
+      if (!dragState) return;
+      const rect = board.getBoundingClientRect();
+      const node = state.nodes.find((item) => item.id === dragState.id);
+      const el = nodeElements.get(dragState.id);
+      const maxX = BOARD_W - el.offsetWidth - 10;
+      const maxY = BOARD_H - el.offsetHeight - 10;
+      node.x = clamp(event.clientX - rect.left - dragState.offsetX, 8, maxX);
+      node.y = clamp(event.clientY - rect.top - dragState.offsetY, 8, maxY);
+      el.style.left = `${node.x}px`;
+      el.style.top = `${node.y}px`;
+      drawEdges();
+    }
+
+    function stopDrag() {
+      if (!dragState) return;
+      dragState = null;
+      document.removeEventListener("mousemove", onDrag);
+      document.removeEventListener("mouseup", stopDrag);
+      persist();
+    }
+
+    function drawEdges() {
+      svg.querySelectorAll(".edge-group").forEach((item) => item.remove());
+      edges.forEach((edge) => {
+        const fromEl = nodeElements.get(edge.from);
+        const toEl = nodeElements.get(edge.to);
+        if (!fromEl || !toEl) return;
+        const a = anchorPoint(fromEl, toEl);
+        const b = anchorPoint(toEl, fromEl);
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("class", "edge-group");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", smoothPath(a, b));
+        path.setAttribute("class", "edge");
+        path.setAttribute("marker-end", "url(#arrow)");
+        group.appendChild(path);
+        group.appendChild(createLabel(edge.label, midpoint(a, b)));
+        svg.appendChild(group);
+      });
+    }
+
+    function anchorPoint(sourceEl, targetEl) {
+      const sx = parseFloat(sourceEl.style.left);
+      const sy = parseFloat(sourceEl.style.top);
+      const sw = sourceEl.offsetWidth;
+      const sh = sourceEl.offsetHeight;
+      const tx = parseFloat(targetEl.style.left);
+      const ty = parseFloat(targetEl.style.top);
+      const tw = targetEl.offsetWidth;
+      const th = targetEl.offsetHeight;
+      const sc = { x: sx + sw / 2, y: sy + sh / 2 };
+      const tc = { x: tx + tw / 2, y: ty + th / 2 };
+      const dx = tc.x - sc.x;
+      const dy = tc.y - sc.y;
+      if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? { x: sx + sw, y: sy + sh / 2 } : { x: sx, y: sy + sh / 2 };
+      return dy > 0 ? { x: sx + sw / 2, y: sy + sh } : { x: sx + sw / 2, y: sy };
+    }
+
+    function smoothPath(a, b) {
+      const dx = (b.x - a.x) * 0.35;
+      return `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`;
+    }
+
+    function midpoint(a, b) {
+      return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    }
+
+    function createLabel(text, point) {
+      const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      group.setAttribute("class", "edge-label");
+      group.setAttribute("transform", `translate(${point.x - 62}, ${point.y - 13})`);
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("rx", "10");
+      rect.setAttribute("ry", "10");
+      rect.setAttribute("width", "124");
+      rect.setAttribute("height", "24");
+      group.appendChild(rect);
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      label.setAttribute("x", "62");
+      label.setAttribute("y", "16");
+      label.setAttribute("text-anchor", "middle");
+      label.textContent = text;
+      group.appendChild(label);
+      return group;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+  </script>
+</body>
+</html>

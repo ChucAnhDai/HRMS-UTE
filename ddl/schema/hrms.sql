@@ -1,6 +1,17 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
+CREATE TABLE public.activity_logs (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  employee_id bigint,
+  action text NOT NULL,
+  entity_type text NOT NULL,
+  entity_id bigint,
+  details text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT activity_logs_pkey PRIMARY KEY (id),
+  CONSTRAINT activity_logs_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id)
+);
 CREATE TABLE public.asset_assignments (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   asset_id bigint NOT NULL,
@@ -155,6 +166,7 @@ CREATE TABLE public.overtime_requests (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   action_by_employee_id bigint,
+  rejection_reason text,
   CONSTRAINT overtime_requests_pkey PRIMARY KEY (id),
   CONSTRAINT overtime_requests_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id),
   CONSTRAINT overtime_requests_approved_by_fkey FOREIGN KEY (approved_by) REFERENCES public.users(id),
@@ -195,6 +207,9 @@ CREATE TABLE public.payslips (
   notes text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  gross_from_work numeric DEFAULT 0,
+  actual_work_days integer DEFAULT 0,
+  paid_leave_days integer DEFAULT 0,
   CONSTRAINT payslips_pkey PRIMARY KEY (id),
   CONSTRAINT payslips_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id)
 );
@@ -224,8 +239,8 @@ CREATE TABLE public.salary_advances (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT salary_advances_pkey PRIMARY KEY (id),
-  CONSTRAINT salary_advances_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id),
-  CONSTRAINT salary_advances_approved_by_fkey FOREIGN KEY (approved_by) REFERENCES public.users(id)
+  CONSTRAINT salary_advances_approved_by_fkey FOREIGN KEY (approved_by) REFERENCES public.employees(id),
+  CONSTRAINT salary_advances_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employees(id)
 );
 CREATE TABLE public.salary_history (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,

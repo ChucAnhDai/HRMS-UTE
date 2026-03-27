@@ -4,7 +4,9 @@ import { createLeaveRequestAction } from "@/server/actions/leave-actions";
 import { useActionState } from "react";
 import { FileText, CheckCircle, AlertCircle, Clock } from "lucide-react";
 import { Employee, Department } from "@/types";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
+import FormDraftNotice from "../common/FormDraftNotice";
 
 interface Props {
   employees: Employee[];
@@ -27,6 +29,12 @@ export default function LeaveRequestForm({
   departments = [],
   currentUser,
 }: Props) {
+  const { savedData, saveFormData, clearSavedData, isRestored, isMounted } = 
+    useFormPersistence({ 
+      entity: "leave", 
+      action: "create" 
+    });
+
   const [state, formAction, isPending] = useActionState(
     createLeaveRequestAction,
     initialState,
@@ -34,6 +42,25 @@ export default function LeaveRequestForm({
 
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");
+
+  useEffect(() => {
+    if (isRestored && savedData) {
+      setTimeout(() => {
+        if (savedData.department_id) setSelectedDepartmentId((savedData.department_id as string | number).toString());
+        if (savedData.employee_id) setSelectedEmployeeId((savedData.employee_id as string | number).toString());
+      }, 0);
+    }
+  }, [isRestored, savedData]);
+
+  useEffect(() => {
+    if (state?.success) {
+      setTimeout(() => {
+        clearSavedData();
+        setSelectedDepartmentId("");
+        setSelectedEmployeeId("");
+      }, 0);
+    }
+  }, [state?.success, clearSavedData]);
 
   const isEmployee = currentUser?.role === "EMPLOYEE";
   const currentEmployeeId = currentUser?.employeeId;
@@ -94,7 +121,15 @@ export default function LeaveRequestForm({
         </div>
 
         <div className="p-6 max-h-[80vh] overflow-y-auto">
-          <form action={formAction}>
+          <FormDraftNotice isVisible={isRestored} onClear={clearSavedData} />
+          
+          <form 
+            action={formAction}
+            onChange={(e) => {
+              const fd = new FormData(e.currentTarget);
+              saveFormData(Object.fromEntries(fd.entries()));
+            }}
+          >
             {state?.error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium flex items-center gap-2">
                 <AlertCircle className="w-4 h-4" /> {state.error}
@@ -180,6 +215,8 @@ export default function LeaveRequestForm({
                 </label>
                 <select
                   name="leave_type"
+                  key={`leave_type-${isMounted}`}
+                  defaultValue={isMounted ? (savedData?.leave_type as string || "Annual Leave") : "Annual Leave"}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900"
                 >
@@ -202,6 +239,8 @@ export default function LeaveRequestForm({
                 <input
                   type="date"
                   name="start_date"
+                  key={`start_date-${isMounted}`}
+                  defaultValue={isMounted ? (savedData?.start_date as string || "") : ""}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900"
                 />
@@ -214,6 +253,8 @@ export default function LeaveRequestForm({
                 <input
                   type="date"
                   name="end_date"
+                  key={`end_date-${isMounted}`}
+                  defaultValue={isMounted ? (savedData?.end_date as string || "") : ""}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900"
                 />
@@ -225,6 +266,8 @@ export default function LeaveRequestForm({
                 </label>
                 <textarea
                   name="reason"
+                  key={`reason-${isMounted}`}
+                  defaultValue={isMounted ? (savedData?.reason as string || "") : ""}
                   required
                   rows={3}
                   placeholder="Ví dụ: Đi khám bệnh, việc gia đình..."

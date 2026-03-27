@@ -9,11 +9,15 @@ import LeaveQuotaFields from "./forms/LeaveQuotaFields";
 interface Props {
   departments: Department[];
   defaultValues?: Partial<Employee>;
+  draftValues?: Record<string, unknown> | null;
+  isMounted?: boolean;
 }
 
 export default function EmployeeFormSections({
   departments,
   defaultValues = {},
+  draftValues,
+  isMounted = false,
 }: Props) {
   // Pass correct default values and departments to sub-components
   // Note: defaultValues is already Partial<Employee>, perfectly compatible with sub-components
@@ -24,19 +28,35 @@ export default function EmployeeFormSections({
 
   return (
     <>
-      <BasicInfoFields defaultValues={defaultValues} />
+      <BasicInfoFields 
+        defaultValues={defaultValues} 
+        draftValues={draftValues}
+        isMounted={isMounted}
+      />
       <JobInfoFields
         departments={departments}
         defaultValues={defaultValues}
         status={employmentStatus}
         onStatusChange={setEmploymentStatus}
+        draftValues={draftValues}
+        isMounted={isMounted}
       />
       <ImportantDatesFields
         defaultValues={defaultValues}
         status={employmentStatus}
+        draftValues={draftValues}
+        isMounted={isMounted}
       />
-      <SalaryFields defaultValues={defaultValues} />
-      <LeaveQuotaFields defaultValues={defaultValues} />
+      <SalaryFields 
+        defaultValues={defaultValues} 
+        draftValues={draftValues}
+        isMounted={isMounted}
+      />
+      <LeaveQuotaFields 
+        defaultValues={defaultValues} 
+        draftValues={draftValues}
+        isMounted={isMounted}
+      />
     </>
   );
 }

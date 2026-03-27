@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Key, ShieldCheck, Loader2, X } from 'lucide-react'
-import { createEmployeeAccountAction } from '@/server/actions/admin-auth-actions'
+import { Key, Loader2, X, Lock } from 'lucide-react'
+import { createEmployeeAccountAction, updateEmployeePasswordAction } from '@/server/actions/admin-auth-actions'
 
 interface Props {
   employeeId: number
@@ -23,10 +23,15 @@ export default function GrantAccountButton({ employeeId, email, hasAccount }: Pr
     setError('')
     setSuccess('')
 
-    const result = await createEmployeeAccountAction(employeeId, email, password)
+    let result;
+    if (hasAccount) {
+      result = await updateEmployeePasswordAction(employeeId, email, password)
+    } else {
+      result = await createEmployeeAccountAction(employeeId, email, password)
+    }
 
     if (result.success) {
-      setSuccess('Đã cấp tài khoản thành công!')
+      setSuccess(hasAccount ? 'Đã đổi mật khẩu thành công!' : 'Đã cấp tài khoản thành công!')
       setTimeout(() => {
           setIsOpen(false)
           window.location.reload() // Reload để cập nhật UI
@@ -38,30 +43,27 @@ export default function GrantAccountButton({ employeeId, email, hasAccount }: Pr
     setIsLoading(false)
   }
 
-  if (hasAccount) {
-    return (
-      <div className="px-4 py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg flex items-center gap-2 text-sm font-medium">
-        <ShieldCheck className="w-4 h-4" />
-        Đã có tài khoản
-      </div>
-    )
-  }
+  const buttonText = hasAccount ? 'Đổi mật khẩu' : 'Cấp tài khoản'
+  const ButtonIcon = hasAccount ? Lock : Key
+  const modalTitle = hasAccount ? 'Đổi mật khẩu nhân viên' : 'Cấp tài khoản đăng nhập'
 
   return (
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 bg-purple-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-purple-700 transition-colors flex items-center gap-2"
+        className={`px-4 py-2 text-white text-sm font-bold rounded-lg shadow-sm transition-colors flex items-center gap-2 h-fit ${
+          hasAccount ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-purple-600 hover:bg-purple-700'
+        }`}
       >
-        <Key className="w-4 h-4" />
-        Cấp tài khoản
+        <ButtonIcon className="w-4 h-4" />
+        {buttonText}
       </button>
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-900">Cấp tài khoản đăng nhập</h3>
+              <h3 className="text-lg font-bold text-gray-900">{modalTitle}</h3>
               <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
@@ -87,17 +89,17 @@ export default function GrantAccountButton({ employeeId, email, hasAccount }: Pr
                     disabled 
                     className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
                   />
-                  <p className="text-xs text-gray-500">Sử dụng email cá nhân của nhân viên làm tài khoản.</p>
+                  <p className="text-xs text-gray-500">Tài khoản gắn liền với email cá nhân này.</p>
                </div>
 
                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Mật khẩu khởi tạo</label>
+                  <label className="text-sm font-medium text-gray-700">Mật khẩu mới</label>
                   <input 
                     type="text" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
-                    placeholder="Nhập mật khẩu..."
+                    placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)..."
                     required
                     minLength={6}
                   />
@@ -114,11 +116,13 @@ export default function GrantAccountButton({ employeeId, email, hasAccount }: Pr
                   </button>
                   <button 
                     type="submit"
-                    className="px-4 py-2 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                    className={`px-4 py-2 text-white font-bold rounded-lg flex items-center gap-2 ${
+                        hasAccount ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-purple-600 hover:bg-purple-700'
+                    }`}
                     disabled={isLoading}
                   >
                     {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                    Xác nhận cấp
+                    Xác nhận
                   </button>
                </div>
             </form>

@@ -5,13 +5,22 @@ import { useState } from "react";
 interface Props {
   defaultValues?: Partial<Employee>;
   status: EmploymentStatus;
+  draftValues?: Record<string, unknown> | null;
+  isMounted?: boolean;
 }
 
 export default function ImportantDatesFields({
   defaultValues = {},
   status,
+  draftValues,
+  isMounted = false,
 }: Props) {
-  const val = (key: keyof Employee) => defaultValues?.[key];
+  const val = (key: keyof Employee) => {
+    if (isMounted && draftValues && draftValues[key as string] !== undefined) {
+      return draftValues[key as string] as string | number;
+    }
+    return defaultValues?.[key] as string | number;
+  };
 
   const formatDate = (date: string | null | undefined) => {
     if (!date) return "";
@@ -130,6 +139,7 @@ export default function ImportantDatesFields({
           <input
             type="date"
             name="hire_date"
+            key={`hire_date-${isMounted}`}
             value={hireDate}
             onChange={handleHireDateChange}
             required
@@ -160,6 +170,7 @@ export default function ImportantDatesFields({
           <input
             type="date"
             name="probation_end_date"
+            key={`probation_end_date-${isMounted}`}
             value={probationEndDate}
             onChange={(e) => {
               setProbationEndDate(e.target.value);
@@ -213,6 +224,7 @@ export default function ImportantDatesFields({
           <input
             type="date"
             name="termination_date"
+            key={`termination_date-${isMounted}`}
             value={terminationDate}
             onChange={(e) => setTerminationDate(e.target.value)}
             min={hireDate || undefined}

@@ -96,6 +96,10 @@ export const employeeService = {
     // 1. Lấy thông tin nhân viên để lấy auth_user_id
     const emp = await employeeRepo.getEmployeeById(id)
 
+    if (!emp) {
+        throw new Error('Nhân viên không tồn tại hoặc đã bị xóa bởi quản trị viên khác.')
+    }
+
     // 2. Xóa nhân viên trong DB
     await employeeRepo.deleteEmployee(id)
 

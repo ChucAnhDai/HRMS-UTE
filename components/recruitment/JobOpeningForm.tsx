@@ -10,6 +10,8 @@ import {
   updateJobAction,
 } from "@/server/actions/recruitment-actions";
 import { JobOpening, Department } from "@/types/database";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
+import FormDraftNotice from "../common/FormDraftNotice";
 
 interface Props {
   onClose: () => void;
@@ -22,6 +24,13 @@ export default function JobOpeningForm({
   jobToEdit,
   departments,
 }: Props) {
+  const { savedData, saveFormData, clearSavedData, isRestored, isMounted } = 
+    useFormPersistence({ 
+      entity: "job", 
+      action: jobToEdit ? "edit" : "create", 
+      id: jobToEdit?.id || "new" 
+    });
+
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<
@@ -46,6 +55,7 @@ export default function JobOpeningForm({
     setIsPending(false);
 
     if (res.success) {
+      clearSavedData();
       onClose();
     } else {
       setError(res.error || "Có lỗi xảy ra");
@@ -70,7 +80,18 @@ export default function JobOpeningForm({
           </button>
         </div>
 
-        <form action={handleSubmit} className="p-6 space-y-6">
+        <div className="px-6 pt-4">
+          <FormDraftNotice isVisible={isRestored} onClear={clearSavedData} />
+        </div>
+
+        <form 
+          action={handleSubmit} 
+          className="p-6 pt-2 space-y-6"
+          onChange={(e) => {
+            const formData = new FormData(e.currentTarget);
+            saveFormData(Object.fromEntries(formData.entries()));
+          }}
+        >
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
@@ -85,7 +106,8 @@ export default function JobOpeningForm({
               </label>
               <Input
                 name="title"
-                defaultValue={jobToEdit?.title}
+                key={`title-${isMounted}`}
+                defaultValue={isMounted ? (savedData?.title as string || jobToEdit?.title || "") : (jobToEdit?.title || "")}
                 placeholder="Vd: Lập trình viên PHP (Laravel)"
               />
               {fieldErrors?.title && (
@@ -101,7 +123,8 @@ export default function JobOpeningForm({
               </label>
               <select
                 name="department_id"
-                defaultValue={jobToEdit?.department_id ?? ""}
+                key={`department_id-${isMounted}`}
+                defaultValue={isMounted ? (savedData?.department_id as string || jobToEdit?.department_id?.toString() || "") : (jobToEdit?.department_id?.toString() || "")}
                 className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">-- Chọn phòng ban --</option>
@@ -124,7 +147,8 @@ export default function JobOpeningForm({
               </label>
               <select
                 name="status"
-                defaultValue={jobToEdit?.status || "Open"}
+                key={`status-${isMounted}`}
+                defaultValue={isMounted ? (savedData?.status as string || (jobToEdit?.status || "Open")) : (jobToEdit?.status || "Open")}
                 className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="Open">Open (Đang mở)</option>
@@ -140,7 +164,8 @@ export default function JobOpeningForm({
               </label>
               <Textarea
                 name="description"
-                defaultValue={jobToEdit?.description || ""}
+                key={`description-${isMounted}`}
+                defaultValue={isMounted ? (savedData?.description as string || (jobToEdit?.description || "")) : (jobToEdit?.description || "")}
                 rows={8}
                 placeholder="Mô tả chi tiết công việc, yêu cầu, quyền lợi... (Tối thiểu 20 ký tự)"
               />

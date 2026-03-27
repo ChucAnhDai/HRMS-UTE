@@ -15,6 +15,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { PlusCircle, Loader2 } from "lucide-react";
 import { createSalaryAdvanceAction } from "@/server/actions/salary-advance-actions";
 import { useToast } from "@/hooks/use-toast";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
+import FormDraftNotice from "../common/FormDraftNotice";
 
 const initialState: { error?: string; success?: boolean } = {
   error: "",
@@ -22,6 +24,12 @@ const initialState: { error?: string; success?: boolean } = {
 };
 
 export default function SalaryAdvanceRequestModal() {
+  const { savedData, saveFormData, clearSavedData, isRestored, isMounted } = 
+    useFormPersistence({ 
+      entity: "salary_advance", 
+      action: "create" 
+    });
+
   const [open, setOpen] = useState(false);
   const [state, formAction, isPending] = useActionState(
     createSalaryAdvanceAction,
@@ -31,6 +39,7 @@ export default function SalaryAdvanceRequestModal() {
 
   useEffect(() => {
     if (state.success) {
+      clearSavedData();
       toast({
         title: "Thành công",
         description: "Yêu cầu tạm ứng đã được gửi thành công.",
@@ -47,7 +56,7 @@ export default function SalaryAdvanceRequestModal() {
         variant: "destructive",
       });
     }
-  }, [state, toast]);
+  }, [state, toast, clearSavedData]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -61,16 +70,28 @@ export default function SalaryAdvanceRequestModal() {
         <DialogHeader>
           <DialogTitle>Đề xuất Tạm ứng lương</DialogTitle>
         </DialogHeader>
-        <form action={formAction} className="space-y-4 py-4">
+
+        <FormDraftNotice isVisible={isRestored} onClear={clearSavedData} />
+
+        <form 
+          action={formAction} 
+          className="space-y-4 py-4"
+          onChange={(e) => {
+            const fd = new FormData(e.currentTarget);
+            saveFormData(Object.fromEntries(fd.entries()));
+          }}
+        >
           <div className="space-y-2">
             <Label htmlFor="amount">Số tiền muốn ứng (VND)</Label>
             <Input
               id="amount"
               name="amount"
+              key={`amount-${isMounted}`}
               type="number"
               min="100000"
               step="50000"
               placeholder="Ví dụ: 1000000"
+              defaultValue={isMounted ? (savedData?.amount as string || "") : ""}
               required
             />
             <p className="text-xs text-gray-500">Tối thiểu: 100,000đ.</p>
@@ -81,7 +102,9 @@ export default function SalaryAdvanceRequestModal() {
             <Textarea
               id="reason"
               name="reason"
+              key={`reason-${isMounted}`}
               placeholder="Nhập lý do tạm ứng..."
+              defaultValue={isMounted ? (savedData?.reason as string || "") : ""}
               required
             />
           </div>

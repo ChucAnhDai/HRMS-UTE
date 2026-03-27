@@ -28,22 +28,22 @@ export default async function LandingPage() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                   </span>
-                  v2.0 is now live
+                  v2.0 đã sẵn sàng
                 </div>
                 <h1 className="text-[#111318] text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.1] tracking-[-0.02em]">
-                  All-in-One Human Resource{" "}
-                  <span className="text-[#0d59f2]">Management System</span>
+                  Hệ thống Quản lý Nhân sự{" "}
+                  <span className="text-[#0d59f2]">Toàn diện</span>
                 </h1>
                 <p className="text-slate-600 text-lg leading-relaxed max-w-[540px]">
-                  Streamline your employee data, payroll, and attendance in one
-                  secure platform. Designed for modern teams to work smarter.
+                  Tối ưu hóa dữ liệu nhân viên, bảng lương và chấm công trên một
+                  nền tảng bảo mật duy nhất. Phù hợp cho mọi doanh nghiệp.
                 </p>
                 <div className="flex flex-wrap gap-4 mt-2">
                   <button className="flex items-center justify-center rounded-lg h-12 px-6 bg-[#0d59f2] text-white text-base font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 hover:shadow-blue-500/30 transition-all transform hover:-translate-y-0.5">
-                    Start Free Trial
+                    Bắt đầu dùng thử
                   </button>
                   <button className="flex items-center justify-center rounded-lg h-12 px-6 bg-white border border-gray-200 text-[#111318] text-base font-bold hover:bg-gray-50 transition-all">
-                    Contact Sales
+                    Liên hệ ngay
                   </button>
                 </div>
                 <div className="flex items-center gap-4 mt-6 text-sm text-slate-500">
@@ -59,7 +59,7 @@ export default async function LandingPage() {
                       C
                     </div>
                   </div>
-                  <p>Trusted by 10,000+ HR professionals</p>
+                  <p>Được tin dùng bởi hơn 10,000 chuyên gia nhân sự</p>
                 </div>
               </div>
 
@@ -87,20 +87,20 @@ export default async function LandingPage() {
                     <div className="flex justify-between items-center mb-6">
                       <div>
                         <h3 className="font-bold text-lg">
-                          Dashboard Overview
+                          Tổng quan Hệ thống
                         </h3>
                         <p className="text-xs text-gray-400">
-                          Welcome back, HR Manager
+                          Chào mừng trở lại, Quản lý.
                         </p>
                       </div>
                       <button className="bg-[#0d59f2] text-white text-xs px-3 py-1.5 rounded">
-                        Generate Report
+                        Xuất báo cáo
                       </button>
                     </div>
                     <div className="grid grid-cols-3 gap-4 mb-6">
                       <div className="bg-blue-50 p-4 rounded-lg">
                         <div className="text-xs text-gray-500 mb-1">
-                          Total Employees
+                          Tổng số nhân viên
                         </div>
                         <div className="text-2xl font-bold text-[#0d59f2]">
                           1,248
@@ -108,7 +108,7 @@ export default async function LandingPage() {
                       </div>
                       <div className="bg-green-50 p-4 rounded-lg">
                         <div className="text-xs text-gray-500 mb-1">
-                          On Time
+                          Đúng giờ
                         </div>
                         <div className="text-2xl font-bold text-green-600">
                           96%
@@ -116,7 +116,7 @@ export default async function LandingPage() {
                       </div>
                       <div className="bg-purple-50 p-4 rounded-lg">
                         <div className="text-xs text-gray-500 mb-1">
-                          New Hires
+                          Nhân viên mới
                         </div>
                         <div className="text-2xl font-bold text-purple-600">
                           24
@@ -143,11 +143,11 @@ export default async function LandingPage() {
           <div className="max-w-[1280px] mx-auto px-4 sm:px-10">
             <div className="text-center mb-16 max-w-3xl mx-auto">
               <h2 className="text-[#111318] text-3xl md:text-4xl font-bold leading-tight tracking-[-0.02em] mb-4">
-                Everything you need to manage your workforce
+                Giải pháp quản lý nhân sự toàn diện
               </h2>
               <p className="text-slate-600 text-lg">
-                Our comprehensive suite of tools helps you stay organized,
-                compliant, and focused on your people.
+                Bộ công cụ tích hợp giúp bạn làm việc khoa học,
+                chuyên nghiệp và luôn tập trung vào giá trị cốt lõi.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
@@ -158,11 +158,11 @@ export default async function LandingPage() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <h3 className="text-[#111318] text-lg font-bold">
-                    Employee Mgmt
+                    Quản lý nhân viên
                   </h3>
                   <p className="text-slate-500 text-sm leading-relaxed">
-                    Centralize profiles, documents, and history in one secure
-                    place.
+                    Tập trung hồ sơ, tài liệu và lịch sử nhân sự
+                    tại một nơi duy nhất.
                   </p>
                 </div>
               </div>
@@ -173,10 +173,10 @@ export default async function LandingPage() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <h3 className="text-[#111318] text-lg font-bold">
-                    Attendance
+                    Chấm công
                   </h3>
                   <p className="text-slate-500 text-sm leading-relaxed">
-                    Track time, manage shifts, and handle leave requests easily.
+                    Theo dõi thời gian, quản lý ca làm và xử lý nghỉ phép dễ dàng.
                   </p>
                 </div>
               </div>
@@ -186,9 +186,9 @@ export default async function LandingPage() {
                   <span className="material-symbols-outlined">payments</span>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-[#111318] text-lg font-bold">Payroll</h3>
+                  <h3 className="text-[#111318] text-lg font-bold">Bảng lương</h3>
                   <p className="text-slate-500 text-sm leading-relaxed">
-                    Automate calculations and tax deductions instantly.
+                    Tự động hóa tính toán lương và thuế một cách chính xác.
                   </p>
                 </div>
               </div>
@@ -201,10 +201,10 @@ export default async function LandingPage() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <h3 className="text-[#111318] text-lg font-bold">
-                    Roles & Access
+                    Phân quyền & Bảo mật
                   </h3>
                   <p className="text-slate-500 text-sm leading-relaxed">
-                    Define custom permissions to keep sensitive data secure.
+                    Quy định quyền truy cập để bảo vệ dữ liệu nhạy cảm của doanh nghiệp.
                   </p>
                 </div>
               </div>
@@ -214,9 +214,9 @@ export default async function LandingPage() {
                   <span className="material-symbols-outlined">analytics</span>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-[#111318] text-lg font-bold">Reports</h3>
+                  <h3 className="text-[#111318] text-lg font-bold">Báo cáo & Phân tích</h3>
                   <p className="text-slate-500 text-sm leading-relaxed">
-                    Gain actionable insights with real-time data visualization.
+                    Theo dõi tiến độ với các biểu đồ trực quan theo thời gian thực.
                   </p>
                 </div>
               </div>
@@ -231,11 +231,11 @@ export default async function LandingPage() {
               <div className="flex-1 flex flex-col gap-8">
                 <div>
                   <h2 className="text-[#111318] text-3xl font-bold leading-tight mb-4">
-                    Focus on people, not paperwork.
+                    Tập trung vào con người, không phải giấy tờ.
                   </h2>
                   <p className="text-slate-600 text-lg">
-                    Stop drowning in spreadsheets. Our automated tools handle
-                    the tedious tasks so you can build a better company culture.
+                    Thay thế các bảng tính phức tạp bằng hệ thống tự động.
+                    Dành thời gian cho các nhiệm vụ quan trọng hơn.
                   </p>
                 </div>
                 <ul className="flex flex-col gap-5">
@@ -245,11 +245,11 @@ export default async function LandingPage() {
                     </div>
                     <div>
                       <h4 className="text-base font-bold text-[#111318]">
-                        Reduce manual work by 80%
+                        Giảm 80% khối lượng công việc thủ công
                       </h4>
                       <p className="text-sm text-slate-500">
-                        Automate onboarding, leave requests, and payroll
-                        processing.
+                        Tự động hóa tuyển dụng, nghỉ phép và
+                        tính toán lương hàng tháng.
                       </p>
                     </div>
                   </li>
@@ -259,11 +259,11 @@ export default async function LandingPage() {
                     </div>
                     <div>
                       <h4 className="text-base font-bold text-[#111318]">
-                        Increase team productivity
+                        Nâng cao hiệu suất làm việc
                       </h4>
                       <p className="text-sm text-slate-500">
-                        Self-service portals empower employees to manage their
-                        own info.
+                        Nhân viên có thể chủ động cập nhật và xem
+                        thông tin cá nhân của mình.
                       </p>
                     </div>
                   </li>
@@ -273,18 +273,18 @@ export default async function LandingPage() {
                     </div>
                     <div>
                       <h4 className="text-base font-bold text-[#111318]">
-                        Stay Compliant
+                        Tuân thủ đúng quy định
                       </h4>
                       <p className="text-sm text-slate-500">
-                        Automatically updated with the latest labor laws and tax
-                        regulations.
+                        Luôn cập nhật các thay đổi mới nhất về
+                        luật lao động và các quy định về thuế.
                       </p>
                     </div>
                   </li>
                 </ul>
               </div>
               <div className="flex-1 w-full bg-white h-64 rounded-xl shadow-lg flex items-center justify-center text-gray-300 font-bold text-2xl">
-                Image Placeholder
+                Hình ảnh minh họa
               </div>
             </div>
           </div>
@@ -295,11 +295,11 @@ export default async function LandingPage() {
           <div className="max-w-[1280px] mx-auto px-4 sm:px-10">
             <div className="text-center mb-16">
               <h2 className="text-[#111318] text-3xl font-bold mb-4">
-                Built for every role
+                Phù hợp cho mọi vai trò
               </h2>
               <p className="text-slate-600">
-                Whether you run the company or manage a team, we&apos;ve got you
-                covered.
+                Cho dù bạn là quản lý hay nhân viên, chúng tôi đều
+                có giải pháp tối ưu dành cho bạn.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -311,17 +311,17 @@ export default async function LandingPage() {
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-[#111318] mb-3">
-                  For HR Professionals
+                  Dành cho Chuyên gia Nhân sự
                 </h3>
                 <p className="text-slate-600 text-sm mb-6">
-                  Automate routine tasks, manage benefits, and keep employee
-                  records audit-ready without the headache.
+                  Tự động hóa mọi tác vụ thường nhật, quản lý phúc lợi
+                  và hồ sơ một cách khoa học & dễ dàng.
                 </p>
                 <a
                   className="text-[#0d59f2] font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all"
                   href="#"
                 >
-                  Learn more{" "}
+                  Tìm hiểu thêm{" "}
                   <span className="material-symbols-outlined text-sm">
                     arrow_forward
                   </span>
@@ -335,17 +335,17 @@ export default async function LandingPage() {
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-[#111318] mb-3">
-                  For Managers
+                  Dành cho Nhà Quản lý
                 </h3>
                 <p className="text-slate-600 text-sm mb-6">
-                  Track team performance, approve leave requests instantly, and
-                  streamline shift planning.
+                  Theo dõi hiệu suất của toàn đội, phê duyệt nghỉ phép
+                  và tối ưu hóa lịch trình làm việc chỉ trong tích tắc.
                 </p>
                 <a
                   className="text-purple-600 font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all"
                   href="#"
                 >
-                  Learn more{" "}
+                  Tìm hiểu thêm{" "}
                   <span className="material-symbols-outlined text-sm">
                     arrow_forward
                   </span>
@@ -359,17 +359,17 @@ export default async function LandingPage() {
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-[#111318] mb-3">
-                  For Small Business
+                  Dành cho Doanh nghiệp Nhỏ
                 </h3>
                 <p className="text-slate-600 text-sm mb-6">
-                  Scale your team without the administrative overhead.
-                  Affordable, easy to setup, and compliant.
+                  Mở rộng quy mô đội ngũ mà không tốn kém chi phí quản lý.
+                  Giá cả hợp lý, triển khai nhanh và luôn đúng quy định.
                 </p>
                 <a
                   className="text-green-600 font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all"
                   href="#"
                 >
-                  Learn more{" "}
+                  Tìm hiểu thêm{" "}
                   <span className="material-symbols-outlined text-sm">
                     arrow_forward
                   </span>
@@ -388,20 +388,20 @@ export default async function LandingPage() {
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-10 md:p-16 gap-8 text-center md:text-left">
               <div>
                 <h2 className="text-white text-3xl md:text-4xl font-bold mb-4 tracking-tight">
-                  Start managing your workforce{" "}
-                  <br className="hidden md:block" /> smarter today.
+                  Bắt đầu quản lý đội ngũ{" "}
+                  <br className="hidden md:block" /> thông minh hơn ngay hôm nay.
                 </h2>
                 <p className="text-blue-100 text-lg max-w-lg">
-                  Join thousands of companies growing with our HRM platform.
-                  14-day free trial, no credit card required.
+                  Hãy tham gia cùng cộng đồng các doanh nghiệp đang bứt phá.
+                  Dùng thử miễn phí ngay, không rủi ro.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
                 <button className="bg-white text-[#0d59f2] font-bold py-3.5 px-8 rounded-lg shadow-lg hover:bg-gray-50 transition-colors w-full sm:w-auto">
-                  Get Started Now
+                  Bắt đầu ngay
                 </button>
                 <button className="bg-transparent border border-white/30 text-white font-bold py-3.5 px-8 rounded-lg hover:bg-white/10 transition-colors w-full sm:w-auto">
-                  Book a Demo
+                  Đăng ký tư vấn
                 </button>
               </div>
             </div>
@@ -418,23 +418,23 @@ export default async function LandingPage() {
                   <div className="size-6 text-[#0d59f2] flex items-center justify-center">
                     <span className="material-symbols-outlined"></span>
                   </div>
-                  <span className="text-lg font-bold">HRM System</span>
+                  <span className="text-lg font-bold">Hệ thống HRM</span>
                 </div>
                 <p className="text-slate-500 text-sm leading-relaxed">
-                  Making work life better for everyone. The complete HR platform
-                  for modern business.
+                  Nâng cao chất lượng cuộc sống công việc cho mọi người.
+                  Giải pháp nhân sự toàn diện.
                 </p>
               </div>
               {/* Links 1 */}
               <div>
-                <h4 className="font-bold text-[#111318] mb-4">Product</h4>
+                <h4 className="font-bold text-[#111318] mb-4">Sản phẩm</h4>
                 <ul className="flex flex-col gap-3 text-sm text-slate-500">
                   <li>
                     <a
                       className="hover:text-[#0d59f2] transition-colors"
                       href="#"
                     >
-                      Features
+                      Tính năng
                     </a>
                   </li>
                   <li>
@@ -442,7 +442,7 @@ export default async function LandingPage() {
                       className="hover:text-[#0d59f2] transition-colors"
                       href="#"
                     >
-                      Pricing
+                      Bảng giá
                     </a>
                   </li>
                   <li>
@@ -450,7 +450,7 @@ export default async function LandingPage() {
                       className="hover:text-[#0d59f2] transition-colors"
                       href="#"
                     >
-                      Integrations
+                      Tích hợp
                     </a>
                   </li>
                   <li>
@@ -458,21 +458,21 @@ export default async function LandingPage() {
                       className="hover:text-[#0d59f2] transition-colors"
                       href="#"
                     >
-                      Updates
+                      Cập nhật
                     </a>
                   </li>
                 </ul>
               </div>
               {/* Links 2 */}
               <div>
-                <h4 className="font-bold text-[#111318] mb-4">Company</h4>
+                <h4 className="font-bold text-[#111318] mb-4">Công ty</h4>
                 <ul className="flex flex-col gap-3 text-sm text-slate-500">
                   <li>
                     <a
                       className="hover:text-[#0d59f2] transition-colors"
                       href="#"
                     >
-                      About Us
+                      Về chúng tôi
                     </a>
                   </li>
                   <li>
@@ -480,7 +480,7 @@ export default async function LandingPage() {
                       className="hover:text-[#0d59f2] transition-colors"
                       href="#"
                     >
-                      Careers
+                      Cơ hội nghề nghiệp
                     </a>
                   </li>
                   <li>
@@ -488,7 +488,7 @@ export default async function LandingPage() {
                       className="hover:text-[#0d59f2] transition-colors"
                       href="#"
                     >
-                      Press
+                      Báo chí
                     </a>
                   </li>
                   <li>
@@ -496,21 +496,21 @@ export default async function LandingPage() {
                       className="hover:text-[#0d59f2] transition-colors"
                       href="#"
                     >
-                      Contact
+                      Liên hệ
                     </a>
                   </li>
                 </ul>
               </div>
               {/* Links 3 */}
               <div>
-                <h4 className="font-bold text-[#111318] mb-4">Resources</h4>
+                <h4 className="font-bold text-[#111318] mb-4">Tài nguyên</h4>
                 <ul className="flex flex-col gap-3 text-sm text-slate-500">
                   <li>
                     <a
                       className="hover:text-[#0d59f2] transition-colors"
                       href="#"
                     >
-                      Blog
+                      Blog kiến thức
                     </a>
                   </li>
                   <li>
@@ -518,7 +518,7 @@ export default async function LandingPage() {
                       className="hover:text-[#0d59f2] transition-colors"
                       href="#"
                     >
-                      Help Center
+                      Trung tâm trợ giúp
                     </a>
                   </li>
                   <li>
@@ -526,7 +526,7 @@ export default async function LandingPage() {
                       className="hover:text-[#0d59f2] transition-colors"
                       href="#"
                     >
-                      Webinars
+                      Hội thảo & Video
                     </a>
                   </li>
                   <li>
@@ -534,7 +534,7 @@ export default async function LandingPage() {
                       className="hover:text-[#0d59f2] transition-colors"
                       href="#"
                     >
-                      Community
+                      Cộng đồng
                     </a>
                   </li>
                 </ul>
@@ -543,7 +543,7 @@ export default async function LandingPage() {
 
             <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-100 gap-4">
               <p className="text-xs text-slate-400">
-                © 2026 HRM System Inc. All rights reserved.
+                © 2026 HRM System Inc. Mọi quyền được bảo lưu.
               </p>
               <div className="flex gap-6">
                 <a

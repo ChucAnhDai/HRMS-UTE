@@ -4,6 +4,7 @@ import { employeeService } from '@/server/services/employee-service'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { EmployeeSchema } from '@/lib/schemas/employee.schema'
+import { activityService } from '@/server/services/activity-service'
 
 export async function updateEmployeeAction(id: number, prevState: { error?: string; success?: boolean }, formData: FormData) {
   try {
@@ -21,10 +22,13 @@ export async function updateEmployeeAction(id: number, prevState: { error?: stri
 
     await employeeService.updateEmployee(id, formData)
     
+    await activityService.logActivity('CẬP NHẬT', 'Nhân viên', id, `Cập nhật hồ sơ nhân viên ${rawData.last_name || ''} ${rawData.first_name || ''}`.trim())
+    
     // Xóa cache của trang danh sách và trang chi tiết
     revalidatePath('/employees')
     revalidatePath(`/employees/${id}`)
     
+    return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Đã có lỗi xảy ra khi cập nhật nhân viên'
     return {

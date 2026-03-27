@@ -6,21 +6,37 @@ import { UserPlus, Save, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import EmployeeFormSections from "./EmployeeFormSections";
 import { Department } from "@/types";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
+import FormDraftNotice from "../common/FormDraftNotice";
+import { useEffect } from "react";
 
 interface Props {
   departments: Department[];
 }
 
-const initialState = {
+const initialState: { error?: string; success?: boolean } = {
   error: "",
   success: false,
 };
 
 export default function CreateEmployeeForm({ departments }: Props) {
+  const { savedData, saveFormData, clearSavedData, isRestored, isMounted } = 
+    useFormPersistence({ 
+      entity: "employee", 
+      action: "create",
+      excludeFields: ["avatarFile"] 
+    });
+
   const [state, formAction, isPending] = useActionState(
     createEmployeeAction,
     initialState,
   );
+
+  useEffect(() => {
+    if (state?.success) {
+      clearSavedData();
+    }
+  }, [state?.success, clearSavedData]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -38,14 +54,26 @@ export default function CreateEmployeeForm({ departments }: Props) {
       </div>
 
       <div className="p-8">
-        <form action={formAction}>
+        <FormDraftNotice isVisible={isRestored} onClear={clearSavedData} />
+
+        <form 
+          action={formAction}
+          onChange={(e) => {
+            const formData = new FormData(e.currentTarget);
+            saveFormData(Object.fromEntries(formData.entries()));
+          }}
+        >
           {state?.error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium">
-              {state.error}
+              {state?.error}
             </div>
           )}
 
-          <EmployeeFormSections departments={departments} />
+          <EmployeeFormSections 
+            departments={departments} 
+            draftValues={savedData}
+            isMounted={isMounted}
+          />
 
           <div className="flex justify-end pt-6 border-t border-gray-100">
             <button

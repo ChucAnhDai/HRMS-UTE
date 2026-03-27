@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Use Case – HRMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f0f1a;
+  --surface: #16213e;
+  --border: #1a2540;
+  --text: #e2e8f0;
+  --muted: #64748b;
+}
+body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 52px;
+  background: rgba(15,15,26,0.95); border-bottom: 1px solid #1a2540;
+  display: flex; align-items: center; gap: 12px; padding: 0 16px; z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+.topbar-title { font-size: 13px; font-weight: 700; }
+.topbar-badge { font-family: 'JetBrains Mono',monospace; font-size:10px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:3px 10px; border-radius:20px; letter-spacing:1px; }
+.topbar-sep { flex:1; }
+.btn { font-family:'Be Vietnam Pro',sans-serif; font-size:12px; font-weight:500; padding:6px 14px; border-radius:8px; border:1px solid #1a2540; background:#16213e; color:var(--text); cursor:pointer; transition:all 0.2s; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+.btn:hover { border-color:rgba(255,255,255,0.2); }
+
+/* LEGEND */
+.legend {
+  position:fixed; top:64px; left:12px; background:rgba(22,33,62,0.95);
+  border:1px solid #1a2540; border-radius:12px; padding:14px; z-index:999; width:220px;
+  backdrop-filter:blur(10px); font-size:12px;
+}
+.legend h3 { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+.legend-group { margin-bottom:12px; }
+.legend-group h4 { font-size:10px; color:var(--muted); margin-bottom:6px; }
+.legend-row { display:flex; align-items:center; gap:8px; margin-bottom:5px; font-size:11px; color:var(--muted); }
+.actor-icon { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; border:2px solid; }
+.uc-oval { width:28px; height:16px; border:2px solid; border-radius:50%; display:inline-block; }
+.arr-line { width:28px; height:2px; }
+
+/* CANVAS */
+#canvas { position:fixed; top:52px; left:0; right:0; bottom:0; overflow:hidden; cursor:grab; }
+#canvas:active { cursor:grabbing; }
+#world { position:absolute; transform-origin:0 0; }
+#svg-layer { position:absolute; top:0; left:0; pointer-events:none; }
+
+/* SYSTEM BOUNDARY */
+.sys-boundary {
+  position:absolute; border:2px dashed; border-radius:16px;
+  display:flex; flex-direction:column;
+  pointer-events:none;
+}
+.sys-boundary-label {
+  font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  padding:6px 14px; position:absolute; top:-14px; left:16px;
+  border-radius:6px;
+}
+
+/* ACTOR */
+.actor {
+  position:absolute; cursor:move; user-select:none;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  width:80px;
+}
+.actor-body {
+  width:44px; height:44px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; border:3px solid;
+  background:rgba(255,255,255,0.04);
+  transition: box-shadow 0.2s;
+}
+.actor:hover .actor-body { box-shadow: 0 0 0 4px rgba(255,255,255,0.08); }
+.actor-label { font-size:11px; font-weight:600; text-align:center; line-height:1.3; }
+.actor-role {
+  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px;
+  text-transform:uppercase; padding:2px 8px; border-radius:10px;
+  background:rgba(255,255,255,0.07);
+}
+
+/* USE CASE OVAL */
+.usecase {
+  position:absolute; cursor:move; user-select:none;
+  border:2px solid; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  text-align:center; padding:6px 10px;
+  font-size:10.5px; font-weight:500; line-height:1.3;
+  transition: box-shadow 0.2s, transform 0.2s;
+  min-width:110px; min-height:42px;
+}
+.usecase:hover { transform:scale(1.03); }
+.usecase.dragging { box-shadow:0 8px 32px rgba(0,0,0,0.5); z-index:9999 !important; }
+
+.zoom-ctrl { position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:4px; z-index:999; }
+.zoom-btn { width:36px; height:36px; border-radius:8px; background:var(--surface); border:1px solid #1a2540; color:var(--text); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+
+.info-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); background:rgba(22,33,62,0.9); border:1px solid #1a2540; border-radius:10px 10px 0 0; padding:6px 20px; font-size:11px; color:var(--muted); z-index:999; font-family:'JetBrains Mono',monospace; }
+
+/* EDIT MODAL */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9998; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.modal-overlay.open { display:flex; }
+.modal { background:#1c2333; border:1px solid #30363d; border-radius:14px; padding:24px; width:380px; }
+.modal h2 { font-size:16px; font-weight:700; margin-bottom:16px; }
+.modal label { font-size:12px; color:var(--muted); display:block; margin-bottom:4px; margin-top:12px; }
+.modal input { width:100%; background:#0d1117; border:1px solid #21262d; border-radius:8px; padding:8px 12px; color:var(--text); font-family:'Be Vietnam Pro',sans-serif; font-size:13px; outline:none; }
+.modal input:focus { border-color:#10b981; }
+.modal-btns { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
+.btn-primary { background:#10b981; border-color:#10b981; color:white; }
+.btn-primary:hover { background:#059669; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">👤 Use Case – Phân Quyền Hệ Thống</span>
+  <span class="topbar-badge">HRMS v1.0</span>
+  <span class="topbar-sep"></span>
+  <button class="btn" onclick="fitView()">🎯 Fit View</button>
+  <a href="erd.html" class="btn">🗃️ ERD</a>
+  <a href="dataflow.html" class="btn">🔄 DFD</a>
+  <a href="index.html" class="btn">← Trang chủ</a>
+</div>
+
+<div class="legend">
+  <h3>Chú giải</h3>
+  <div class="legend-group">
+    <h4>ACTOR (Tác nhân)</h4>
+    <div class="legend-row"><div class="actor-icon" style="border-color:#f59e0b">👑</div>Admin – Quản trị hệ thống</div>
+    <div class="legend-row"><div class="actor-icon" style="border-color:#3b82f6">🧑‍💼</div>HR Manager – Quản lý nhân sự</div>
+    <div class="legend-row"><div class="actor-icon" style="border-color:#10b981">👤</div>Employee – Nhân viên</div>
+  </div>
+  <div class="legend-group">
+    <h4>USE CASE</h4>
+    <div class="legend-row"><div class="uc-oval" style="border-color:#3b82f6;background:rgba(59,130,246,0.1)"></div>Chức năng hệ thống</div>
+    <div class="legend-row"><div style="width:28px;height:2px;background:#6366f1"></div>Association (truy cập)</div>
+    <div class="legend-row"><div style="width:28px;height:2px;background:#f59e0b;background:repeating-linear-gradient(90deg,#f59e0b 0 5px,transparent 5px 9px)"></div>«include» (bao gồm)</div>
+    <div class="legend-row"><div style="width:28px;height:2px;background:#10b981;background:repeating-linear-gradient(90deg,#10b981 0 3px,transparent 3px 7px)"></div>«extend» (mở rộng)</div>
+  </div>
+  <div class="legend-group">
+    <h4>MODULE</h4>
+    <div class="legend-row"><div style="width:10px;height:10px;border-radius:3px;background:#3b82f6"></div>Core / Nhân sự</div>
+    <div class="legend-row"><div style="width:10px;height:10px;border-radius:3px;background:#10b981"></div>Chấm công & Nghỉ phép</div>
+    <div class="legend-row"><div style="width:10px;height:10px;border-radius:3px;background:#f59e0b"></div>Lương & Thưởng</div>
+    <div class="legend-row"><div style="width:10px;height:10px;border-radius:3px;background:#8b5cf6"></div>Tuyển dụng & Tài sản</div>
+  </div>
+  <div style="margin-top:10px;padding-top:10px;border-top:1px solid #1a2540;font-size:10px;color:var(--muted)">
+    💡 Kéo thả actor/usecase<br>✏️ Double-click để chỉnh sửa
+  </div>
+</div>
+
+<div id="canvas">
+  <div id="world">
+    <svg id="svg-layer"></svg>
+  </div>
+</div>
+
+<div class="zoom-ctrl">
+  <button class="zoom-btn" onclick="zoomIn()">+</button>
+  <button class="zoom-btn" id="zoom-label" style="font-size:10px;font-family:monospace;cursor:default">100%</button>
+  <button class="zoom-btn" onclick="zoomOut()">−</button>
+</div>
+
+<div class="info-bar">Kéo thả để sắp xếp &nbsp;|&nbsp; Scroll để zoom &nbsp;|&nbsp; Double-click để chỉnh sửa</div>
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>✏️ Chỉnh sửa</h2>
+    <label>Tên / Nhãn</label>
+    <input type="text" id="edit-label" />
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+let actors = [
+  { id:'admin', label:'Admin', sub:'Quản trị hệ thống', icon:'👑', color:'#f59e0b', x:60, y:280 },
+  { id:'hr', label:'HR Manager', sub:'Quản lý nhân sự', icon:'🧑‍💼', color:'#3b82f6', x:60, y:540 },
+  { id:'emp', label:'Employee', sub:'Nhân viên', icon:'👤', color:'#10b981', x:60, y:800 },
+];
+
+let usecases = [
+  // CORE
+  { id:'uc-emp-mgmt', label:'Quản lý\nNhân viên', color:'#3b82f6', x:320, y:160 },
+  { id:'uc-dept-mgmt', label:'Quản lý\nPhòng ban', color:'#3b82f6', x:500, y:160 },
+  { id:'uc-roles', label:'Phân quyền\nTài khoản', color:'#f59e0b', x:680, y:160 },
+
+  // ATTEND
+  { id:'uc-checkin', label:'Chấm công\nCheck-in/out', color:'#10b981', x:320, y:340 },
+  { id:'uc-leave', label:'Xin nghỉ phép', color:'#10b981', x:500, y:340 },
+  { id:'uc-leave-approve', label:'Duyệt nghỉ phép', color:'#10b981', x:680, y:340 },
+  { id:'uc-ot', label:'Xin tăng ca', color:'#10b981', x:860, y:340 },
+  { id:'uc-ot-approve', label:'Duyệt tăng ca', color:'#10b981', x:1040, y:340 },
+
+  // PAYROLL
+  { id:'uc-payroll', label:'Tạo bảng lương', color:'#f59e0b', x:320, y:540 },
+  { id:'uc-payslip', label:'Xem phiếu lương', color:'#f59e0b', x:500, y:540 },
+  { id:'uc-reward', label:'Thưởng / Phạt', color:'#f59e0b', x:680, y:540 },
+  { id:'uc-advance', label:'Tạm ứng lương', color:'#f59e0b', x:860, y:540 },
+  { id:'uc-salary-hist', label:'Lịch sử lương', color:'#f59e0b', x:1040, y:540 },
+
+  // RECRUIT + ASSET
+  { id:'uc-job', label:'Đăng tuyển dụng', color:'#8b5cf6', x:320, y:720 },
+  { id:'uc-candidate', label:'Quản lý ứng viên', color:'#8b5cf6', x:500, y:720 },
+  { id:'uc-contract', label:'Hợp đồng\nlao động', color:'#ec4899', x:680, y:720 },
+  { id:'uc-asset', label:'Quản lý tài sản', color:'#06b6d4', x:860, y:720 },
+  { id:'uc-asset-assign', label:'Giao / Thu hồi\ntài sản', color:'#06b6d4', x:1040, y:720 },
+
+  // PROFILE
+  { id:'uc-profile', label:'Xem hồ sơ\ncá nhân', color:'#10b981', x:320, y:900 },
+  { id:'uc-holiday', label:'Xem ngày lễ', color:'#10b981', x:500, y:900 },
+  { id:'uc-settings', label:'Cài đặt\nhệ thống', color:'#64748b', x:680, y:900 },
+  { id:'uc-logs', label:'Nhật ký\nhoạt động', color:'#64748b', x:860, y:900 },
+];
+
+// [actor_id, usecase_id, type] type: assoc, include, extend
+let connections = [
+  // ADMIN
+  ['admin','uc-emp-mgmt','assoc'],
+  ['admin','uc-dept-mgmt','assoc'],
+  ['admin','uc-roles','assoc'],
+  ['admin','uc-payroll','assoc'],
+  ['admin','uc-reward','assoc'],
+  ['admin','uc-job','assoc'],
+  ['admin','uc-settings','assoc'],
+  ['admin','uc-logs','assoc'],
+  ['admin','uc-contract','assoc'],
+  ['admin','uc-asset','assoc'],
+  // HR MANAGER
+  ['hr','uc-emp-mgmt','assoc'],
+  ['hr','uc-dept-mgmt','assoc'],
+  ['hr','uc-leave-approve','assoc'],
+  ['hr','uc-ot-approve','assoc'],
+  ['hr','uc-payroll','assoc'],
+  ['hr','uc-payslip','assoc'],
+  ['hr','uc-reward','assoc'],
+  ['hr','uc-advance','assoc'],
+  ['hr','uc-salary-hist','assoc'],
+  ['hr','uc-job','assoc'],
+  ['hr','uc-candidate','assoc'],
+  ['hr','uc-contract','assoc'],
+  ['hr','uc-asset-assign','assoc'],
+  // EMPLOYEE
+  ['emp','uc-checkin','assoc'],
+  ['emp','uc-leave','assoc'],
+  ['emp','uc-ot','assoc'],
+  ['emp','uc-payslip','assoc'],
+  ['emp','uc-advance','assoc'],
+  ['emp','uc-profile','assoc'],
+  ['emp','uc-holiday','assoc'],
+  // include/extend
+  ['uc-leave','uc-leave-approve','include'],
+  ['uc-ot','uc-ot-approve','include'],
+  ['uc-asset-assign','uc-asset','include'],
+  ['uc-candidate','uc-job','include'],
+  ['uc-payroll','uc-payslip','extend'],
+];
+
+// ===== STATE =====
+let scale = 0.6, panX = 0, panY = 0;
+let isPanning = false, panStart = {x:0,y:0}, panOrigin = {x:0,y:0};
+let editingItem = null;
+
+// ===== RENDER =====
+function renderAll() {
+  const world = document.getElementById('world');
+  world.querySelectorAll('.actor,.usecase').forEach(e=>e.remove());
+
+  actors.forEach(a => {
+    const el = document.createElement('div');
+    el.className = 'actor';
+    el.id = 'el-' + a.id;
+    el.style.cssText = `left:${a.x}px;top:${a.y}px;z-index:10`;
+    el.innerHTML = `
+      <div class="actor-body" style="border-color:${a.color}">${a.icon}</div>
+      <div class="actor-label">${a.label}</div>
+      <div class="actor-role" style="color:${a.color}">${a.sub.split(' ')[0]}</div>
+    `;
+    makeDraggable(el, a);
+    el.addEventListener('dblclick', e => { e.stopPropagation(); editingItem = a; document.getElementById('edit-label').value = a.label; document.getElementById('editModal').classList.add('open'); });
+    world.appendChild(el);
+  });
+
+  usecases.forEach(uc => {
+    const el = document.createElement('div');
+    el.className = 'usecase';
+    el.id = 'el-' + uc.id;
+    el.style.cssText = `left:${uc.x}px;top:${uc.y}px;border-color:${uc.color}88;background:${uc.color}12;color:${uc.color};z-index:5`;
+    el.textContent = uc.label;
+    makeDraggable(el, uc);
+    el.addEventListener('dblclick', e => { e.stopPropagation(); editingItem = uc; document.getElementById('edit-label').value = uc.label; document.getElementById('editModal').classList.add('open'); });
+    world.appendChild(el);
+  });
+
+  renderSVG();
+  updateTransform();
+}
+
+function getCenter(id) {
+  const el = document.getElementById('el-' + id);
+  if (!el) return null;
+  const data = [...actors, ...usecases].find(x => x.id === id);
+  if (!data) return null;
+  return { x: data.x + el.offsetWidth/2, y: data.y + el.offsetHeight/2 };
+}
+
+function renderSVG() {
+  const svg = document.getElementById('svg-layer');
+  svg.setAttribute('width', 3000); svg.setAttribute('height', 3000);
+  svg.innerHTML = '';
+
+  // Defs
+  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+  [['assoc','#94a3b8'],['include','#f59e0b'],['extend','#10b981']].forEach(([t,c]) => {
+    const m = document.createElementNS('http://www.w3.org/2000/svg','marker');
+    m.setAttribute('id','arr-'+t); m.setAttribute('viewBox','0 0 10 10');
+    m.setAttribute('refX','9'); m.setAttribute('refY','5');
+    m.setAttribute('markerWidth','6'); m.setAttribute('markerHeight','6');
+    m.setAttribute('orient','auto');
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d','M 0 0 L 10 5 L 0 10 z'); p.setAttribute('fill',c);
+    m.appendChild(p); defs.appendChild(m);
+  });
+  svg.appendChild(defs);
+
+  connections.forEach(([from, to, type]) => {
+    const fc = getCenter(from), tc = getCenter(to);
+    if (!fc || !tc) return;
+    const color = { assoc:'#94a3b8', include:'#f59e0b', extend:'#10b981' }[type];
+    const dash = type === 'assoc' ? 'none' : '6 4';
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',fc.x); line.setAttribute('y1',fc.y);
+    line.setAttribute('x2',tc.x); line.setAttribute('y2',tc.y);
+    line.setAttribute('stroke',color); line.setAttribute('stroke-width','1.5');
+    line.setAttribute('stroke-opacity','0.5'); line.setAttribute('stroke-dasharray',dash);
+    line.setAttribute('marker-end',`url(#arr-${type})`);
+    svg.appendChild(line);
+
+    if (type !== 'assoc') {
+      const mx = (fc.x+tc.x)/2, my = (fc.y+tc.y)/2;
+      const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x',mx); txt.setAttribute('y',my-4);
+      txt.setAttribute('text-anchor','middle'); txt.setAttribute('fill',color);
+      txt.setAttribute('font-size','9'); txt.setAttribute('font-family','JetBrains Mono,monospace');
+      txt.setAttribute('opacity','0.9');
+      txt.textContent = type === 'include' ? '«include»' : '«extend»';
+      svg.appendChild(txt);
+    }
+  });
+}
+
+function makeDraggable(el, data) {
+  let sx, sy, sx0, sy0;
+  el.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    sx=e.clientX; sy=e.clientY; sx0=data.x; sy0=data.y;
+    el.classList.add('dragging');
+    const mv = e2 => {
+      data.x = sx0+(e2.clientX-sx)/scale;
+      data.y = sy0+(e2.clientY-sy)/scale;
+      el.style.left=data.x+'px'; el.style.top=data.y+'px';
+      renderSVG();
+    };
+    const up = () => { el.classList.remove('dragging'); document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); };
+    document.addEventListener('mousemove',mv);
+    document.addEventListener('mouseup',up);
+  });
+}
+
+// PAN
+const canvas = document.getElementById('canvas');
+canvas.addEventListener('mousedown', e => {
+  if (e.button===0 && !e.target.closest('.actor,.usecase')) {
+    isPanning=true; panStart={x:e.clientX,y:e.clientY}; panOrigin={x:panX,y:panY};
+  }
+});
+document.addEventListener('mousemove', e => {
+  if (!isPanning) return;
+  panX=panOrigin.x+(e.clientX-panStart.x); panY=panOrigin.y+(e.clientY-panStart.y);
+  updateTransform();
+});
+document.addEventListener('mouseup', () => { isPanning=false; });
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const f=e.deltaY<0?1.1:0.9;
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const wx=(mx-panX)/scale, wy=(my-panY)/scale;
+  scale=Math.min(2,Math.max(0.15,scale*f));
+  panX=mx-wx*scale; panY=my-wy*scale;
+  updateTransform();
+}, {passive:false});
+
+function updateTransform() {
+  document.getElementById('world').style.transform = `translate(${panX}px,${panY}px) scale(${scale})`;
+  document.getElementById('zoom-label').textContent = Math.round(scale*100)+'%';
+}
+function zoomIn() { scale=Math.min(2,scale*1.15); updateTransform(); }
+function zoomOut() { scale=Math.max(0.15,scale/1.15); updateTransform(); }
+function fitView() { scale=0.55; panX=220; panY=20; updateTransform(); }
+
+function closeModal() { document.getElementById('editModal').classList.remove('open'); editingItem=null; }
+function saveEdit() {
+  if (editingItem) editingItem.label = document.getElementById('edit-label').value;
+  closeModal(); renderAll();
+}
+
+window.addEventListener('load', () => { renderAll(); setTimeout(fitView,100); });
+</script>
+</body>
+</html>

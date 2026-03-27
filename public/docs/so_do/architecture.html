@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Architecture - HRMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#050810; overflow:hidden; font-family:'Outfit',sans-serif; }
+svg { width:100vw; height:100vh; cursor:grab; }
+svg:active { cursor:grabbing; }
+.ui { position:fixed; top:16px; left:16px; background:rgba(5,8,16,0.93); border:1px solid #162040; border-radius:10px; padding:12px 18px; backdrop-filter:blur(12px); z-index:100; }
+.ui h1 { font-size:15px; font-weight:700; color:#e879f9; }
+.ui p { font-size:10px; color:#475569; margin-top:3px; }
+.controls { position:fixed; bottom:20px; right:20px; display:flex; gap:6px; z-index:100; }
+.btn { background:#0d1117; border:1px solid #162040; color:#cbd5e1; padding:7px 13px; border-radius:6px; cursor:pointer; font-size:14px; transition:.2s; }
+.btn:hover { background:#162040; border-color:#e879f9; color:#e879f9; }
+</style>
+</head>
+<body>
+<div class="ui">
+  <h1>🏗️ Architecture Diagram — HRMS</h1>
+  <p>Kéo để di chuyển · Scroll để zoom</p>
+</div>
+<div class="controls">
+  <button class="btn" onclick="resetView()">↺</button>
+  <button class="btn" onclick="z(1.2)">＋</button>
+  <button class="btn" onclick="z(0.83)">－</button>
+</div>
+<svg id="svg"></svg>
+<script>
+// ─── Architecture layers ─────────────────────────────────────
+const layers = [
+  {
+    id: 'client', label: '🖥️  CLIENT LAYER', color: '#38bdf8', bg: '#031221',
+    y: 60, h: 200,
+    nodes: [
+      { label: 'Web Browser\n(React / Next.js)', icon: '🌐', x: 200, color: '#38bdf8' },
+      { label: 'Mobile App\n(iOS / Android)', icon: '📱', x: 480, color: '#38bdf8' },
+    ]
+  },
+  {
+    id: 'api', label: '⚡  API GATEWAY LAYER', color: '#a78bfa', bg: '#0a0320',
+    y: 340, h: 180,
+    nodes: [
+      { label: 'REST API Server\n(Node.js / Supabase Edge)', icon: '🔌', x: 200, color: '#a78bfa' },
+      { label: 'Authentication\n(Supabase Auth / JWT)', icon: '🔐', x: 480, color: '#a78bfa' },
+      { label: 'Middleware\n(CORS, Rate Limit, Log)', icon: '🛡️', x: 760, color: '#a78bfa' },
+    ]
+  },
+  {
+    id: 'service', label: '⚙️  SERVICE LAYER', color: '#34d399', bg: '#011810',
+    y: 600, h: 260,
+    nodes: [
+      { label: 'Employee\nService', icon: '👤', x: 80, color: '#34d399' },
+      { label: 'Attendance\nService', icon: '🕐', x: 240, color: '#f59e0b' },
+      { label: 'Payroll\nService', icon: '💰', x: 400, color: '#a855f7' },
+      { label: 'Recruitment\nService', icon: '🧑‍💼', x: 560, color: '#22c55e' },
+      { label: 'Asset\nService', icon: '💻', x: 720, color: '#14b8a6' },
+      { label: 'Notification\nService', icon: '🔔', x: 880, color: '#fb923c' },
+    ]
+  },
+  {
+    id: 'data', label: '🗄️  DATA LAYER', color: '#fb923c', bg: '#120800',
+    y: 950, h: 200,
+    nodes: [
+      { label: 'PostgreSQL\n(Supabase DB)', icon: '🐘', x: 180, color: '#fb923c' },
+      { label: 'File Storage\n(CV, Hợp đồng, Avatar)', icon: '📁', x: 460, color: '#fb923c' },
+      { label: 'Activity Logs\n(Audit Trail)', icon: '📋', x: 740, color: '#fb923c' },
+    ]
+  },
+];
+
+const TOTAL_W = 1060;
+const NODE_W = 150, NODE_H = 70;
+
+// Arrows between layers
+const arrows = [
+  // Client → API
+  { x1: 280, y1: 255, x2: 280, y2: 340, label: 'HTTPS', color: '#38bdf8' },
+  { x1: 560, y1: 255, x2: 480, y2: 340, label: '', color: '#38bdf8' },
+  // API → Services
+  { x1: 280, y1: 520, x2: 280, y2: 600, label: 'Internal RPC', color: '#a78bfa' },
+  { x1: 560, y1: 520, x2: 560, y2: 600, label: '', color: '#a78bfa' },
+  { x1: 840, y1: 520, x2: 840, y2: 600, label: '', color: '#a78bfa' },
+  // Services → Data
+  { x1: 280, y1: 860, x2: 280, y2: 950, label: 'SQL Query', color: '#34d399' },
+  { x1: 560, y1: 860, x2: 560, y2: 950, label: '', color: '#34d399' },
+  { x1: 840, y1: 860, x2: 740, y2: 950, label: '', color: '#34d399' },
+];
+
+function drawLayer(l){
+  let s = '';
+  // Outer glow
+  s += `<rect x="30" y="${l.y}" width="${TOTAL_W}" height="${l.h}" rx="14" fill="${l.bg}" stroke="${l.color}" stroke-width="1.5" opacity="0.9"/>`;
+  // Layer label
+  s += `<text x="55" y="${l.y+22}" fill="${l.color}" font-family="'Outfit',sans-serif" font-weight="700" font-size="12" opacity="0.8">${l.label}</text>`;
+  // Nodes
+  l.nodes.forEach(n => {
+    const nx = 30 + n.x, ny = l.y + 40;
+    const c = n.color;
+    s += `<rect x="${nx+3}" y="${ny+4}" width="${NODE_W}" height="${NODE_H}" rx="10" fill="rgba(0,0,0,0.5)"/>`;
+    s += `<rect x="${nx}" y="${ny}" width="${NODE_W}" height="${NODE_H}" rx="10" fill="${c}20" stroke="${c}" stroke-width="1.5"/>`;
+    // icon
+    s += `<text x="${nx+NODE_W/2}" y="${ny+24}" text-anchor="middle" font-size="18">${n.icon}</text>`;
+    // label
+    const lines = n.label.split('\n');
+    lines.forEach((line,i)=>{
+      s += `<text x="${nx+NODE_W/2}" y="${ny+44+i*14}" text-anchor="middle" fill="#e2e8f0" font-family="'Outfit',sans-serif" font-size="10.5" font-weight="500">${line}</text>`;
+    });
+  });
+  return s;
+}
+
+function drawArrow(a){
+  const {x1,y1,x2,y2,label,color} = a;
+  const mx=(x1+x2)/2, my=(y1+y2)/2;
+  const path = `M${x1} ${y1} L${x2} ${y2}`;
+  const angle = Math.atan2(y2-y1,x2-x1);
+  const ah=9;
+  const ax1=x2-ah*Math.cos(angle-0.4), ay1=y2-ah*Math.sin(angle-0.4);
+  const ax2=x2-ah*Math.cos(angle+0.4), ay2=y2-ah*Math.sin(angle+0.4);
+  let s = `<path d="${path}" fill="none" stroke="${color}" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.6"/>`;
+  s += `<polygon points="${x2},${y2} ${ax1},${ay1} ${ax2},${ay2}" fill="${color}" opacity="0.7"/>`;
+  if(label){
+    s += `<rect x="${mx-28}" y="${my-10}" width="56" height="17" rx="4" fill="#050810" opacity="0.9"/>`;
+    s += `<text x="${mx}" y="${my+3}" text-anchor="middle" fill="${color}" font-family="'Outfit',sans-serif" font-size="9.5" font-weight="600">${label}</text>`;
+  }
+  return s;
+}
+
+function drawExternal(){
+  // External services box
+  let s = '';
+  const ex = 1110, ey = 400, ew = 180, eh = 350;
+  s += `<rect x="${ex}" y="${ey}" width="${ew}" height="${eh}" rx="12" fill="#0e0820" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="6,3"/>`;
+  s += `<text x="${ex+ew/2}" y="${ey+20}" text-anchor="middle" fill="#7c3aed" font-family="'Outfit',sans-serif" font-weight="700" font-size="11">«external»</text>`;
+
+  const exts = [
+    { icon:'📧', label:'Email\nSMTP', y:60 },
+    { icon:'💬', label:'Slack /\nZalo Notify', y:150 },
+    { icon:'☁️', label:'Cloud\nStorage', y:240 },
+  ];
+  exts.forEach(e=>{
+    const ey2=ey+e.y;
+    s += `<rect x="${ex+15}" y="${ey2}" width="${ew-30}" height="68" rx="8" fill="#1a0840" stroke="#7c3aed" stroke-width="1" opacity="0.7"/>`;
+    s += `<text x="${ex+ew/2}" y="${ey2+22}" text-anchor="middle" font-size="18">${e.icon}</text>`;
+    e.label.split('\n').forEach((l,i)=>
+      s += `<text x="${ex+ew/2}" y="${ey2+39+i*13}" text-anchor="middle" fill="#c4b5fd" font-family="'Outfit',sans-serif" font-size="10">${l}</text>`
+    );
+  });
+  // Arrow from API layer to external
+  s += `<path d="M1030 450 L1110 500" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.5"/>`;
+  s += `<text x="1062" y="468" fill="#7c3aed" font-family="'Outfit',sans-serif" font-size="9" opacity="0.8">Notify</text>`;
+  return s;
+}
+
+function drawTitle(){
+  return `
+    <text x="560" y="30" text-anchor="middle" fill="#e879f9" font-family="'Outfit',sans-serif" font-weight="800" font-size="18" opacity="0.25">HRMS SYSTEM ARCHITECTURE</text>
+  `;
+}
+
+function render(){
+  const svg = document.getElementById('svg');
+  let html = `<defs>
+    <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#e879f9" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#e879f9" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="20"/></filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0L0 0 0 40" fill="none" stroke="#0c1020" stroke-width="0.5"/></pattern>
+  </defs>
+  <rect width="3000" height="2000" x="-500" y="-200" fill="#050810"/>
+  <rect width="3000" height="2000" x="-500" y="-200" fill="url(#grid)"/>
+  <ellipse cx="560" cy="650" rx="400" ry="400" fill="url(#glow1)" filter="url(#blur)"/>`;
+
+  html += drawTitle();
+  html += `<g id="arrows">`;
+  arrows.forEach(a => html += drawArrow(a));
+  html += `</g>`;
+  html += `<g id="layers">`;
+  layers.forEach(l => html += drawLayer(l));
+  html += `</g>`;
+  html += drawExternal();
+
+  svg.innerHTML = html;
+}
+
+// Pan & Zoom
+let vx=0,vy=0,vw=1340,vh=1250,drag=false,lx,ly;
+const sv=document.getElementById('svg');
+function setV(){ sv.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`); }
+sv.addEventListener('mousedown',e=>{drag=true;lx=e.clientX;ly=e.clientY;e.preventDefault();});
+window.addEventListener('mousemove',e=>{
+  if(!drag) return;
+  vx-=(e.clientX-lx)*vw/window.innerWidth;
+  vy-=(e.clientY-ly)*vh/window.innerHeight;
+  lx=e.clientX;ly=e.clientY;setV();
+});
+window.addEventListener('mouseup',()=>drag=false);
+sv.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const f=e.deltaY>0?1.1:0.9;
+  const rx=(e.clientX/window.innerWidth)*vw, ry=(e.clientY/window.innerHeight)*vh;
+  vw*=f;vh*=f;vx+=rx-rx*f;vy+=ry-ry*f;setV();
+},{passive:false});
+function z(f){vw*=f;vh*=f;setV();}
+function resetView(){vx=0;vy=0;vw=1340;vh=1250;setV();}
+
+render(); setV();
+</script>
+</body>
+</html>

@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { X, Clock, Calendar, FileText } from "lucide-react";
 import { createOvertimeRequestAction } from "@/server/actions/overtime-actions";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
+import FormDraftNotice from "../common/FormDraftNotice";
+import { useEffect } from "react";
 
 import { Employee } from "@/types";
 
@@ -35,6 +38,29 @@ export default function OvertimeRequestModal({
     end_time: calculateDefaultEndTime(workEndTime),
     reason: "",
   });
+
+  const { savedData, saveFormData, clearSavedData, isRestored } = 
+    useFormPersistence({ 
+      entity: "overtime", 
+      action: "create" 
+    });
+
+  useEffect(() => {
+    if (isRestored && savedData) {
+      setFormData(prev => ({
+        ...prev,
+        ...savedData,
+        employee_id: savedData.employee_id ? Number(savedData.employee_id) : prev.employee_id
+      }));
+    }
+  }, [isRestored, savedData]);
+
+  // Sync state to storage whenever it changes
+  useEffect(() => {
+    if (formData.reason || formData.employee_id) {
+       saveFormData(formData);
+    }
+  }, [formData, saveFormData]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,6 +131,7 @@ export default function OvertimeRequestModal({
     });
 
     if (res.success) {
+      clearSavedData();
       onSuccess?.();
       onClose();
       // Reset form
@@ -133,6 +160,10 @@ export default function OvertimeRequestModal({
           <button onClick={onClose}>
             <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
           </button>
+        </div>
+
+        <div className="px-6 pt-4">
+          <FormDraftNotice isVisible={isRestored} onClear={clearSavedData} />
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">

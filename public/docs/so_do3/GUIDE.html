@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hướng Dẫn HRMS ERD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        header h1 {
+            color: #667eea;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .content h2 {
+            color: #667eea;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .content h3 {
+            color: #764ba2;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-size: 1.15em;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+        }
+        
+        .section p {
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+        
+        .list-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .list-item strong {
+            color: #667eea;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+        }
+        
+        .feature-box h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .feature-box p {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .nav-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .nav-link {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-decoration: none;
+            border-radius: 8px;
+            text-align: center;
+            transition: background 0.3s;
+        }
+        
+        .nav-link:hover {
+            background: #764ba2;
+        }
+        
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 15px 0;
+        }
+        
+        footer {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Hướng Dẫn Sử Dụng HRMS ERD</h1>
+            <p>Hệ Thống Biểu Đồ Thiết Kế Cơ Sở Dữ Liệu Quản Lý Nhân Sự</p>
+        </header>
+        
+        <div class="content">
+            <h2>🎯 Giới Thiệu</h2>
+            <div class="section">
+                <p>
+                    Đây là một bộ biểu đồ ERD (Entity Relationship Diagram) tương tác dành cho hệ thống 
+                    Quản Lý Nhân Sự (HRMS). Các biểu đồ được thiết kế để hỗ trợ việc trình bày, giảng dạy 
+                    và tài liệu hóa cấu trúc cơ sở dữ liệu.
+                </p>
+            </div>
+            
+            <h2>📁 Cấu Trúc File</h2>
+            <div class="section">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Mô Tả</th>
+                            <th>Bảng Chứa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>index.html</strong></td>
+                            <td>Trang chính - Điểm vào</td>
+                            <td>—</td>
+                        </tr>
+                        <tr>
+                            <td><strong>erd_core.html</strong></td>
+                            <td>Module Lõi (Core)</td>
+                            <td>Users, Employees, Departments, Activity Logs, Settings</td>
+                        </tr>
+                        <tr>
+                            <td><strong>erd_recruitment.html</strong></td>
+                            <td>Module Tuyển Dụng</td>
+                            <td>Job Openings, Candidates</td>
+                        </tr>
+                        <tr>
+                            <td><strong>erd_attendance.html</strong></td>
+                            <td>Module Chấm Công</td>
+                            <td>Attendances, Holidays, Leave Requests, Overtime Requests</td>
+                        </tr>
+                        <tr>
+                            <td><strong>erd_salary.html</strong></td>
+                            <td>Module Lương & Thưởng</td>
+                            <td>Payrolls, Payslips, Rewards & Penalties, Salary Advances, Salary History</td>
+                        </tr>
+                        <tr>
+                            <td><strong>erd_contracts.html</strong></td>
+                            <td>Module Hợp Đồng / HR</td>
+                            <td>Contracts, Overtime Requests</td>
+                        </tr>
+                        <tr>
+                            <td><strong>erd_assets.html</strong></td>
+                            <td>Module Tài Sản</td>
+                            <td>Assets, Asset Assignments</td>
+                        </tr>
+                        <tr>
+                            <td><strong>erd_system.html</strong></td>
+                            <td>Module Hệ Thống</td>
+                            <td>Activity Logs, Settings</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h2>🎮 Cách Sử Dụng Tính Năng Kéo Thả</h2>
+            <div class="section">
+                <p><strong>Mục Đích:</strong> Di chuyển các hộp bảng trên canvas để sắp xếp lại vị trí theo ý thích</p>
+                
+                <h3>Các Bước:</h3>
+                <div class="list-item">
+                    <strong>1. Click và Giữ:</strong> Nhấn chuột vào bảng bạn muốn di chuyển
+                </div>
+                <div class="list-item">
+                    <strong>2. Kéo:</strong> Di chuyển chuột đến vị trí mong muốn
+                </div>
+                <div class="list-item">
+                    <strong>3. Thả:</strong> Nhả chuột để đặt bảng ở vị trí mới
+                </div>
+                <div class="list-item">
+                    <strong>💡 Mẹo:</strong> Bạn có thể kéo nhiều bảng để tạo bố cục tùy chỉnh
+                </div>
+            </div>
+            
+            <h2>✏️ Chỉnh Sửa Thông Tin</h2>
+            <div class="section">
+                <p><strong>Mục Đích:</strong> Sửa đổi mô tả các trường dữ liệu trong bảng</p>
+                
+                <h3>Các Bước:</h3>
+                <div class="list-item">
+                    <strong>1. Chọn Bảng:</strong> Chọn tên bảng từ dropdown "Chọn Bảng"
+                </div>
+                <div class="list-item">
+                    <strong>2. Biên Tập:</strong> Chỉnh sửa mô tả các trường trong form
+                </div>
+                <div class="list-item">
+                    <strong>3. Lưu:</strong> Nhấn nút "💾 Lưu Thay Đổi"
+                </div>
+                <div class="list-item">
+                    <strong>✅ Thông Báo:</strong> Bạn sẽ nhận được thông báo xác nhận lưu thành công
+                </div>
+            </div>
+            
+            <h2>📊 Lưu Ý Về Các Ký Hiệu</h2>
+            <div class="feature-grid">
+                <div class="feature-box">
+                    <h4>🔑 PK (Primary Key)</h4>
+                    <p>Khóa chính - Định danh duy nhất cho mỗi bản ghi trong bảng</p>
+                </div>
+                <div class="feature-box">
+                    <h4>🔗 FK (Foreign Key)</h4>
+                    <p>Khóa ngoài - Liên kết đến bảng khác</p>
+                </div>
+                <div class="feature-box">
+                    <h4>⭐ UQ (Unique)</h4>
+                    <p>Duy nhất - Giá trị không được trùng lặp</p>
+                </div>
+                <div class="feature-box">
+                    <h4>1-1 (One-to-One)</h4>
+                    <p>Mối quan hệ một-một giữa hai bảng</p>
+                </div>
+                <div class="feature-box">
+                    <h4>1-N (One-to-Many)</h4>
+                    <p>Một bản ghi liên kết với nhiều bản ghi khác</p>
+                </div>
+                <div class="feature-box">
+                    <h4>M-N (Many-to-Many)</h4>
+                    <p>Mối quan hệ đa chiều giữa hai bảng</p>
+                </div>
+            </div>
+            
+            <h2>🛠️ Các Nút Công Cụ</h2>
+            <div class="section">
+                <p><strong>Mỗi trang ERD có các nút sau:</strong></p>
+                
+                <div class="list-item">
+                    <strong>← Quay Lại:</strong> Quay lại trang chính (index.html)
+                </div>
+                <div class="list-item">
+                    <strong>⬇️ Tải Hình Ảnh:</strong> Tải xuống biểu đồ dạng file PNG
+                </div>
+                <div class="list-item">
+                    <strong>🔄 Đặt Lại:</strong> Khôi phục bố cục ban đầu của các bảng
+                </div>
+            </div>
+            
+            <h2>🎯 Các Module Chính</h2>
+            <div class="section">
+                
+                <h3>⚙️ Core (Lõi)</h3>
+                <p>Chứa các bảng cơ bản nhất của hệ thống: Users, Employees, Departments, Activity Logs, Settings.</p>
+                <div class="list-item">
+                    <strong>Mục đích:</strong> Nền tảng cho tất cả các module khác
+                </div>
+                
+                <h3>📋 Tuyển Dụng (Recruitment)</h3>
+                <p>Quản lý quy trình tuyển dụng: Job Openings, Candidates.</p>
+                <div class="list-item">
+                    <strong>Mục đích:</strong> Quản lý các vị trí tuyển dụng và ứng viên
+                </div>
+                
+                <h3>📅 Chấm Công (Attendance)</h3>
+                <p>Quản lý chấm công và kỳ nghỉ: Attendances, Holidays, Leave Requests, Overtime Requests.</p>
+                <div class="list-item">
+                    <strong>Mục đích:</strong> Ghi nhận check-in/check-out và quản lý kỳ nghỉ
+                </div>
+                
+                <h3>💰 Lương & Thưởng (Salary)</h3>
+                <p>Quản lý lương và thưởng: Payrolls, Payslips, Rewards & Penalties, Salary Advances, Salary History.</p>
+                <div class="list-item">
+                    <strong>Mục đích:</strong> Tính lương, thưởng, phạt và quản lý lịch sử lương
+                </div>
+                
+                <h3>📑 Hợp Đồng / HR (Contracts)</h3>
+                <p>Quản lý hợp đồng và tăng ca: Contracts, Overtime Requests.</p>
+                <div class="list-item">
+                    <strong>Mục đích:</strong> Quản lý hợp đồng lao động và yêu cầu tăng ca
+                </div>
+                
+                <h3>🖥️ Tài Sản (Assets)</h3>
+                <p>Quản lý tài sản công ty: Assets, Asset Assignments.</p>
+                <div class="list-item">
+                    <strong>Mục đích:</strong> Theo dõi tài sản và gán cho nhân viên
+                </div>
+                
+                <h3>🔧 Hệ Thống (System)</h3>
+                <p>Quản lý hệ thống: Activity Logs, Settings.</p>
+                <div class="list-item">
+                    <strong>Mục đích:</strong> Ghi log hoạt động và cấu hình hệ thống
+                </div>
+            </div>
+            
+            <h2>📌 Mẹo Hữu Ích</h2>
+            <div class="section">
+                <div class="list-item">
+                    💡 <strong>Sắp xếp lại vị trí:</strong> Kéo các bảng để tạo bố cục rõ ràng hơn
+                </div>
+                <div class="list-item">
+                    💡 <strong>Tải hình ảnh:</strong> Sử dụng nút "Tải Hình Ảnh" để lưu biểu đồ dạng PNG
+                </div>
+                <div class="list-item">
+                    💡 <strong>Chỉnh sửa mô tả:</strong> Cập nhật mô tả các trường để phù hợp với dự án của bạn
+                </div>
+                <div class="list-item">
+                    💡 <strong>Xem lưới:</strong> Canvas có lưới giúp bạn sắp xếp các bảng gọn gàng
+                </div>
+                <div class="list-item">
+                    💡 <strong>Quay lại ban đầu:</strong> Nhấn "Đặt Lại" nếu bạn muốn khôi phục bố cục nguyên bản
+                </div>
+            </div>
+            
+            <h2>🎓 Hướng Dẫn Trình Bày Cho Giáo Viên</h2>
+            <div class="section">
+                <p><strong>Cách sử dụng để giảng dạy:</strong></p>
+                <div class="list-item">
+                    1. Mở trang index.html để xem tổng quan các module
+                </div>
+                <div class="list-item">
+                    2. Nhấp vào từng module để xem chi tiết biểu đồ
+                </div>
+                <div class="list-item">
+                    3. Kéo các bảng để sắp xếp theo cách giảng dạy của bạn
+                </div>
+                <div class="list-item">
+                    4. Hiển thị các trường, khóa và mối quan hệ
+                </div>
+                <div class="list-item">
+                    5. Tải hình ảnh để sử dụng trong slide hoặc tài liệu
+                </div>
+            </div>
+            
+            <h2>📞 Hỗ Trợ Thêm</h2>
+            <div class="section">
+                <p>
+                    Nếu bạn cần chỉnh sửa thêm hoặc thêm các module mới, 
+                    bạn có thể chỉnh sửa các file HTML trực tiếp hoặc liên hệ với lập trình viên.
+                </p>
+            </div>
+            
+            <h2>🚀 Bắt Đầu</h2>
+            <div class="section">
+                <p><strong>Nhấp vào một trong các module dưới đây để bắt đầu:</strong></p>
+                <div class="nav-links">
+                    <a href="index.html" class="nav-link">🏠 Trang Chính</a>
+                    <a href="erd_core.html" class="nav-link">⚙️ Core Module</a>
+                    <a href="erd_recruitment.html" class="nav-link">📋 Recruitment</a>
+                    <a href="erd_attendance.html" class="nav-link">📅 Attendance</a>
+                    <a href="erd_salary.html" class="nav-link">💰 Salary</a>
+                    <a href="erd_contracts.html" class="nav-link">📑 Contracts</a>
+                    <a href="erd_assets.html" class="nav-link">🖥️ Assets</a>
+                    <a href="erd_system.html" class="nav-link">🔧 System</a>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>📚 HRMS ERD Documentation | Phiên bản 1.0 | © 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

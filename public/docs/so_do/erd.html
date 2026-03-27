@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>ERD - HRMS</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#060a14; overflow:hidden; font-family:'JetBrains Mono',monospace; }
+#svg-wrap { width:100vw; height:100vh; }
+svg { width:100%; height:100%; cursor:grab; }
+svg:active { cursor:grabbing; }
+.header { position:fixed; top:16px; left:16px; background:rgba(6,10,20,0.9); border:1px solid #1e2d4a; border-radius:10px; padding:12px 18px; backdrop-filter:blur(12px); z-index:100; }
+.header h1 { font-family:'Outfit',sans-serif; font-size:15px; font-weight:700; color:#60a5fa; }
+.header p { font-size:10px; color:#475569; margin-top:3px; }
+.legend { position:fixed; top:16px; right:16px; background:rgba(6,10,20,0.9); border:1px solid #1e2d4a; border-radius:10px; padding:12px 16px; backdrop-filter:blur(12px); z-index:100; min-width:160px; }
+.legend h3 { font-family:'Outfit',sans-serif; font-size:10px; color:#64748b; letter-spacing:1px; margin-bottom:8px; }
+.li { display:flex; align-items:center; gap:7px; margin-bottom:4px; font-size:10px; color:#94a3b8; }
+.dot { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+.controls { position:fixed; bottom:20px; right:20px; display:flex; gap:6px; z-index:100; }
+.btn { background:#0d1117; border:1px solid #1e2d4a; color:#cbd5e1; padding:7px 13px; border-radius:6px; cursor:pointer; font-size:14px; transition:.2s; }
+.btn:hover { background:#1e2535; border-color:#3b82f6; color:#60a5fa; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🗃️ ERD — Hệ thống Quản lý Nhân sự</h1>
+  <p>Kéo để di chuyển · Scroll để zoom · 19 bảng · 21 quan hệ</p>
+</div>
+<div class="legend">
+  <h3>NHÓM MODULE</h3>
+  <div class="li"><div class="dot" style="background:#3b82f6"></div>Core (Lõi)</div>
+  <div class="li"><div class="dot" style="background:#22c55e"></div>Tuyển dụng</div>
+  <div class="li"><div class="dot" style="background:#f59e0b"></div>Chấm công</div>
+  <div class="li"><div class="dot" style="background:#a855f7"></div>Lương & Thưởng</div>
+  <div class="li"><div class="dot" style="background:#ec4899"></div>Hợp đồng / HR</div>
+  <div class="li"><div class="dot" style="background:#14b8a6"></div>Tài sản</div>
+  <div class="li"><div class="dot" style="background:#6b7280"></div>Hệ thống</div>
+  <hr style="border-color:#1e2535;margin:7px 0">
+  <div class="li"><span style="color:#fbbf24;font-weight:700;font-size:9px;width:18px">PK</span>Primary Key</div>
+  <div class="li"><span style="color:#f97316;font-weight:700;font-size:9px;width:18px">FK</span>Foreign Key</div>
+  <div class="li"><span style="color:#6b7280;font-size:9px;width:18px">UQ</span>Unique</div>
+</div>
+<div class="controls">
+  <button class="btn" onclick="resetView()">↺ Reset</button>
+  <button class="btn" onclick="zoom(1.25)">＋</button>
+  <button class="btn" onclick="zoom(0.8)">－</button>
+</div>
+<div id="svg-wrap"><svg id="mainsvg"></svg></div>
+
+<script>
+const TW = 210, RH = 23, HH = 33;
+const G = {
+  core:       { c:'#3b82f6', bg:'#0d1f3c' },
+  recruitment:{ c:'#22c55e', bg:'#052e16' },
+  time:       { c:'#f59e0b', bg:'#1c0e00' },
+  payroll:    { c:'#a855f7', bg:'#1e0938' },
+  hr:         { c:'#ec4899', bg:'#2d0620' },
+  asset:      { c:'#14b8a6', bg:'#012b28' },
+  system:     { c:'#6b7280', bg:'#111318' },
+};
+
+const tables = [
+  { id:'departments',      label:'departments',      g:'core',       x:120, y:440,
+    cols:[{n:'id',t:'PK'},{n:'name',t:''},{n:'created_at',t:''},{n:'updated_at',t:''}] },
+  { id:'users',            label:'users',            g:'core',       x:1460,y:440,
+    cols:[{n:'id',t:'PK'},{n:'name',t:''},{n:'email',t:'UQ'},{n:'role',t:''},{n:'status',t:''},{n:'created_at',t:''}] },
+  { id:'employees',        label:'employees',        g:'core',       x:740, y:430,
+    cols:[{n:'id',t:'PK'},{n:'department_id',t:'FK'},{n:'user_id',t:'FK'},{n:'first_name',t:''},{n:'last_name',t:''},{n:'email',t:'UQ'},{n:'phone',t:''},{n:'hire_date',t:''},{n:'salary',t:''},{n:'employment_status',t:''},{n:'role',t:''},{n:'job_title',t:''}] },
+  { id:'job_openings',     label:'job_openings',     g:'recruitment',x:120, y:80,
+    cols:[{n:'id',t:'PK'},{n:'department_id',t:'FK'},{n:'title',t:''},{n:'description',t:''},{n:'status',t:''}] },
+  { id:'candidates',       label:'candidates',       g:'recruitment',x:400, y:80,
+    cols:[{n:'id',t:'PK'},{n:'job_opening_id',t:'FK'},{n:'first_name',t:''},{n:'last_name',t:''},{n:'email',t:''},{n:'status',t:''}] },
+  { id:'assets',           label:'assets',           g:'asset',      x:1260,y:80,
+    cols:[{n:'id',t:'PK'},{n:'assigned_to',t:'FK'},{n:'name',t:''},{n:'asset_tag',t:'UQ'},{n:'purchase_date',t:''},{n:'status',t:''}] },
+  { id:'asset_assignments',label:'asset_assignments',g:'asset',      x:1260,y:460,
+    cols:[{n:'id',t:'PK'},{n:'asset_id',t:'FK'},{n:'employee_id',t:'FK'},{n:'assigned_date',t:''},{n:'returned_date',t:''}] },
+  { id:'holidays',         label:'holidays',         g:'system',     x:1560,y:80,
+    cols:[{n:'id',t:'PK'},{n:'name',t:''},{n:'date',t:'UQ'}] },
+  { id:'settings',         label:'settings',         g:'system',     x:1820,y:80,
+    cols:[{n:'id',t:'PK'},{n:'key',t:'UQ'},{n:'value',t:''}] },
+  { id:'attendances',      label:'attendances',      g:'time',       x:80,  y:820,
+    cols:[{n:'id',t:'PK'},{n:'employee_id',t:'FK'},{n:'date',t:''},{n:'check_in_time',t:''},{n:'check_out_time',t:''},{n:'status',t:''}] },
+  { id:'leave_requests',   label:'leave_requests',   g:'time',       x:80,  y:1080,
+    cols:[{n:'id',t:'PK'},{n:'employee_id',t:'FK'},{n:'action_by_emp_id',t:'FK'},{n:'leave_type',t:''},{n:'start_date',t:''},{n:'end_date',t:''},{n:'status',t:''}] },
+  { id:'overtime_requests',label:'overtime_requests',g:'time',       x:80,  y:1360,
+    cols:[{n:'id',t:'PK'},{n:'employee_id',t:'FK'},{n:'action_by_emp_id',t:'FK'},{n:'date',t:''},{n:'hours',t:''},{n:'status',t:''}] },
+  { id:'payrolls',         label:'payrolls',         g:'payroll',    x:1460,y:820,
+    cols:[{n:'id',t:'PK'},{n:'employee_id',t:'FK'},{n:'month',t:''},{n:'base_salary',t:''},{n:'total_salary',t:''},{n:'status',t:''}] },
+  { id:'payslips',         label:'payslips',         g:'payroll',    x:1730,y:820,
+    cols:[{n:'id',t:'PK'},{n:'employee_id',t:'FK'},{n:'month',t:''},{n:'year',t:''},{n:'salary',t:''},{n:'net_pay',t:''},{n:'status',t:''}] },
+  { id:'salary_advances',  label:'salary_advances',  g:'payroll',    x:1460,y:1100,
+    cols:[{n:'id',t:'PK'},{n:'employee_id',t:'FK'},{n:'approved_by',t:'FK'},{n:'amount',t:''},{n:'status',t:''}] },
+  { id:'salary_history',   label:'salary_history',   g:'payroll',    x:1730,y:1100,
+    cols:[{n:'id',t:'PK'},{n:'employee_id',t:'FK'},{n:'changed_by_emp_id',t:'FK'},{n:'old_salary',t:''},{n:'new_salary',t:''}] },
+  { id:'contracts',        label:'contracts',         g:'hr',         x:420, y:1220,
+    cols:[{n:'id',t:'PK'},{n:'employee_id',t:'FK'},{n:'contract_type',t:''},{n:'start_date',t:''},{n:'end_date',t:''},{n:'salary',t:''}] },
+  { id:'rewards_penalties',label:'rewards_penalties', g:'hr',         x:700, y:1220,
+    cols:[{n:'id',t:'PK'},{n:'employee_id',t:'FK'},{n:'type',t:''},{n:'amount',t:''},{n:'date',t:''},{n:'status',t:''}] },
+  { id:'activity_logs',    label:'activity_logs',    g:'system',     x:980, y:1220,
+    cols:[{n:'id',t:'PK'},{n:'employee_id',t:'FK'},{n:'action',t:''},{n:'entity_type',t:''},{n:'entity_id',t:''}] },
+];
+
+const rels = [
+  {f:'employees',fc:'department_id',t:'departments',tc:'id'},
+  {f:'employees',fc:'user_id',t:'users',tc:'id'},
+  {f:'job_openings',fc:'department_id',t:'departments',tc:'id'},
+  {f:'candidates',fc:'job_opening_id',t:'job_openings',tc:'id'},
+  {f:'attendances',fc:'employee_id',t:'employees',tc:'id'},
+  {f:'leave_requests',fc:'employee_id',t:'employees',tc:'id'},
+  {f:'leave_requests',fc:'action_by_emp_id',t:'employees',tc:'id'},
+  {f:'overtime_requests',fc:'employee_id',t:'employees',tc:'id'},
+  {f:'overtime_requests',fc:'action_by_emp_id',t:'employees',tc:'id'},
+  {f:'payrolls',fc:'employee_id',t:'employees',tc:'id'},
+  {f:'payslips',fc:'employee_id',t:'employees',tc:'id'},
+  {f:'salary_advances',fc:'employee_id',t:'employees',tc:'id'},
+  {f:'salary_advances',fc:'approved_by',t:'employees',tc:'id'},
+  {f:'salary_history',fc:'employee_id',t:'employees',tc:'id'},
+  {f:'salary_history',fc:'changed_by_emp_id',t:'employees',tc:'id'},
+  {f:'contracts',fc:'employee_id',t:'employees',tc:'id'},
+  {f:'rewards_penalties',fc:'employee_id',t:'employees',tc:'id'},
+  {f:'activity_logs',fc:'employee_id',t:'employees',tc:'id'},
+  {f:'assets',fc:'assigned_to',t:'employees',tc:'id'},
+  {f:'asset_assignments',fc:'asset_id',t:'assets',tc:'id'},
+  {f:'asset_assignments',fc:'employee_id',t:'employees',tc:'id'},
+];
+
+function th(tb){ return HH + tb.cols.length * RH; }
+function getT(id){ return tables.find(t=>t.id===id); }
+function colY(tb, cn){
+  const i = tb.cols.findIndex(c=>c.n===cn);
+  return tb.y + HH + (i<0?0:i)*RH + RH/2;
+}
+
+function drawTable(t){
+  const g = G[t.g]; const h = th(t); const {x,y,label,cols} = t;
+  let s = `<g>`;
+  s += `<rect x="${x+3}" y="${y+5}" width="${TW}" height="${h}" rx="7" fill="rgba(0,0,0,0.5)"/>`;
+  s += `<rect x="${x}" y="${y}" width="${TW}" height="${h}" rx="7" fill="#0a0e1a" stroke="${g.c}" stroke-width="1.5"/>`;
+  s += `<rect x="${x}" y="${y}" width="${TW}" height="${HH}" rx="7" fill="${g.bg}"/>`;
+  s += `<rect x="${x}" y="${y+HH-7}" width="${TW}" height="7" fill="${g.bg}"/>`;
+  s += `<line x1="${x}" y1="${y+HH}" x2="${x+TW}" y2="${y+HH}" stroke="${g.c}" stroke-width="1"/>`;
+  s += `<circle cx="${x+10}" cy="${y+HH/2}" r="3" fill="${g.c}" opacity="0.7"/>`;
+  s += `<text x="${x+TW/2}" y="${y+HH-11}" text-anchor="middle" fill="${g.c}" font-family="'JetBrains Mono',monospace" font-weight="600" font-size="11.5">${label}</text>`;
+  cols.forEach((col,i)=>{
+    const cy = y+HH+i*RH;
+    if(i%2===0) s+=`<rect x="${x+1}" y="${cy}" width="${TW-2}" height="${RH}" fill="rgba(255,255,255,0.018)"/>`;
+    if(i<cols.length-1) s+=`<line x1="${x+1}" y1="${cy+RH}" x2="${x+TW-1}" y2="${cy+RH}" stroke="#12192a" stroke-width="1"/>`;
+    let tc='#475569', fc='#64748b';
+    if(col.t==='PK'){tc='#fbbf24';fc='#f8f0c8';}
+    else if(col.t==='FK'){tc='#f97316';fc='#fed7aa';}
+    else if(col.t==='UQ'){tc='#64748b';fc='#94a3b8';}
+    else fc='#8892a4';
+    if(col.t) s+=`<text x="${x+7}" y="${cy+15}" fill="${tc}" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="8.5">${col.t}</text>`;
+    s+=`<text x="${x+(col.t?26:8)}" y="${cy+15}" fill="${fc}" font-family="'JetBrains Mono',monospace" font-size="9.5">${col.n}</text>`;
+  });
+  s+=`</g>`;
+  return s;
+}
+
+function drawRel(r){
+  const ft=getT(r.f), tt=getT(r.t);
+  if(!ft||!tt) return '';
+  const y1=colY(ft,r.fc), y2=colY(tt,r.tc);
+  const fcx=ft.x+TW/2, tcx=tt.x+TW/2;
+  let x1,x2,path;
+  const vertAligned = Math.abs(fcx-tcx)<60;
+  if(vertAligned){
+    x1=ft.x+TW; x2=tt.x+TW;
+    const ox=Math.max(x1,x2)+50;
+    path=`M${x1} ${y1} C${ox} ${y1} ${ox} ${y2} ${x2} ${y2}`;
+  } else if(fcx<tcx){
+    x1=ft.x+TW; x2=tt.x;
+    const mx=(x1+x2)/2;
+    path=`M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`;
+  } else {
+    x1=ft.x; x2=tt.x+TW;
+    const mx=(x1+x2)/2;
+    path=`M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`;
+  }
+  const c=G[ft.g].c;
+  return `<path d="${path}" fill="none" stroke="${c}" stroke-width="1.3" opacity="0.5"/>
+    <polygon points="${x2},${y2} ${x2+(fcx<tcx?-8:8)},${y2-4} ${x2+(fcx<tcx?-8:8)},${y2+4}" fill="${c}" opacity="0.7"/>`;
+}
+
+function render(){
+  const svg = document.getElementById('mainsvg');
+  let html = `<defs>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>`;
+  // Grid bg
+  html += `<rect width="10000" height="10000" x="-1000" y="-1000" fill="#060a14"/>`;
+  html += `<pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0d1525" stroke-width="0.5"/></pattern>`;
+  html += `<rect width="10000" height="10000" x="-1000" y="-1000" fill="url(#grid)"/>`;
+  // Relations first (behind tables)
+  html += `<g id="rels">`;
+  rels.forEach(r => html += drawRel(r));
+  html += `</g>`;
+  // Tables
+  html += `<g id="tables">`;
+  tables.forEach(t => html += drawTable(t));
+  html += `</g>`;
+  svg.innerHTML = html;
+}
+
+// Pan & Zoom
+let vx=0,vy=0,vw=2100,vh=1650,dragging=false,lx,ly;
+const svg = document.getElementById('mainsvg');
+
+function setView(){
+  svg.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`);
+}
+
+svg.addEventListener('mousedown',e=>{
+  dragging=true; lx=e.clientX; ly=e.clientY; e.preventDefault();
+});
+window.addEventListener('mousemove',e=>{
+  if(!dragging) return;
+  const dx=(lx-e.clientX)*vw/window.innerWidth;
+  const dy=(ly-e.clientY)*vh/window.innerHeight;
+  vx+=dx; vy+=dy; lx=e.clientX; ly=e.clientY;
+  setView();
+});
+window.addEventListener('mouseup',()=>dragging=false);
+svg.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const factor = e.deltaY>0?1.1:0.9;
+  const rx=(e.clientX/window.innerWidth)*vw;
+  const ry=(e.clientY/window.innerHeight)*vh;
+  vw*=factor; vh*=factor;
+  vx=vx+rx-rx*factor; vy=vy+ry-ry*factor;
+  setView();
+},{passive:false});
+
+function zoom(f){
+  vw*=f; vh*=f;
+  setView();
+}
+function resetView(){
+  vx=0;vy=0;vw=2100;vh=1650;
+  setView();
+}
+
+render();
+setView();
+</script>
+</body>
+</html>
