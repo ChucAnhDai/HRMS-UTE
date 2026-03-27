@@ -3,11 +3,21 @@ import { Employee } from "@/types";
 
 interface Props {
   defaultValues?: Partial<Employee>;
+  draftValues?: Record<string, unknown> | null;
+  isMounted?: boolean;
 }
 
-export default function SalaryFields({ defaultValues = {} }: Props) {
-  const val = (key: keyof Employee, fallback: string | number = "") =>
-    (defaultValues?.[key] ?? fallback) as string | number;
+export default function SalaryFields({ 
+  defaultValues = {},
+  draftValues,
+  isMounted = false
+}: Props) {
+  const val = (key: keyof Employee, fallback: string | number = "") => {
+    if (isMounted && draftValues && draftValues[key as string] !== undefined) {
+      return draftValues[key as string] as string | number;
+    }
+    return (defaultValues?.[key] ?? fallback) as string | number;
+  };
 
   return (
     <div className="mb-8">
@@ -23,6 +33,7 @@ export default function SalaryFields({ defaultValues = {} }: Props) {
           <input
             type="number"
             name="salary"
+            key={`salary-${isMounted}`}
             defaultValue={val("salary")}
             placeholder="0"
             min="0" // Chặn số âm
@@ -34,6 +45,7 @@ export default function SalaryFields({ defaultValues = {} }: Props) {
           <input
             type="text"
             name="tax_code"
+            key={`tax_code-${isMounted}`}
             defaultValue={val("tax_code")}
             placeholder="VD: 123456789"
             pattern="[0-9]*" // Chỉ cho nhập số (mobile keyboard)
@@ -48,6 +60,7 @@ export default function SalaryFields({ defaultValues = {} }: Props) {
           <input
             type="number"
             name="dependents"
+            key={`dependents-${isMounted}`}
             defaultValue={val("dependents", 0)}
             min="0" // Chặn số âm
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"

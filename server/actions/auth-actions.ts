@@ -2,6 +2,7 @@
 
 import { authService } from '@/server/services/auth-service'
 import { redirect } from 'next/navigation'
+import { activityService } from '@/server/services/activity-service'
 
 export async function loginAction(prevState: { error?: string } | undefined, formData: FormData) {
   const email = formData.get('email') as string
@@ -16,6 +17,7 @@ export async function loginAction(prevState: { error?: string } | undefined, for
     // Check role safely
     if (result && typeof result === 'object' && 'role' in result) {
         role = (result as { role: string }).role
+        await activityService.logActivity('Đăng nhập', 'Hệ thống', undefined, 'Vừa đăng nhập vào hệ thống HRM')
     }
   } catch (error: unknown) {
     // Trả lỗi về cho UI hiển thị

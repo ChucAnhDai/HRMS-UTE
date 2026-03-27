@@ -87,7 +87,40 @@ export const leaveService = {
   },
 
   // Duyệt đơn nghỉ phép
-  async approveLeave(id: number, actionByEmployeeId?: number) {
+  async approveLeave(id: number, actionByEmployeeId?: number, forceApprove?: boolean) {
+    // 1. Lấy thông tin đơn nghỉ phép
+    const leaveRequest = await leaveRepo.getLeaveRequestById(id)
+    if (!leaveRequest) {
+      throw new Error('Không tìm thấy đơn nghỉ phép')
+    }
+
+    // 2. Kiểm tra trạng thái - chỉ được duyệt đơn Pending
+    if (leaveRequest.status !== 'Pending') {
+      throw new Error('Chỉ có thể duyệt đơn ở trạng thái "Chờ duyệt"')
+    }
+
+    // 3. Kiểm tra ngày nghỉ đã qua chưa
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const endDate = new Date(leaveRequest.end_date)
+    endDate.setHours(0, 0, 0, 0)
+
+    if (endDate < today && !forceApprove) {
+      console.log(`[LeaveService] Late approval warning for request ${id} (End: ${leaveRequest.end_date})`)
+      // Trả về warning thay vì throw error
+      return {
+        warning: true,
+        message: `⚠️ Đơn nghỉ phép này đã quá hạn (${new Date(leaveRequest.start_date).toLocaleDateString('vi-VN')} - ${endDate.toLocaleDateString('vi-VN')}). Bạn có chắc chắn muốn duyệt không?`,
+        leaveId: id
+      }
+    }
+
+    if (forceApprove) {
+      console.log(`[LeaveService] Force approving expired request ${id} by admin/manager`)
+    } else {
+      console.log(`[LeaveService] Approving request ${id}`)
+    }
+
     return await leaveRepo.updateLeaveStatus(id, 'Approved', actionByEmployeeId)
   },
 

@@ -1,17 +1,24 @@
 import { createClient } from '@/lib/supabase.server'
 import { payrollRepo } from '../repositories/payroll-repo'
+import { requireAuth } from '@/lib/auth-helpers'
 
 export const dashboardService = {
   async getStats() {
+    await requireAuth()
     const supabase = await createClient()
 
     // 1. Tổng số nhân viên
     const { count: totalEmployees } = await supabase
       .from('employees')
       .select('*', { count: 'exact', head: true })
+      .in('employment_status', ['Active', 'Probation'])
 
     // 2. Số người đã Check-in hôm nay
-    const today = new Date().toISOString().split('T')[0]
+    const nowInVN = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+    const year = nowInVN.getFullYear();
+    const month = String(nowInVN.getMonth() + 1).padStart(2, '0');
+    const day = String(nowInVN.getDate()).padStart(2, '0');
+    const today = `${year}-${month}-${day}`;
     const { count: checkInCount } = await supabase
       .from('attendances')
       .select('*', { count: 'exact', head: true })
@@ -47,10 +54,16 @@ export const dashboardService = {
         }
     })
 
+    // Department count (All available ones)
+    const { count: departmentCount } = await supabase
+      .from('departments')
+      .select('*', { count: 'exact', head: true })
+
     // 5. Thống kê nhân viên theo phòng ban (cho Pie Chart)
     const { data: employees } = await supabase
       .from('employees')
       .select('department_id, departments(name)')
+      .in('employment_status', ['Active', 'Probation'])
     
     // Group by department
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,6 +97,29 @@ export const dashboardService = {
       .limit(5)
       .order('start_date', { ascending: true })
 
+    // 8. Hoạt động gần đây
+    interface ActivityLog {
+      id: number;
+      action: string;
+      entity_type: string;
+      details: string;
+      created_at: string;
+      employees: { first_name: string; last_name: string; avatar: string | null } | null;
+    }
+    let recentActivitiesData: ActivityLog[] = [];
+    try {
+      const { data, error: actError } = await supabase
+        .from('activity_logs')
+        .select('*, employees(first_name, last_name, avatar)')
+        .order('created_at', { ascending: false })
+        .limit(4);
+      if (!actError && data) {
+         recentActivitiesData = data;
+      }
+    } catch {
+      // Bỏ qua lỗi nếu bảng activity_logs chưa tồn tại
+    }
+
     // 7. Thống kê lương theo tháng (Real-time)
     const currentYear = new Date().getFullYear()
     const yearlyPayslips = await payrollRepo.getYearlyStats(currentYear)
@@ -108,7 +144,9 @@ export const dashboardService = {
       newEmployees: newEmployees || [],
       departmentStats,
       upcomingLeaves: upcomingLeaves || [],
-      salaryData 
+      recentActivities: recentActivitiesData || [],
+      salaryData,
+      departmentCount: departmentCount || 0
     }
   }
 }

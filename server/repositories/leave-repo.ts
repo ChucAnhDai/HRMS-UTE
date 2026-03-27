@@ -28,6 +28,19 @@ export const leaveRepo = {
     return data
   },
 
+  // Lấy thông tin chi tiết 1 đơn nghỉ phép theo ID
+  async getLeaveRequestById(id: number) {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('leave_requests')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) throw new Error(error.message)
+    return data
+  },
+
   // Tạo đơn xin nghỉ mới
   async createLeaveRequest(data: Database['public']['Tables']['leave_requests']['Insert']) {
     const supabase = await createClient()

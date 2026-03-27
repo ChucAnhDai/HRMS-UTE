@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<!-- Activity diagram cho quy trinh nghi phep -->
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HRMS Activity Diagram</title>
+  <style>
+    :root {
+      --bg: #ece4d6;
+      --panel: rgba(255, 252, 247, 0.96);
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --shadow: 0 18px 42px rgba(62, 43, 17, 0.12);
+      --start: #355c7d;
+      --task: #a9552b;
+      --decision: #456b52;
+      --finish: #7a4769;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(53,92,125,0.12), transparent 22%),
+        radial-gradient(circle at bottom left, rgba(169,85,43,0.12), transparent 24%),
+        linear-gradient(180deg, #faf6ef 0%, var(--bg) 100%);
+    }
+
+    .page { padding: 18px; }
+    .topbar, .panel, .diagram-shell {
+      background: var(--panel);
+      border-radius: 22px;
+      border: 1px solid rgba(186, 164, 130, 0.5);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .title h1 {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 4vw, 38px);
+    }
+
+    .title p {
+      margin: 0;
+      line-height: 1.65;
+      color: #4b5563;
+      max-width: 840px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .toolbar a,
+    .toolbar button {
+      padding: 11px 14px;
+      border: 0;
+      border-radius: 14px;
+      text-decoration: none;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .toolbar .ghost { background: #6f4c2d; }
+    .toolbar .secondary { background: #355c7d; }
+    .toolbar .primary { background: #a9552b; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 18px;
+      position: sticky;
+      top: 18px;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .panel ul {
+      margin: 0 0 12px;
+      padding-left: 18px;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+
+    .note-box {
+      min-height: 260px;
+      border: 1px dashed #d5c1a0;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.82);
+      padding: 14px;
+      outline: none;
+      line-height: 1.6;
+    }
+
+    .diagram-shell { padding: 14px; }
+    .board-wrap {
+      overflow: auto;
+      border-radius: 18px;
+      border: 1px dashed rgba(186, 164, 130, 0.58);
+      background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(250,246,239,0.92));
+    }
+
+    .board {
+      position: relative;
+      width: 1900px;
+      height: 1220px;
+      background-image:
+        linear-gradient(rgba(186, 164, 130, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(186, 164, 130, 0.12) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .lane {
+      position: absolute;
+      top: 70px;
+      bottom: 70px;
+      width: 33.3333%;
+      border-right: 2px dashed rgba(186, 164, 130, 0.45);
+      background: rgba(255,255,255,0.16);
+    }
+
+    .lane:last-of-type { border-right: 0; }
+
+    .lane-title {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.86);
+      border: 1px solid rgba(186, 164, 130, 0.45);
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    svg.links {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .edge {
+      fill: none;
+      stroke: rgba(94, 74, 48, 0.62);
+      stroke-width: 2.4;
+    }
+
+    .edge-label rect {
+      fill: rgba(255,255,255,0.92);
+      stroke: rgba(186, 164, 130, 0.5);
+    }
+
+    .edge-label text {
+      font-size: 11px;
+      font-weight: 800;
+      fill: #5a4124;
+    }
+
+    .node {
+      position: absolute;
+      width: 220px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.96);
+      border: 2px solid rgba(186, 164, 130, 0.6);
+      box-shadow: 0 16px 28px rgba(74, 54, 27, 0.12);
+    }
+
+    .node .handle {
+      padding: 9px 12px;
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: grab;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      user-select: none;
+    }
+
+    .node .body {
+      padding: 14px;
+      outline: none;
+      text-align: center;
+      line-height: 1.55;
+      font-weight: 700;
+      min-height: 82px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .start, .finish {
+      border-radius: 999px;
+      width: 180px;
+    }
+
+    .start .handle { background: var(--start); }
+    .finish .handle { background: var(--finish); }
+
+    .task {
+      border-radius: 18px;
+      width: 240px;
+    }
+
+    .task .handle { background: var(--task); }
+
+    .decision {
+      width: 200px;
+      border-radius: 0;
+      transform: rotate(45deg);
+    }
+
+    .decision .handle,
+    .decision .body {
+      transform: rotate(-45deg);
+    }
+
+    .decision .handle { background: var(--decision); }
+    .decision .body {
+      min-height: 120px;
+      padding: 20px 14px;
+    }
+
+    .hint {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 1fr; }
+      .panel { position: static; max-height: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="topbar">
+      <div class="title">
+        <h1>Activity Diagram - Quy trinh xin nghi phep</h1>
+        <p>
+          Minh chon quy trinh nay vi no lien ket ro giua cac bang <code>leave_requests</code>,
+          <code>attendances</code>, <code>payrolls</code> va <code>payslips</code>.
+        </p>
+      </div>
+      <div class="toolbar">
+        <a class="ghost" href="index.html">Trang tong</a>
+        <a class="secondary" href="dfd.html">DFD</a>
+        <a class="secondary" href="erd.html">ERD</a>
+        <button class="primary" id="resetBtn" type="button">Khoi phuc mac dinh</button>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Ghi chu Activity</h2>
+        <ul>
+          <li><strong>Start / End</strong>: diem bat dau va ket thuc quy trinh.</li>
+          <li><strong>Activity</strong>: buoc xu ly nghiep vu.</li>
+          <li><strong>Decision</strong>: diem re nhanh dua tren dieu kien.</li>
+          <li><strong>3 lane</strong>: Nhan vien, He thong, Quan ly / Ke toan.</li>
+        </ul>
+        <div id="noteBox" class="note-box" contenteditable="true" spellcheck="false"></div>
+        <div class="hint">
+          Ban co the doi quy trinh nay thanh “tinh luong hang thang” hoac “tuyen dung” bang cach sua truc tiep cac khoi.
+        </div>
+      </aside>
+
+      <section class="diagram-shell">
+        <div class="board-wrap">
+          <div class="board" id="board">
+            <div class="lane" style="left:0;"><div class="lane-title">Nhan vien</div></div>
+            <div class="lane" style="left:33.3333%;"><div class="lane-title">He thong</div></div>
+            <div class="lane" style="left:66.6666%;"><div class="lane-title">Quan ly / Ke toan</div></div>
+            <svg class="links" id="links">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(94, 74, 48, 0.7)"></path>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "hrms-activity-v1";
+    const BOARD_W = 1900;
+    const BOARD_H = 1220;
+
+    const noteDefault = `
+      <strong>Y nghia quy trinh:</strong>
+      <ul>
+        <li>Don nghi phep duoc tao boi nhan vien va luu voi trang thai <strong>Pending</strong>.</li>
+        <li>Quan ly / HR se phe duyet hoac tu choi.</li>
+        <li>Neu duoc duyet, du lieu nghi se tac dong den cong va tinh luong cuoi ky.</li>
+        <li>Ket qua cuoi cung la payslip da tinh theo du lieu thuc te.</li>
+      </ul>
+    `;
+
+    const defaultNodes = [
+      { id: "start", className: "start", x: 130, y: 110, html: "<div>Bat dau</div>" },
+      { id: "create_leave", className: "task", x: 90, y: 250, html: "<div>Nhan vien tao don nghi phep</div>" },
+      { id: "submit", className: "task", x: 360, y: 260, html: "<div>Gui yeu cau len he thong</div>" },
+      { id: "save_pending", className: "task", x: 760, y: 250, html: "<div>Luu leave_requests voi status = Pending</div>" },
+      { id: "notify", className: "task", x: 1080, y: 250, html: "<div>Thong bao cho Quan ly / HR</div>" },
+      { id: "review", className: "task", x: 1460, y: 250, html: "<div>Quan ly / HR xem xet yeu cau</div>" },
+      { id: "decision", className: "decision", x: 1490, y: 470, html: "<div>Duyet?</div>" },
+      { id: "reject", className: "task", x: 1360, y: 700, html: "<div>Cap nhat Rejected + ly do tu choi</div>" },
+      { id: "approve", className: "task", x: 920, y: 700, html: "<div>Cap nhat Approved + nguoi duyet</div>" },
+      { id: "sync_attendance", className: "task", x: 720, y: 920, html: "<div>Dong bo ngay nghi vao attendance / payroll input</div>" },
+      { id: "calc_payroll", className: "task", x: 1210, y: 930, html: "<div>Ke toan tinh luong cuoi ky</div>" },
+      { id: "generate_payslip", className: "task", x: 940, y: 1080, html: "<div>Tao payslip va net pay</div>" },
+      { id: "end", className: "finish", x: 1290, y: 1080, html: "<div>Ket thuc</div>" }
+    ];
+
+    const edges = [
+      { from: "start", to: "create_leave" },
+      { from: "create_leave", to: "submit" },
+      { from: "submit", to: "save_pending" },
+      { from: "save_pending", to: "notify" },
+      { from: "notify", to: "review" },
+      { from: "review", to: "decision" },
+      { from: "decision", to: "reject", label: "Khong" },
+      { from: "decision", to: "approve", label: "Co" },
+      { from: "approve", to: "sync_attendance" },
+      { from: "sync_attendance", to: "calc_payroll" },
+      { from: "calc_payroll", to: "generate_payslip" },
+      { from: "generate_payslip", to: "end" },
+      { from: "reject", to: "end", label: "Thong bao ket qua" }
+    ];
+
+    const board = document.getElementById("board");
+    const svg = document.getElementById("links");
+    const noteBox = document.getElementById("noteBox");
+    const nodeElements = new Map();
+    let dragState = null;
+    const state = loadState();
+
+    noteBox.innerHTML = state.noteHtml;
+    noteBox.addEventListener("input", () => {
+      state.noteHtml = noteBox.innerHTML;
+      persist();
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      if (!window.confirm("Khoi phuc Activity Diagram ve trang thai mac dinh?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      window.location.reload();
+    });
+
+    renderNodes();
+    drawEdges();
+    window.addEventListener("resize", drawEdges);
+
+    function loadState() {
+      const cloned = defaultNodes.map((node) => ({ ...node }));
+      const fallback = { nodes: cloned, noteHtml: noteDefault };
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return {
+          nodes: cloned.map((node) => {
+            const saved = parsed.nodes?.find((item) => item.id === node.id);
+            return saved ? { ...node, ...saved } : node;
+          }),
+          noteHtml: parsed.noteHtml || noteDefault
+        };
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function renderNodes() {
+      state.nodes.forEach((node) => {
+        const el = document.createElement("article");
+        el.className = `node ${node.className}`;
+        el.style.left = `${node.x}px`;
+        el.style.top = `${node.y}px`;
+        el.innerHTML = `
+          <div class="handle">Keo buoc</div>
+          <div class="body" contenteditable="true" spellcheck="false">${node.html}</div>
+        `;
+        el.querySelector(".handle").addEventListener("mousedown", (event) => startDrag(event, node.id));
+        el.querySelector(".body").addEventListener("input", () => {
+          state.nodes.find((item) => item.id === node.id).html = el.querySelector(".body").innerHTML;
+          persist();
+          drawEdges();
+        });
+        board.appendChild(el);
+        nodeElements.set(node.id, el);
+      });
+    }
+
+    function startDrag(event, id) {
+      const node = state.nodes.find((item) => item.id === id);
+      const rect = board.getBoundingClientRect();
+      dragState = { id, offsetX: event.clientX - rect.left - node.x, offsetY: event.clientY - rect.top - node.y };
+      document.addEventListener("mousemove", onDrag);
+      document.addEventListener("mouseup", stopDrag);
+    }
+
+    function onDrag(event) {
+      if (!dragState) return;
+      const rect = board.getBoundingClientRect();
+      const node = state.nodes.find((item) => item.id === dragState.id);
+      const el = nodeElements.get(dragState.id);
+      const maxX = BOARD_W - el.offsetWidth - 10;
+      const maxY = BOARD_H - el.offsetHeight - 10;
+      node.x = clamp(event.clientX - rect.left - dragState.offsetX, 8, maxX);
+      node.y = clamp(event.clientY - rect.top - dragState.offsetY, 8, maxY);
+      el.style.left = `${node.x}px`;
+      el.style.top = `${node.y}px`;
+      drawEdges();
+    }
+
+    function stopDrag() {
+      if (!dragState) return;
+      dragState = null;
+      document.removeEventListener("mousemove", onDrag);
+      document.removeEventListener("mouseup", stopDrag);
+      persist();
+    }
+
+    function drawEdges() {
+      svg.querySelectorAll(".edge-group").forEach((item) => item.remove());
+      edges.forEach((edge) => {
+        const fromEl = nodeElements.get(edge.from);
+        const toEl = nodeElements.get(edge.to);
+        if (!fromEl || !toEl) return;
+        const a = anchorPoint(fromEl, toEl);
+        const b = anchorPoint(toEl, fromEl);
+        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.setAttribute("class", "edge-group");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", smoothPath(a, b));
+        path.setAttribute("class", "edge");
+        path.setAttribute("marker-end", "url(#arrow)");
+        group.appendChild(path);
+        if (edge.label) group.appendChild(createLabel(edge.label, midpoint(a, b)));
+        svg.appendChild(group);
+      });
+    }
+
+    function anchorPoint(sourceEl, targetEl) {
+      const sx = parseFloat(sourceEl.style.left);
+      const sy = parseFloat(sourceEl.style.top);
+      const sw = sourceEl.offsetWidth;
+      const sh = sourceEl.offsetHeight;
+      const tx = parseFloat(targetEl.style.left);
+      const ty = parseFloat(targetEl.style.top);
+      const tw = targetEl.offsetWidth;
+      const th = targetEl.offsetHeight;
+      const sc = { x: sx + sw / 2, y: sy + sh / 2 };
+      const tc = { x: tx + tw / 2, y: ty + th / 2 };
+      const dx = tc.x - sc.x;
+      const dy = tc.y - sc.y;
+      if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? { x: sx + sw, y: sy + sh / 2 } : { x: sx, y: sy + sh / 2 };
+      return dy > 0 ? { x: sx + sw / 2, y: sy + sh } : { x: sx + sw / 2, y: sy };
+    }
+
+    function smoothPath(a, b) {
+      const dx = (b.x - a.x) * 0.35;
+      return `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`;
+    }
+
+    function midpoint(a, b) {
+      return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    }
+
+    function createLabel(text, point) {
+      const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      group.setAttribute("class", "edge-label");
+      group.setAttribute("transform", `translate(${point.x - 52}, ${point.y - 13})`);
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("rx", "10");
+      rect.setAttribute("ry", "10");
+      rect.setAttribute("width", "104");
+      rect.setAttribute("height", "24");
+      group.appendChild(rect);
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      label.setAttribute("x", "52");
+      label.setAttribute("y", "16");
+      label.setAttribute("text-anchor", "middle");
+      label.textContent = text;
+      group.appendChild(label);
+      return group;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+  </script>
+</body>
+</html>

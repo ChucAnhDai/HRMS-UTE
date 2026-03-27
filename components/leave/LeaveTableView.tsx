@@ -52,6 +52,13 @@ export default function LeaveTableView({
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectError, setRejectError] = useState("");
 
+  // State cho cảnh báo quá hạn
+  const [expiredWarningOpen, setExpiredWarningOpen] = useState(false);
+  const [expiredWarningMessage, setExpiredWarningMessage] = useState("");
+  const [expiredWarningLeaveId, setExpiredWarningLeaveId] = useState<number | null>(
+    null
+  );
+
   // Kiểm tra quyền duyệt đơn - Chỉ ADMIN, MANAGER mới được duyệt/từ chối
   const canApprove =
     currentUser?.role && ["ADMIN", "MANAGER"].includes(currentUser.role);
@@ -70,11 +77,35 @@ export default function LeaveTableView({
     if (!approvingLeaveId) return;
 
     setLoadingId(approvingLeaveId);
-    await approveLeaveAction(approvingLeaveId);
+    const result = await approveLeaveAction(approvingLeaveId);
     setLoadingId(null);
+
+    // Nếu server trả về cảnh báo quá hạn (warning: true)
+    if (result && "warning" in result && result.warning) {
+      setApproveModalOpen(false);
+      setExpiredWarningMessage(result.message || "Đơn nghỉ phép này đã quá hạn.");
+      setExpiredWarningLeaveId(approvingLeaveId);
+      setApprovingLeaveId(null);
+      setExpiredWarningOpen(true);
+      return;
+    }
 
     setApproveModalOpen(false);
     setApprovingLeaveId(null);
+    router.refresh();
+  };
+
+  // Xử lý duyệt đơn kể cả khi quá hạn
+  const handleForceApprove = async () => {
+    if (!expiredWarningLeaveId) return;
+
+    setLoadingId(expiredWarningLeaveId);
+    await approveLeaveAction(expiredWarningLeaveId, true); // forceApprove = true
+    setLoadingId(null);
+
+    setExpiredWarningOpen(false);
+    setExpiredWarningLeaveId(null);
+    setExpiredWarningMessage("");
     router.refresh();
   };
 
@@ -453,6 +484,49 @@ export default function LeaveTableView({
                   Từ chối đơn
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal cảnh báo đơn nghỉ phép đã quá hạn */}
+      {expiredWarningOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md m-4 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-amber-50/30">
+              <h3 className="font-bold text-gray-800 flex items-center gap-2 text-lg">
+                ⚠️ Cảnh báo: Đơn nghỉ phép đã quá hạn
+              </h3>
+              <p className="text-sm text-gray-600 mt-2">
+                {expiredWarningMessage}
+              </p>
+            </div>
+
+            <div className="p-6 flex justify-end gap-3 bg-gray-50/50">
+              <button
+                type="button"
+                onClick={() => {
+                  setExpiredWarningOpen(false);
+                  setExpiredWarningLeaveId(null);
+                  setExpiredWarningMessage("");
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-white transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleForceApprove}
+                disabled={loadingId !== null}
+                className="px-4 py-2 bg-amber-600 text-white font-medium rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-70 flex items-center gap-2"
+              >
+                {loadingId !== null ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
+                Vẫn duyệt đơn
+              </button>
             </div>
           </div>
         </div>

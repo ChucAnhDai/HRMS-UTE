@@ -6,12 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { submitApplicationAction } from "@/server/actions/recruitment-actions";
 import { CheckCircle, AlertCircle, UploadCloud } from "lucide-react";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
+import FormDraftNotice from "../common/FormDraftNotice";
 
 interface Props {
   jobId: number;
 }
 
 export default function ApplicationForm({ jobId }: Props) {
+  const { savedData, saveFormData, clearSavedData, isRestored, isMounted } = 
+    useFormPersistence({ 
+      entity: "application", 
+      action: "create", 
+      id: jobId,
+      excludeFields: ["resume_file"]
+    });
+
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,6 +32,7 @@ export default function ApplicationForm({ jobId }: Props) {
     const res = await submitApplicationAction(prevState, formData);
 
     if (res.success) {
+      clearSavedData();
       setSuccess(true);
     } else {
       if (res.fieldErrors) {
@@ -55,7 +66,16 @@ export default function ApplicationForm({ jobId }: Props) {
         Ứng tuyển Vị trí này
       </h3>
 
-      <form action={handleSubmit} className="space-y-4">
+      <FormDraftNotice isVisible={isRestored} onClear={clearSavedData} />
+
+      <form 
+        action={handleSubmit} 
+        className="space-y-4"
+        onChange={(e) => {
+          const fd = new FormData(e.currentTarget);
+          saveFormData(Object.fromEntries(fd.entries()));
+        }}
+      >
         <input type="hidden" name="job_opening_id" value={jobId} />
 
         {error && (
@@ -68,11 +88,23 @@ export default function ApplicationForm({ jobId }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-sm font-semibold text-gray-700">Tên</label>
-            <Input name="first_name" required placeholder="Vd: Sang" />
+            <Input 
+              name="first_name" 
+              key={`first_name-${isMounted}`}
+              required 
+              placeholder="Vd: Sang" 
+              defaultValue={isMounted ? (savedData?.first_name as string || "") : ""}
+            />
           </div>
           <div className="space-y-1">
             <label className="text-sm font-semibold text-gray-700">Họ</label>
-            <Input name="last_name" required placeholder="Vd: Bui" />
+            <Input 
+              name="last_name" 
+              key={`last_name-${isMounted}`}
+              required 
+              placeholder="Vd: Bui" 
+              defaultValue={isMounted ? (savedData?.last_name as string || "") : ""}
+            />
           </div>
         </div>
 
@@ -80,9 +112,11 @@ export default function ApplicationForm({ jobId }: Props) {
           <label className="text-sm font-semibold text-gray-700">Email</label>
           <Input
             name="email"
+            key={`email-${isMounted}`}
             type="email"
             required
             placeholder="example@gmail.com"
+            defaultValue={isMounted ? (savedData?.email as string || "") : ""}
           />
         </div>
 
@@ -90,7 +124,14 @@ export default function ApplicationForm({ jobId }: Props) {
           <label className="text-sm font-semibold text-gray-700">
             Số điện thoại
           </label>
-          <Input name="phone" type="tel" required placeholder="0901234567" />
+          <Input 
+            name="phone" 
+            key={`phone-${isMounted}`}
+            type="tel" 
+            required 
+            placeholder="0901234567" 
+            defaultValue={isMounted ? (savedData?.phone as string || "") : ""}
+          />
         </div>
 
         <div className="space-y-1">

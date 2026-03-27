@@ -7,8 +7,6 @@ import {
   Briefcase,
   ChevronRight,
   MoreHorizontal,
-  Trash2 as Trash2Icon,
-  Edit3 as Edit3Icon,
   Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -29,6 +27,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 interface DashboardProps {
+  userName?: string;
   stats: {
     totalEmployees: number;
     attendanceCount: number;
@@ -46,11 +45,20 @@ interface DashboardProps {
       start_date: string;
       employees: { first_name: string; last_name: string } | null;
     }[];
+    recentActivities: {
+      id: number;
+      action: string;
+      entity_type: string;
+      details: string;
+      created_at: string;
+      employees: { first_name: string; last_name: string; avatar: string | null } | null;
+    }[];
     salaryData: { name: string; received: number; pending: number }[];
+    departmentCount: number;
   };
 }
 
-export default function DashboardView({ stats }: DashboardProps) {
+export default function DashboardView({ stats, userName }: DashboardProps) {
   const statCards = [
     {
       label: "Tổng nhân viên",
@@ -72,10 +80,10 @@ export default function DashboardView({ stats }: DashboardProps) {
     },
     {
       label: "Phòng ban",
-      value: stats.departmentStats.length,
+      value: stats.departmentCount,
       icon: Building2,
       color: "bg-red-100 text-[#DC3545]",
-    }, // Thay Salary bằng Department count tạm
+    },
   ];
 
   return (
@@ -85,13 +93,13 @@ export default function DashboardView({ stats }: DashboardProps) {
         <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800">
           <div className="relative w-10 h-10 rounded-full overflow-hidden border border-gray-200">
             <Image
-              src="https://ui-avatars.com/api/?name=Admin&background=random"
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName || 'Admin')}&background=random`}
               alt="profile"
               fill
               className="object-cover"
             />
           </div>
-          Xin chào: Admin
+          Xin chào: {userName || 'Admin'}
         </h2>
         <p className="text-sm text-gray-500">
           {new Date().toLocaleDateString("vi-VN", {
@@ -108,14 +116,6 @@ export default function DashboardView({ stats }: DashboardProps) {
           <span>Home</span>
           <span className="text-gray-300">/</span>
           <span className="font-semibold text-blue-600">Dashboard</span>
-        </div>
-        <div className="flex gap-2">
-          <button className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-blue-700 transition">
-            Quản trị viên
-          </button>
-          <button className="px-4 py-2 bg-white text-gray-600 text-sm font-semibold rounded-lg shadow-sm hover:bg-gray-50 border border-gray-100">
-            Cổng nhân viên
-          </button>
         </div>
       </div>
 
@@ -201,7 +201,7 @@ export default function DashboardView({ stats }: DashboardProps) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={stats.salaryData}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                margin={{ top: 10, right: 10, left: 20, bottom: 0 }}
                 barSize={12}
               >
                 <CartesianGrid
@@ -220,6 +220,8 @@ export default function DashboardView({ stats }: DashboardProps) {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                  width={50}
+                  tickFormatter={(value) => new Intl.NumberFormat('vi-VN', { notation: "compact", compactDisplay: "short" }).format(value)}
                 />
                 <Tooltip
                   cursor={{ fill: "#F3F4F6" }}
@@ -228,6 +230,7 @@ export default function DashboardView({ stats }: DashboardProps) {
                     border: "none",
                     boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
                   }}
+                  formatter={(value: number | string | undefined) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0))}
                 />
                 <Legend
                   verticalAlign="bottom"
@@ -235,19 +238,19 @@ export default function DashboardView({ stats }: DashboardProps) {
                   iconType="rect"
                   formatter={(value) => (
                     <span className="text-sm font-medium text-gray-600 ml-2 capitalize">
-                      {value === "received" ? "Đã chi" : "Dự kiến"}
+                      {value}
                     </span>
                   )}
                 />
                 <Bar
                   dataKey="received"
-                  name="received"
+                  name="Đã chi"
                   fill="#8b5cf6"
                   radius={[4, 4, 0, 0]}
                 />
                 <Bar
                   dataKey="pending"
-                  name="pending"
+                  name="Dự kiến"
                   fill="#fbbf24"
                   radius={[4, 4, 0, 0]}
                 />
@@ -290,45 +293,45 @@ export default function DashboardView({ stats }: DashboardProps) {
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded">
-                    <Trash2Icon className="h-4 w-4" />
-                  </button>
-                  <Link
-                    href={`/employees/${member.id}/edit`}
-                    className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-                  >
-                    <Edit3Icon className="h-4 w-4" />
-                  </Link>
-                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Recent Activities - Static for now */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        {/* Recent Activities */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
           <h4 className="text-lg font-bold mb-6 text-gray-800">
             Hoạt động gần đây
           </h4>
           <div className="space-y-6">
-            {[1, 2, 3, 4].map((_, idx) => (
-              <div key={idx} className="flex gap-4">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-200 shrink-0 bg-gray-100">
-                  {/* Placeholder avatar */}
+            {stats.recentActivities.length === 0 ? (
+               <p className="text-sm text-gray-500 text-center py-4">Chưa có hoạt động nào.</p>
+            ) : (
+              stats.recentActivities.map((act) => (
+                <div key={act.id} className="flex gap-4">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-200 shrink-0 bg-gray-100">
+                    <Image
+                      src={
+                        act.employees?.avatar ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(act.employees?.last_name || 'System')}&background=random`
+                      }
+                      alt="avatar"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-800 font-medium leading-tight">
+                      <span className="font-bold">{act.employees?.last_name || 'Hệ thống'}</span> đã {act.action.toLowerCase()}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                       {act.details} • {new Date(act.created_at).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })}
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-gray-800 font-medium">
-                    Hệ thống tự động cập nhật...
-                  </p>
-                  <p className="text-xs text-gray-500">{idx + 1} giờ trước</p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
-          <button className="w-full mt-6 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-lg flex items-center justify-center gap-2">
-            Xem tất cả <ChevronRight className="h-4 w-4" />
-          </button>
         </div>
 
         {/* Upcoming Leave */}

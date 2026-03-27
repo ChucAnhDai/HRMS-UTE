@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Use Case - HRMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#07090f; overflow:hidden; }
+svg { width:100vw; height:100vh; cursor:grab; }
+svg:active { cursor:grabbing; }
+.ui { position:fixed; top:16px; left:16px; background:rgba(7,9,15,0.92); border:1px solid #1a2540; border-radius:10px; padding:12px 18px; backdrop-filter:blur(12px); z-index:100; }
+.ui h1 { font-family:'Outfit',sans-serif; font-size:15px; font-weight:700; color:#818cf8; }
+.ui p { font-size:10px; color:#475569; margin-top:3px; }
+.legend { position:fixed; top:16px; right:16px; background:rgba(7,9,15,0.92); border:1px solid #1a2540; border-radius:10px; padding:12px 16px; backdrop-filter:blur(12px); z-index:100; }
+.legend h3 { font-family:'Outfit',sans-serif; font-size:10px; color:#64748b; letter-spacing:1px; margin-bottom:8px; }
+.li { display:flex; align-items:center; gap:7px; margin-bottom:4px; font-family:'Outfit',sans-serif; font-size:11px; color:#94a3b8; }
+.swatch { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+.controls { position:fixed; bottom:20px; right:20px; display:flex; gap:6px; z-index:100; }
+.btn { background:#0d1117; border:1px solid #1a2540; color:#cbd5e1; padding:7px 13px; border-radius:6px; cursor:pointer; font-size:14px; transition:.2s; }
+.btn:hover { background:#1a2540; border-color:#818cf8; color:#818cf8; }
+</style>
+</head>
+<body>
+<div class="ui">
+  <h1>📋 Use Case Diagram — HRMS</h1>
+  <p>Kéo để di chuyển · Scroll để zoom</p>
+</div>
+<div class="legend">
+  <h3>ACTORS</h3>
+  <div class="li"><div class="swatch" style="background:#818cf8"></div>Admin / HR Manager</div>
+  <div class="li"><div class="swatch" style="background:#34d399"></div>Employee (Nhân viên)</div>
+  <div class="li"><div class="swatch" style="background:#fb923c"></div>System (Hệ thống)</div>
+  <hr style="border-color:#1a2540;margin:7px 0">
+  <div class="li">─── Association</div>
+  <div class="li">◁── Include / Extend</div>
+</div>
+<div class="controls">
+  <button class="btn" onclick="resetView()">↺</button>
+  <button class="btn" onclick="zoomSvg(1.25)">＋</button>
+  <button class="btn" onclick="zoomSvg(0.8)">－</button>
+</div>
+<svg id="svg"></svg>
+<script>
+// ─── Data ───────────────────────────────────────────────
+const modules = [
+  { label:'👤 Quản lý Nhân viên', color:'#3b82f6', bg:'#0a1628', x:340, y:60,
+    cases:[
+      'Thêm / Sửa / Xóa nhân viên',
+      'Xem hồ sơ nhân viên',
+      'Quản lý phòng ban',
+      'Cập nhật thông tin cá nhân',
+      'Lịch sử lương nhân viên',
+    ] },
+  { label:'🕐 Chấm công & Nghỉ phép', color:'#f59e0b', bg:'#1a0e00', x:340, y:420,
+    cases:[
+      'Xem bảng chấm công',
+      'Gửi đơn xin nghỉ phép',
+      'Gửi đơn làm thêm giờ',
+      'Duyệt / Từ chối đơn nghỉ',
+      'Duyệt / Từ chối đơn OT',
+    ] },
+  { label:'💰 Lương & Phụ cấp', color:'#a855f7', bg:'#12063a', x:340, y:780,
+    cases:[
+      'Tạo / Duyệt bảng lương',
+      'Xem phiếu lương',
+      'Gửi đơn ứng lương',
+      'Duyệt đơn ứng lương',
+      'Khen thưởng / Kỷ luật',
+    ] },
+  { label:'🧑‍💼 Tuyển dụng', color:'#22c55e', bg:'#032010', x:900, y:60,
+    cases:[
+      'Đăng tin tuyển dụng',
+      'Quản lý hồ sơ ứng viên',
+      'Cập nhật trạng thái ứng viên',
+      'Xem tin tuyển dụng',
+    ] },
+  { label:'🖥️ Tài sản', color:'#14b8a6', bg:'#011a18', x:900, y:380,
+    cases:[
+      'Thêm / Sửa tài sản',
+      'Cấp tài sản cho nhân viên',
+      'Thu hồi tài sản',
+      'Xem tài sản được cấp',
+    ] },
+  { label:'📄 Hợp đồng & Cài đặt', color:'#ec4899', bg:'#1f0514', x:900, y:650,
+    cases:[
+      'Quản lý hợp đồng lao động',
+      'Xem hợp đồng cá nhân',
+      'Cài đặt hệ thống',
+      'Xem nhật ký hoạt động',
+      'Quản lý ngày lễ',
+    ] },
+];
+
+// Actors
+const actors = [
+  { id:'admin', label:'Admin /\nHR Manager', color:'#818cf8', x:100, y:580 },
+  { id:'emp',   label:'Employee\n(Nhân viên)', color:'#34d399', x:1400, y:580 },
+  { id:'sys',   label:'System\n(Tự động)', color:'#fb923c', x:750, y:1200 },
+];
+
+// Connections: [actor_id, module_idx, case_idx or null(all)]
+const conns = [
+  // Admin → module connections
+  ['admin', 0, null], // all in module 0
+  ['admin', 1, 3], ['admin', 1, 4],
+  ['admin', 2, 0], ['admin', 2, 3], ['admin', 2, 4],
+  ['admin', 3, null],
+  ['admin', 4, 0], ['admin', 4, 1], ['admin', 4, 2],
+  ['admin', 5, 0], ['admin', 5, 2], ['admin', 5, 3], ['admin', 5, 4],
+  // Employee connections
+  ['emp', 0, 1], ['emp', 0, 3],
+  ['emp', 1, 0], ['emp', 1, 1], ['emp', 1, 2],
+  ['emp', 2, 1], ['emp', 2, 2],
+  ['emp', 3, 3],
+  ['emp', 4, 3],
+  ['emp', 5, 1],
+  // System
+  ['sys', 1, 0],
+  ['sys', 2, 0], ['sys', 2, 1],
+  ['sys', 5, 3],
+];
+
+// ─── Render ───────────────────────────────────────────────
+const UCW = 230, UCH = 34, UCPAD = 10, HDR = 38;
+function moduleH(m){ return HDR + m.cases.length*(UCH+UCPAD)+UCPAD; }
+
+function actorSVG(a){
+  // Stick figure
+  const {x,y,label,color} = a;
+  const lines = label.split('\n');
+  return `
+    <circle cx="${x}" cy="${y-50}" r="18" fill="none" stroke="${color}" stroke-width="2.5"/>
+    <line x1="${x}" y1="${y-32}" x2="${x}" y2="${y+10}" stroke="${color}" stroke-width="2.5"/>
+    <line x1="${x-22}" y1="${y-15}" x2="${x+22}" y2="${y-15}" stroke="${color}" stroke-width="2.5"/>
+    <line x1="${x}" y1="${y+10}" x2="${x-18}" y2="${y+45}" stroke="${color}" stroke-width="2.5"/>
+    <line x1="${x}" y1="${y+10}" x2="${x+18}" y2="${y+45}" stroke="${color}" stroke-width="2.5"/>
+    ${lines.map((l,i)=>`<text x="${x}" y="${y+65+i*16}" text-anchor="middle" fill="${color}" font-family="'Outfit',sans-serif" font-weight="600" font-size="12">${l}</text>`).join('')}
+  `;
+}
+
+function moduleSVG(m){
+  const h = moduleH(m);
+  let s = `<g>`;
+  // Shadow
+  s += `<rect x="${m.x+4}" y="${m.y+4}" width="${UCW+UCPAD*2}" height="${h}" rx="10" fill="rgba(0,0,0,0.5)"/>`;
+  // Border
+  s += `<rect x="${m.x}" y="${m.y}" width="${UCW+UCPAD*2}" height="${h}" rx="10" fill="${m.bg}" stroke="${m.color}" stroke-width="1.5"/>`;
+  // Header
+  s += `<rect x="${m.x}" y="${m.y}" width="${UCW+UCPAD*2}" height="${HDR}" rx="10" fill="${m.color}22"/>`;
+  s += `<rect x="${m.x}" y="${m.y+HDR-8}" width="${UCW+UCPAD*2}" height="8" fill="${m.color}22"/>`;
+  s += `<line x1="${m.x}" y1="${m.y+HDR}" x2="${m.x+UCW+UCPAD*2}" y2="${m.y+HDR}" stroke="${m.color}" stroke-width="1" opacity="0.5"/>`;
+  s += `<text x="${m.x+UCW/2+UCPAD}" y="${m.y+HDR-13}" text-anchor="middle" fill="${m.color}" font-family="'Outfit',sans-serif" font-weight="700" font-size="12">${m.label}</text>`;
+  // Use cases
+  m.cases.forEach((c,i)=>{
+    const cy = m.y+HDR+UCPAD+i*(UCH+UCPAD);
+    s += `<rect x="${m.x+UCPAD}" y="${cy}" width="${UCW}" height="${UCH}" rx="17" fill="${m.color}18" stroke="${m.color}" stroke-width="1" opacity="0.8"/>`;
+    s += `<ellipse cx="${m.x+UCPAD+14}" cy="${cy+UCH/2}" rx="8" ry="5" fill="none" stroke="${m.color}" stroke-width="1" opacity="0.6"/>`;
+    s += `<text x="${m.x+UCPAD+28}" y="${cy+UCH/2+4}" fill="#e2e8f0" font-family="'Outfit',sans-serif" font-size="11">${c}</text>`;
+  });
+  s += `</g>`;
+  return s;
+}
+
+function getCaseCenter(mi, ci){
+  const m = modules[mi];
+  const cy = m.y+HDR+UCPAD+ci*(UCH+UCPAD);
+  return { x: m.x+UCPAD+UCW/2, y: cy+UCH/2 };
+}
+
+function getModuleCenter(mi){
+  const m = modules[mi];
+  const h = moduleH(m);
+  return { x: m.x+UCW/2+UCPAD, y: m.y+h/2 };
+}
+
+function connSVG(conn){
+  const [aid, mi, ci] = conn;
+  const actor = actors.find(a=>a.id===aid);
+  const ax = actor.x, ay = actor.y - 50;
+  let target;
+  if(ci===null){ target = getModuleCenter(mi); }
+  else { target = getCaseCenter(mi, ci); }
+  const mx=(ax+target.x)/2;
+  const path = `M${ax} ${ay} C${mx} ${ay} ${mx} ${target.y} ${target.x} ${target.y}`;
+  return `<path d="${path}" fill="none" stroke="${actor.color}" stroke-width="1" opacity="0.18"/>`;
+}
+
+function render(){
+  const svg = document.getElementById('svg');
+  let html = `<defs>
+    <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0L0 0 0 40" fill="none" stroke="#0c1020" stroke-width="0.5"/></pattern>
+  </defs>
+  <rect width="5000" height="3000" x="-500" y="-200" fill="#07090f"/>
+  <rect width="5000" height="3000" x="-500" y="-200" fill="url(#grid)"/>`;
+
+  // System boundary box
+  html += `<rect x="285" y="30" width="720" height="1120" rx="14" fill="none" stroke="#1e3a5f" stroke-width="1.5" stroke-dasharray="8,4"/>`;
+  html += `<text x="650" y="22" text-anchor="middle" fill="#1e3a5f" font-family="'Outfit',sans-serif" font-size="12" font-weight="600">«system» HRMS</text>`;
+
+  // Connections
+  html += `<g id="conns">`;
+  conns.forEach(c => html += connSVG(c));
+  html += `</g>`;
+
+  // Modules
+  html += `<g id="mods">`;
+  modules.forEach(m => html += moduleSVG(m));
+  html += `</g>`;
+
+  // Actors
+  html += `<g id="actors">`;
+  actors.forEach(a => html += actorSVG(a));
+  html += `</g>`;
+
+  svg.innerHTML = html;
+}
+
+// Pan & Zoom
+let vx=-50, vy=-30, vw=1550, vh=1280, drag=false, lx, ly;
+const s = document.getElementById('svg');
+function sv(){ s.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`); }
+s.addEventListener('mousedown',e=>{drag=true;lx=e.clientX;ly=e.clientY;e.preventDefault();});
+window.addEventListener('mousemove',e=>{
+  if(!drag) return;
+  vx-=(e.clientX-lx)*vw/window.innerWidth;
+  vy-=(e.clientY-ly)*vh/window.innerHeight;
+  lx=e.clientX;ly=e.clientY;sv();
+});
+window.addEventListener('mouseup',()=>drag=false);
+s.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const f=e.deltaY>0?1.1:0.9;
+  const rx=(e.clientX/window.innerWidth)*vw, ry=(e.clientY/window.innerHeight)*vh;
+  vw*=f;vh*=f;vx+=rx-rx*f;vy+=ry-ry*f;sv();
+},{passive:false});
+function zoomSvg(f){vw*=f;vh*=f;sv();}
+function resetView(){vx=-50;vy=-30;vw=1550;vh=1280;sv();}
+
+render(); sv();
+</script>
+</body>
+</html>

@@ -32,7 +32,7 @@ export async function createLeaveRequestAction(prevState: ActionState, formData:
   }
 }
 
-export async function approveLeaveAction(id: number) {
+export async function approveLeaveAction(id: number, forceApprove: boolean = false) {
   try {
     // Kiểm tra quyền: Chỉ ADMIN, MANAGER mới được duyệt đơn
     await requireRole(['ADMIN', 'MANAGER'])
@@ -41,7 +41,13 @@ export async function approveLeaveAction(id: number) {
     const currentUser = await getCurrentUser()
     const actionByEmployeeId = currentUser?.employeeId || undefined
     
-    await leaveService.approveLeave(id, actionByEmployeeId)
+    const result = await leaveService.approveLeave(id, actionByEmployeeId, forceApprove)
+
+    // Nếu service trả về warning (đơn quá hạn, cần xác nhận)
+    if (result && typeof result === 'object' && 'warning' in result && result.warning) {
+      return { warning: true, message: result.message, leaveId: result.leaveId }
+    }
+
     revalidatePath('/leave')
     revalidatePath('/profile')
     return { success: true, message: 'Đã duyệt đơn' }

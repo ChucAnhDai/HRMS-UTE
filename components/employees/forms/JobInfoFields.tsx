@@ -7,6 +7,8 @@ interface Props {
   defaultValues?: Partial<Employee>;
   status: EmploymentStatus;
   onStatusChange: (status: EmploymentStatus) => void;
+  draftValues?: Record<string, unknown> | null;
+  isMounted?: boolean;
 }
 
 const EMPLOYMENT_STATUSES: { value: EmploymentStatus; label: string }[] = [
@@ -24,11 +26,16 @@ export default function JobInfoFields({
   defaultValues = {},
   status,
   onStatusChange,
+  draftValues,
+  isMounted = false,
 }: Props) {
   const val = (
     key: keyof Employee,
     fallback: string | number = "",
   ): string | number => {
+    if (isMounted && draftValues && draftValues[key as string] !== undefined) {
+      return draftValues[key as string] as string | number;
+    }
     const value = defaultValues?.[key];
     if (value === null || value === undefined) return fallback;
     if (typeof value === "object") return "";
@@ -50,6 +57,7 @@ export default function JobInfoFields({
           <label className="text-sm font-bold text-gray-700">Phòng ban</label>
           <select
             name="department_id"
+            key={`department_id-${isMounted}`}
             defaultValue={val("department_id")}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white transition-all focus:border-blue-500 text-black"
           >
@@ -66,6 +74,7 @@ export default function JobInfoFields({
           <input
             type="text"
             name="job_title"
+            key={`job_title-${isMounted}`}
             value={jobTitle}
             onChange={(e) => setJobTitle(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
@@ -85,6 +94,7 @@ export default function JobInfoFields({
           </label>
           <select
             name="employment_status"
+            key={`employment_status-${isMounted}`}
             value={status}
             onChange={(e) => onStatusChange(e.target.value as EmploymentStatus)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white transition-all focus:border-blue-500 text-black"

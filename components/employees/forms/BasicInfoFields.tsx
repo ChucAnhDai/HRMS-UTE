@@ -3,13 +3,22 @@ import { Employee } from "@/types";
 
 interface Props {
   defaultValues?: Partial<Employee>;
+  draftValues?: Record<string, unknown> | null;
+  isMounted?: boolean;
 }
 
-export default function BasicInfoFields({ defaultValues = {} }: Props) {
+export default function BasicInfoFields({ 
+  defaultValues = {},
+  draftValues,
+  isMounted = false
+}: Props) {
   const val = (
     key: keyof Employee,
     fallback: string | number = "",
   ): string | number => {
+    if (isMounted && draftValues && draftValues[key as string] !== undefined) {
+      return draftValues[key as string] as string | number;
+    }
     const value = defaultValues?.[key];
     if (value === null || value === undefined) return fallback;
     if (typeof value === "object") return "";
@@ -30,6 +39,7 @@ export default function BasicInfoFields({ defaultValues = {} }: Props) {
           <input
             type="text"
             name="last_name"
+            key={`last_name-${isMounted}`}
             defaultValue={val("last_name") as string}
             required
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
@@ -43,6 +53,7 @@ export default function BasicInfoFields({ defaultValues = {} }: Props) {
           <input
             type="text"
             name="first_name"
+            key={`first_name-${isMounted}`}
             defaultValue={val("first_name") as string}
             required
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
@@ -56,6 +67,7 @@ export default function BasicInfoFields({ defaultValues = {} }: Props) {
           <input
             type="email"
             name="email"
+            key={`email-${isMounted}`}
             defaultValue={val("email") as string}
             required
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
@@ -69,6 +81,7 @@ export default function BasicInfoFields({ defaultValues = {} }: Props) {
           <input
             type="tel"
             name="phone"
+            key={`phone-${isMounted}`}
             defaultValue={val("phone") as string}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
             placeholder="0901234567"

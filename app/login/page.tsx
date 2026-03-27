@@ -5,10 +5,18 @@ import { Mail, Lock, Eye, Facebook, Chrome, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { loginAction } from "@/server/actions/auth-actions";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
 
 export default function LoginPage() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string>("");
+
+  const { savedData, saveFormData, clearSavedData, isMounted } =
+    useFormPersistence({
+      entity: "auth",
+      action: "create",
+      id: "main",
+    });
 
   async function handleSubmit(formData: FormData) {
     setError("");
@@ -16,6 +24,9 @@ export default function LoginPage() {
       const result = await loginAction(undefined, formData);
       if (result?.error) {
         setError(result.error);
+      } else {
+        // Clear draft on successful login
+        clearSavedData();
       }
     });
   }
@@ -98,7 +109,14 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form action={handleSubmit} className="space-y-6">
+          <form
+            action={handleSubmit}
+            className="space-y-6"
+            onChange={(e) => {
+              const formData = new FormData(e.currentTarget);
+              saveFormData(Object.fromEntries(formData.entries()));
+            }}
+          >
             {error && (
               <div className="p-4 bg-red-50 text-red-600 text-sm font-medium rounded-xl border border-red-100 animate-in fade-in slide-in-from-top-2">
                 {error}
@@ -112,11 +130,13 @@ export default function LoginPage() {
               <div className="relative group/input">
                 <Mail className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300 transition-colors" />
                 <input
+                  key={isMounted ? "email-mounted" : "email-unmounted"}
                   name="email"
                   type="email"
                   required
                   maxLength={100}
-                  placeholder="name@company.com"
+                  // placeholder="name@company.com"
+                  defaultValue={(savedData?.email as string) || ""}
                   className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-3xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:bg-white transition-all shadow-inner text-black"
                 />
               </div>
@@ -137,11 +157,13 @@ export default function LoginPage() {
               <div className="relative group/input">
                 <Lock className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300 transition-colors" />
                 <input
+                  key={isMounted ? "password-mounted" : "password-unmounted"}
                   name="password"
                   type="password"
                   required
                   maxLength={100}
-                  placeholder="••••••••"
+                  // placeholder="••••••••"
+                  defaultValue={(savedData?.password as string) || ""}
                   className="w-full pl-14 pr-14 py-4 bg-gray-50 border border-gray-100 rounded-3xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-600/10 focus:bg-white transition-all shadow-inner text-black"
                 />
                 <button

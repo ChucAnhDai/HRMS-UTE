@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DFD – Data Flow Diagram – HRMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --bg:#080d14; --surface:#0f1923; --border:#1a2535;
+  --text:#dde6f0; --muted:#5a7085;
+}
+body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); color:var(--text); overflow:hidden; height:100vh; }
+
+.topbar {
+  position:fixed; top:0; left:0; right:0; height:52px;
+  background:rgba(8,13,20,0.97); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:12px; padding:0 16px; z-index:1000;
+  backdrop-filter:blur(10px);
+}
+.topbar-title { font-size:13px; font-weight:700; }
+.topbar-badge { font-family:'JetBrains Mono',monospace; font-size:10px; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#f59e0b; padding:3px 10px; border-radius:20px; letter-spacing:1px; }
+.topbar-sep { flex:1; }
+.btn { font-family:'Be Vietnam Pro',sans-serif; font-size:12px; font-weight:500; padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; transition:all 0.2s; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+.btn:hover { border-color:rgba(255,255,255,0.2); }
+
+/* LEGEND */
+.legend {
+  position:fixed; top:64px; left:12px; background:rgba(15,25,35,0.97);
+  border:1px solid var(--border); border-radius:12px; padding:14px; z-index:999; width:220px;
+  backdrop-filter:blur(10px); font-size:12px;
+}
+.legend h3 { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+.legend-group { margin-bottom:12px; }
+.legend-group h4 { font-size:10px; color:var(--muted); margin-bottom:6px; }
+.legend-row { display:flex; align-items:center; gap:8px; margin-bottom:5px; font-size:11px; color:var(--muted); }
+.shape-ext { width:28px; height:18px; border:2px solid #f59e0b; background:rgba(245,158,11,0.08); border-radius:3px; }
+.shape-proc { width:28px; height:18px; border:2px solid #3b82f6; background:rgba(59,130,246,0.08); border-radius:50%; }
+.shape-store { width:30px; height:14px; border-top:2px solid #10b981; border-bottom:2px solid #10b981; background:rgba(16,185,129,0.08); }
+
+/* CANVAS */
+#canvas { position:fixed; top:52px; left:0; right:0; bottom:0; overflow:hidden; cursor:grab; }
+#canvas:active { cursor:grabbing; }
+#world { position:absolute; transform-origin:0 0; }
+#svg-layer { position:absolute; top:0; left:0; pointer-events:none; }
+
+/* EXTERNAL ENTITY */
+.ext-entity {
+  position:absolute; cursor:move; user-select:none;
+  border:2px solid #f59e0b; background:rgba(245,158,11,0.07);
+  border-radius:6px; padding:10px 14px;
+  min-width:100px; text-align:center;
+  transition:box-shadow 0.2s;
+}
+.ext-entity:hover { box-shadow:0 0 0 3px rgba(245,158,11,0.2); }
+.ext-entity .label { font-size:12px; font-weight:700; color:#f59e0b; }
+.ext-entity .sublabel { font-size:10px; color:var(--muted); margin-top:2px; }
+.ext-entity .type-tag { font-family:'JetBrains Mono',monospace; font-size:8px; color:rgba(245,158,11,0.6); letter-spacing:1px; margin-top:4px; }
+
+/* PROCESS */
+.process {
+  position:absolute; cursor:move; user-select:none;
+  border:2px solid #3b82f6; background:rgba(59,130,246,0.07);
+  border-radius:50%; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center;
+  width:110px; height:110px; padding:10px;
+  transition:box-shadow 0.2s;
+}
+.process:hover { box-shadow:0 0 0 4px rgba(59,130,246,0.15); }
+.process .proc-num { font-family:'JetBrains Mono',monospace; font-size:9px; color:#3b82f6; letter-spacing:1px; margin-bottom:3px; }
+.process .proc-label { font-size:11px; font-weight:600; color:#93c5fd; line-height:1.3; }
+
+/* DATA STORE */
+.datastore {
+  position:absolute; cursor:move; user-select:none;
+  border-top:2px solid #10b981; border-bottom:2px solid #10b981;
+  background:rgba(16,185,129,0.05);
+  display:flex; align-items:center; gap:8px;
+  padding:6px 14px; min-width:120px;
+  transition:box-shadow 0.2s;
+}
+.datastore:hover { box-shadow:0 4px 16px rgba(16,185,129,0.15); }
+.datastore .ds-id { font-family:'JetBrains Mono',monospace; font-size:9px; color:#10b981; border-right:2px solid #10b981; padding-right:8px; font-weight:700; }
+.datastore .ds-label { font-size:11px; color:#6ee7b7; font-weight:500; }
+
+.zoom-ctrl { position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:4px; z-index:999; }
+.zoom-btn { width:36px; height:36px; border-radius:8px; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+
+.info-bar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); background:rgba(15,25,35,0.95); border:1px solid var(--border); border-radius:10px 10px 0 0; padding:6px 20px; font-size:11px; color:var(--muted); z-index:999; font-family:'JetBrains Mono',monospace; }
+
+/* EDIT MODAL */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9998; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.modal-overlay.open { display:flex; }
+.modal { background:#131c28; border:1px solid var(--border); border-radius:14px; padding:24px; width:380px; }
+.modal h2 { font-size:16px; font-weight:700; margin-bottom:16px; }
+.modal label { font-size:12px; color:var(--muted); display:block; margin-bottom:4px; margin-top:12px; }
+.modal input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 12px; color:var(--text); font-family:'Be Vietnam Pro',sans-serif; font-size:13px; outline:none; }
+.modal input:focus { border-color:#f59e0b; }
+.modal-btns { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
+.btn-primary { background:#f59e0b; border-color:#f59e0b; color:#000; font-weight:700; }
+.btn-primary:hover { background:#d97706; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="topbar-title">🔄 DFD – Data Flow Diagram</span>
+  <span class="topbar-badge">HRMS v1.0</span>
+  <span class="topbar-sep"></span>
+  <button class="btn" onclick="fitView()">🎯 Fit View</button>
+  <a href="erd.html" class="btn">🗃️ ERD</a>
+  <a href="usecase.html" class="btn">👤 Use Case</a>
+  <a href="index.html" class="btn">← Trang chủ</a>
+</div>
+
+<div class="legend">
+  <h3>Chú giải</h3>
+  <div class="legend-group">
+    <h4>CÁC THÀNH PHẦN</h4>
+    <div class="legend-row"><div class="shape-ext"></div>External Entity (Thực thể ngoài)</div>
+    <div class="legend-row"><div class="shape-proc"></div>Process (Tiến trình xử lý)</div>
+    <div class="legend-row"><div class="shape-store"></div>Data Store (Kho dữ liệu)</div>
+  </div>
+  <div class="legend-group">
+    <h4>LUỒNG DỮ LIỆU</h4>
+    <div class="legend-row"><div style="width:28px;height:2px;background:#60a5fa"></div>Input (Đầu vào)</div>
+    <div class="legend-row"><div style="width:28px;height:2px;background:#34d399"></div>Output (Đầu ra)</div>
+    <div class="legend-row"><div style="width:28px;height:2px;background:#fb923c"></div>Read / Write DB</div>
+  </div>
+  <div class="legend-group">
+    <h4>MODULE PROCESS</h4>
+    <div class="legend-row"><div style="width:10px;height:10px;border-radius:50%;background:#3b82f6"></div>P1: Xác thực đăng nhập</div>
+    <div class="legend-row"><div style="width:10px;height:10px;border-radius:50%;background:#3b82f6"></div>P2: Quản lý nhân sự</div>
+    <div class="legend-row"><div style="width:10px;height:10px;border-radius:50%;background:#10b981"></div>P3: Chấm công & Nghỉ phép</div>
+    <div class="legend-row"><div style="width:10px;height:10px;border-radius:50%;background:#f59e0b"></div>P4: Tính lương & Thưởng</div>
+    <div class="legend-row"><div style="width:10px;height:10px;border-radius:50%;background:#8b5cf6"></div>P5: Tuyển dụng</div>
+    <div class="legend-row"><div style="width:10px;height:10px;border-radius:50%;background:#06b6d4"></div>P6: Quản lý tài sản</div>
+  </div>
+  <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--muted)">
+    💡 Kéo thả để sắp xếp<br>✏️ Double-click để chỉnh sửa<br>🖱️ Scroll để zoom
+  </div>
+</div>
+
+<div id="canvas">
+  <div id="world">
+    <svg id="svg-layer"></svg>
+  </div>
+</div>
+
+<div class="zoom-ctrl">
+  <button class="zoom-btn" onclick="zoomIn()">+</button>
+  <button class="zoom-btn" id="zoom-label" style="font-size:10px;font-family:monospace;cursor:default">100%</button>
+  <button class="zoom-btn" onclick="zoomOut()">−</button>
+</div>
+<div class="info-bar">Kéo thả nút để sắp xếp &nbsp;|&nbsp; Scroll để zoom &nbsp;|&nbsp; Double-click để chỉnh sửa nhãn</div>
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>✏️ Chỉnh sửa nhãn</h2>
+    <label>Nhãn hiển thị</label>
+    <input type="text" id="edit-label" />
+    <label>Nhãn phụ (nếu có)</label>
+    <input type="text" id="edit-sub" />
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+let externals = [
+  { id:'e-admin', label:'Admin', sub:'Quản trị viên', x:80, y:320 },
+  { id:'e-hr', label:'HR Manager', sub:'Quản lý nhân sự', x:80, y:520 },
+  { id:'e-emp', label:'Employee', sub:'Nhân viên', x:80, y:720 },
+  { id:'e-recruit', label:'Ứng viên', sub:'Candidate', x:1260, y:920 },
+];
+
+let processes = [
+  { id:'p1', num:'P1', label:'Xác thực\nĐăng nhập', x:340, y:290, color:'#3b82f6' },
+  { id:'p2', num:'P2', label:'Quản lý\nNhân sự', x:600, y:180, color:'#3b82f6' },
+  { id:'p3', num:'P3', label:'Chấm công\n& Nghỉ phép', x:600, y:490, color:'#10b981' },
+  { id:'p4', num:'P4', label:'Tính lương\n& Thưởng', x:860, y:290, color:'#f59e0b' },
+  { id:'p5', num:'P5', label:'Tuyển dụng\n& Hợp đồng', x:1060, y:180, color:'#8b5cf6' },
+  { id:'p6', num:'P6', label:'Quản lý\nTài sản', x:1060, y:490, color:'#06b6d4' },
+  { id:'p7', num:'P7', label:'Báo cáo\n& Hệ thống', x:860, y:700, color:'#64748b' },
+];
+
+let datastores = [
+  { id:'ds1', dsId:'D1', label:'employees', x:340, y:100 },
+  { id:'ds2', dsId:'D2', label:'departments', x:640, y:40 },
+  { id:'ds3', dsId:'D3', label:'users', x:240, y:180 },
+  { id:'ds4', dsId:'D4', label:'attendances', x:340, y:680 },
+  { id:'ds5', dsId:'D5', label:'leave_requests', x:580, y:730 },
+  { id:'ds6', dsId:'D6', label:'overtime_requests', x:580, y:800 },
+  { id:'ds7', dsId:'D7', label:'payrolls + payslips', x:900, y:120 },
+  { id:'ds8', dsId:'D8', label:'rewards_penalties', x:1060, y:400 },
+  { id:'ds9', dsId:'D9', label:'salary_advances', x:760, y:820 },
+  { id:'ds10', dsId:'D10', label:'contracts', x:1200, y:300 },
+  { id:'ds11', dsId:'D11', label:'job_openings + candidates', x:1160, y:60 },
+  { id:'ds12', dsId:'D12', label:'assets + assignments', x:1240, y:600 },
+  { id:'ds13', dsId:'D13', label:'activity_logs', x:1060, y:750 },
+  { id:'ds14', dsId:'D14', label:'settings', x:680, y:870 },
+  { id:'ds15', dsId:'D15', label:'holidays', x:440, y:870 },
+];
+
+// [from, to, label, color]
+let flows = [
+  // EXTERNAL → PROCESS
+  ['e-admin','p1','Đăng nhập','#60a5fa'],
+  ['e-hr','p1','Đăng nhập','#60a5fa'],
+  ['e-emp','p1','Đăng nhập','#60a5fa'],
+  ['p1','ds3','Xác thực','#fb923c'],
+  ['p1','p2','Token hợp lệ','#34d399'],
+  ['p1','p3','Token hợp lệ','#34d399'],
+  ['p1','p4','Token hợp lệ','#34d399'],
+  // CORE
+  ['e-admin','p2','CRUD Nhân viên','#60a5fa'],
+  ['e-hr','p2','Xem / Cập nhật NV','#60a5fa'],
+  ['p2','ds1','R/W','#fb923c'],
+  ['p2','ds2','R/W phòng ban','#fb923c'],
+  // ATTEND
+  ['e-emp','p3','Check-in / Xin nghỉ / OT','#60a5fa'],
+  ['e-hr','p3','Duyệt nghỉ phép / OT','#60a5fa'],
+  ['p3','ds4','Ghi chấm công','#fb923c'],
+  ['p3','ds5','Ghi nghỉ phép','#fb923c'],
+  ['p3','ds6','Ghi tăng ca','#fb923c'],
+  ['p3','ds15','Đọc ngày lễ','#fb923c'],
+  // PAYROLL
+  ['e-hr','p4','Tạo bảng lương','#60a5fa'],
+  ['e-emp','p4','Xem phiếu / Tạm ứng','#60a5fa'],
+  ['p4','ds7','Ghi payroll/payslip','#fb923c'],
+  ['p4','ds8','Ghi thưởng/phạt','#fb923c'],
+  ['p4','ds9','Ghi tạm ứng','#fb923c'],
+  ['ds4','p4','Dữ liệu chấm công','#fb923c'],
+  ['p4','e-emp','Phiếu lương','#34d399'],
+  // RECRUIT
+  ['e-admin','p5','Đăng tin tuyển dụng','#60a5fa'],
+  ['e-hr','p5','Quản lý ứng viên','#60a5fa'],
+  ['e-recruit','p5','Nộp hồ sơ','#60a5fa'],
+  ['p5','ds11','Ghi tin / ứng viên','#fb923c'],
+  ['p5','ds10','Tạo hợp đồng','#fb923c'],
+  // ASSETS
+  ['e-admin','p6','Thêm / Giao tài sản','#60a5fa'],
+  ['e-hr','p6','Quản lý tài sản','#60a5fa'],
+  ['p6','ds12','R/W assets','#fb923c'],
+  // SYSTEM
+  ['p2','p7','Dữ liệu nhân sự','#94a3b8'],
+  ['p3','p7','Dữ liệu chấm công','#94a3b8'],
+  ['p4','p7','Dữ liệu lương','#94a3b8'],
+  ['p7','ds13','Ghi log','#fb923c'],
+  ['p7','ds14','Đọc/ghi settings','#fb923c'],
+  ['p7','e-admin','Báo cáo tổng hợp','#34d399'],
+];
+
+// ===== STATE =====
+let scale=0.65, panX=230, panY=10;
+let isPanning=false, panStart={x:0,y:0}, panOrigin={x:0,y:0};
+let editingItem=null;
+const allItems = () => [...externals, ...processes, ...datastores];
+
+// ===== RENDER =====
+function renderAll() {
+  const world=document.getElementById('world');
+  world.querySelectorAll('.ext-entity,.process,.datastore').forEach(e=>e.remove());
+
+  externals.forEach(ex => {
+    const el=document.createElement('div');
+    el.className='ext-entity'; el.id='el-'+ex.id;
+    el.style.cssText=`left:${ex.x}px;top:${ex.y}px;z-index:10`;
+    el.innerHTML=`<div class="label">${ex.label}</div><div class="sublabel">${ex.sub}</div><div class="type-tag">EXTERNAL ENTITY</div>`;
+    setupEl(el, ex);
+    world.appendChild(el);
+  });
+
+  processes.forEach(p => {
+    const el=document.createElement('div');
+    el.className='process'; el.id='el-'+p.id;
+    el.style.cssText=`left:${p.x}px;top:${p.y}px;border-color:${p.color};background:${p.color}0f;z-index:8`;
+    el.innerHTML=`<div class="proc-num">${p.num}</div><div class="proc-label">${p.label.replace(/\n/g,'<br>')}</div>`;
+    setupEl(el, p);
+    world.appendChild(el);
+  });
+
+  datastores.forEach(ds => {
+    const el=document.createElement('div');
+    el.className='datastore'; el.id='el-'+ds.id;
+    el.style.cssText=`left:${ds.x}px;top:${ds.y}px;z-index:6`;
+    el.innerHTML=`<span class="ds-id">${ds.dsId}</span><span class="ds-label">${ds.label}</span>`;
+    setupEl(el, ds);
+    world.appendChild(el);
+  });
+
+  renderSVG();
+  updateTransform();
+}
+
+function setupEl(el, data) {
+  makeDraggable(el, data);
+  el.addEventListener('dblclick', e => {
+    e.stopPropagation(); editingItem=data;
+    document.getElementById('edit-label').value = data.label || data.name || '';
+    document.getElementById('edit-sub').value = data.sub || data.sublabel || '';
+    document.getElementById('editModal').classList.add('open');
+  });
+}
+
+function getCenter(id) {
+  const el=document.getElementById('el-'+id);
+  if (!el) return null;
+  const data=allItems().find(x=>x.id===id);
+  if (!data) return null;
+  return { x:data.x+el.offsetWidth/2, y:data.y+el.offsetHeight/2, w:el.offsetWidth, h:el.offsetHeight };
+}
+
+function renderSVG() {
+  const svg=document.getElementById('svg-layer');
+  svg.setAttribute('width',3000); svg.setAttribute('height',3000);
+  svg.innerHTML='';
+
+  // Defs arrowheads
+  const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+  ['#60a5fa','#34d399','#fb923c','#94a3b8'].forEach((color,i) => {
+    const m=document.createElementNS('http://www.w3.org/2000/svg','marker');
+    const id='arr'+i;
+    m.setAttribute('id',id); m.setAttribute('viewBox','0 0 10 10');
+    m.setAttribute('refX','9'); m.setAttribute('refY','5');
+    m.setAttribute('markerWidth','6'); m.setAttribute('markerHeight','6');
+    m.setAttribute('orient','auto');
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d','M 0 0 L 10 5 L 0 10 z'); p.setAttribute('fill',color);
+    m.appendChild(p); defs.appendChild(m);
+    m._color=color;
+  });
+  svg.appendChild(defs);
+  const colorToArr = {'#60a5fa':'arr0','#34d399':'arr1','#fb923c':'arr2','#94a3b8':'arr3'};
+
+  flows.forEach(([from,to,label,color]) => {
+    const fc=getCenter(from), tc=getCenter(to);
+    if (!fc||!tc) return;
+    const arrId=colorToArr[color]||'arr0';
+    const dx=tc.x-fc.x, dy=tc.y-fc.y;
+    let x1=fc.x,y1=fc.y,x2=tc.x,y2=tc.y;
+    // Edge snap
+    if(Math.abs(dx)>Math.abs(dy)) {
+      x1=dx>0?fc.x+fc.w/2:fc.x-fc.w/2;
+      x2=dx>0?tc.x-tc.w/2:tc.x+tc.w/2;
+    } else {
+      y1=dy>0?fc.y+fc.h/2:fc.y-fc.h/2;
+      y2=dy>0?tc.y-tc.h/2:tc.y+tc.h/2;
+    }
+    const mx=(x1+x2)/2;
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',`M ${x1} ${y1} C ${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`);
+    path.setAttribute('fill','none'); path.setAttribute('stroke',color);
+    path.setAttribute('stroke-width','1.5'); path.setAttribute('stroke-opacity','0.55');
+    path.setAttribute('marker-end',`url(#${arrId})`);
+    svg.appendChild(path);
+
+    if (label) {
+      const lx=(x1+x2)/2, ly=(y1+y2)/2;
+      const bg=document.createElementNS('http://www.w3.org/2000/svg','rect');
+      const tw=label.length*5+6;
+      bg.setAttribute('x',lx-tw/2); bg.setAttribute('y',ly-9);
+      bg.setAttribute('width',tw); bg.setAttribute('height',13);
+      bg.setAttribute('rx','4'); bg.setAttribute('fill','rgba(8,13,20,0.85)');
+      svg.appendChild(bg);
+      const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x',lx); txt.setAttribute('y',ly+1);
+      txt.setAttribute('text-anchor','middle'); txt.setAttribute('fill',color);
+      txt.setAttribute('font-size','8'); txt.setAttribute('font-family','Be Vietnam Pro,sans-serif');
+      txt.textContent=label;
+      svg.appendChild(txt);
+    }
+  });
+}
+
+function makeDraggable(el, data) {
+  let sx,sy,sx0,sy0;
+  el.addEventListener('mousedown', e => {
+    if(e.button!==0) return; e.stopPropagation();
+    sx=e.clientX; sy=e.clientY; sx0=data.x; sy0=data.y;
+    const mv=e2=>{
+      data.x=sx0+(e2.clientX-sx)/scale;
+      data.y=sy0+(e2.clientY-sy)/scale;
+      el.style.left=data.x+'px'; el.style.top=data.y+'px';
+      renderSVG();
+    };
+    const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); };
+    document.addEventListener('mousemove',mv);
+    document.addEventListener('mouseup',up);
+  });
+}
+
+// PAN + ZOOM
+const canvas=document.getElementById('canvas');
+canvas.addEventListener('mousedown', e => {
+  if(e.button===0&&!e.target.closest('.ext-entity,.process,.datastore')) {
+    isPanning=true; panStart={x:e.clientX,y:e.clientY}; panOrigin={x:panX,y:panY};
+  }
+});
+document.addEventListener('mousemove', e => {
+  if(!isPanning) return;
+  panX=panOrigin.x+(e.clientX-panStart.x); panY=panOrigin.y+(e.clientY-panStart.y);
+  updateTransform();
+});
+document.addEventListener('mouseup', ()=>{ isPanning=false; });
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const f=e.deltaY<0?1.1:0.9;
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const wx=(mx-panX)/scale, wy=(my-panY)/scale;
+  scale=Math.min(2,Math.max(0.15,scale*f));
+  panX=mx-wx*scale; panY=my-wy*scale;
+  updateTransform();
+},{passive:false});
+
+function updateTransform() {
+  document.getElementById('world').style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
+  document.getElementById('zoom-label').textContent=Math.round(scale*100)+'%';
+}
+function zoomIn() { scale=Math.min(2,scale*1.15); updateTransform(); }
+function zoomOut() { scale=Math.max(0.15,scale/1.15); updateTransform(); }
+function fitView() { scale=0.6; panX=220; panY=10; updateTransform(); }
+
+function closeModal() { document.getElementById('editModal').classList.remove('open'); editingItem=null; }
+function saveEdit() {
+  if(editingItem) {
+    editingItem.label=document.getElementById('edit-label').value;
+    if(editingItem.sub!==undefined) editingItem.sub=document.getElementById('edit-sub').value;
+  }
+  closeModal(); renderAll();
+}
+
+window.addEventListener('load', ()=>{ renderAll(); setTimeout(fitView,100); });
+</script>
+</body>
+</html>

@@ -3,11 +3,21 @@ import { Employee } from "@/types";
 
 interface Props {
   defaultValues?: Partial<Employee>;
+  draftValues?: Record<string, unknown> | null;
+  isMounted?: boolean;
 }
 
-export default function LeaveQuotaFields({ defaultValues = {} }: Props) {
-  const val = (key: keyof Employee, fallback: string | number = "") =>
-    (defaultValues?.[key] ?? fallback) as string | number;
+export default function LeaveQuotaFields({ 
+  defaultValues = {},
+  draftValues,
+  isMounted = false
+}: Props) {
+  const val = (key: keyof Employee, fallback: string | number = "") => {
+    if (isMounted && draftValues && draftValues[key as string] !== undefined) {
+      return draftValues[key as string] as string | number;
+    }
+    return (defaultValues?.[key] ?? fallback) as string | number;
+  };
 
   return (
     <div className="mb-8">
@@ -23,6 +33,7 @@ export default function LeaveQuotaFields({ defaultValues = {} }: Props) {
           <input
             type="number"
             name="annual_leave_quota"
+            key={`annual_leave_quota-${isMounted}`}
             defaultValue={val("annual_leave_quota", 12)}
             min="0"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
@@ -35,6 +46,7 @@ export default function LeaveQuotaFields({ defaultValues = {} }: Props) {
           <input
             type="number"
             name="sick_leave_quota"
+            key={`sick_leave_quota-${isMounted}`}
             defaultValue={val("sick_leave_quota", 5)}
             min="0"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"
@@ -47,6 +59,7 @@ export default function LeaveQuotaFields({ defaultValues = {} }: Props) {
           <input
             type="number"
             name="other_leave_quota"
+            key={`other_leave_quota-${isMounted}`}
             defaultValue={val("other_leave_quota", 5)}
             min="0"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black"

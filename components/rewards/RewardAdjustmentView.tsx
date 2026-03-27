@@ -4,6 +4,9 @@ import React, { useState, useMemo } from "react";
 import { Plus, Search } from "lucide-react";
 import { createRewardPenaltyAction } from "@/server/actions/reward-actions";
 import { Employee, Department } from "@/types";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
+import FormDraftNotice from "../common/FormDraftNotice";
+import { useEffect } from "react";
 
 interface Reward {
   id: number;
@@ -223,9 +226,25 @@ function RewardModal({
   month: number;
   year: number;
 }) {
+  const { savedData, saveFormData, clearSavedData, isRestored, isMounted } = 
+    useFormPersistence({ 
+      entity: "reward", 
+      action: "create" 
+    });
+
   const [loading, setLoading] = useState(false);
   const [selectedDeptId, setSelectedDeptId] = useState<number | "">("");
   const [selectedEmpId, setSelectedEmpId] = useState<number | "">("");
+
+  // Restore controlled states
+  useEffect(() => {
+    if (isRestored && savedData) {
+      setTimeout(() => {
+        if (savedData.department_id) setSelectedDeptId(Number(savedData.department_id as string));
+        if (savedData.employee_id) setSelectedEmpId(Number(savedData.employee_id as string));
+      }, 0);
+    }
+  }, [isRestored, savedData]);
 
   // Filter employees by selected department
   const filteredEmployees = useMemo(() => {
@@ -262,6 +281,7 @@ function RewardModal({
 
     const res = await createRewardPenaltyAction(formData);
     if (res.success) {
+      clearSavedData();
       close();
       window.location.reload();
     } else {
@@ -285,7 +305,22 @@ function RewardModal({
           </button>
         </div>
 
-        <form action={handleSubmit} className="p-6 space-y-4">
+        <div className="px-6 pt-4">
+          <FormDraftNotice isVisible={isRestored} onClear={clearSavedData} />
+        </div>
+
+        <form 
+          action={handleSubmit} 
+          className="p-6 space-y-4"
+          onChange={(e) => {
+            const fd = new FormData(e.currentTarget);
+            const data = Object.fromEntries(fd.entries());
+            // Mirror department filter state into storage
+            data.department_id = selectedDeptId.toString();
+            saveFormData(data);
+          }}
+        >
+          <input type="hidden" name="department_id" value={selectedDeptId} />
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">
               Phòng ban <span className="text-red-500">*</span>
@@ -360,9 +395,11 @@ function RewardModal({
               <label className="text-sm font-medium text-gray-700">
                 Số tiền <span className="text-red-500">*</span>
               </label>
-              <input
+               <input
                 type="number"
                 name="amount"
+                key={`amount-${isMounted}`}
+                defaultValue={isMounted ? (savedData?.amount as string || "") : ""}
                 className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 required
                 min="0"
@@ -375,10 +412,11 @@ function RewardModal({
             <label className="text-sm font-medium text-gray-700">
               Ngày ghi nhận <span className="text-red-500">*</span>
             </label>
-            <input
+             <input
               type="date"
               name="date"
-              defaultValue={defaultDate}
+              key={`date-${isMounted}`}
+              defaultValue={isMounted ? (savedData?.date as string || defaultDate) : defaultDate}
               className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
               required
             />
@@ -386,8 +424,10 @@ function RewardModal({
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Lý do</label>
-            <textarea
+             <textarea
               name="reason"
+              key={`reason-${isMounted}`}
+              defaultValue={isMounted ? (savedData?.reason as string || "") : ""}
               className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
               rows={3}
               placeholder="Nhập lý do thưởng/phạt..."

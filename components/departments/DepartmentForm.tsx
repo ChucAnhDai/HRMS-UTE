@@ -4,6 +4,9 @@ import { useActionState } from 'react'
 import { Building2, Save, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { createDepartmentAction, updateDepartmentAction } from '@/server/actions/department-actions'
+import { useFormPersistence } from '@/hooks/use-form-persistence'
+import FormDraftNotice from '../common/FormDraftNotice'
+import { useEffect } from 'react'
 
 interface Props {
   mode: 'create' | 'edit'
@@ -20,12 +23,25 @@ const initialState = {
 }
 
 export default function DepartmentForm({ mode, department }: Props) {
+  const { savedData, saveFormData, clearSavedData, isRestored, isMounted } = 
+    useFormPersistence({ 
+      entity: "department", 
+      action: mode, 
+      id: department?.id || "new" 
+    });
+
   // Tạo action phù hợp với mode
   const action = mode === 'edit' && department
     ? updateDepartmentAction.bind(null, department.id)
     : createDepartmentAction
   
   const [state, formAction, isPending] = useActionState(action, initialState)
+
+  useEffect(() => {
+    if (state?.success) {
+      clearSavedData();
+    }
+  }, [state?.success, clearSavedData]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -40,7 +56,15 @@ export default function DepartmentForm({ mode, department }: Props) {
       </div>
 
       <div className="p-8">
-        <form action={formAction}>
+        <FormDraftNotice isVisible={isRestored} onClear={clearSavedData} />
+
+        <form 
+          action={formAction}
+          onChange={(e) => {
+            const formData = new FormData(e.currentTarget);
+            saveFormData(Object.fromEntries(formData.entries()));
+          }}
+        >
           {/* Error Message */}
           {state?.error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium flex items-center gap-2">
@@ -65,8 +89,9 @@ export default function DepartmentForm({ mode, department }: Props) {
               <input 
                 type="text" 
                 name="name" 
+                key={`name-${isMounted}`}
                 required
-                defaultValue={department?.name || ''}
+                defaultValue={isMounted ? (savedData?.name as string || department?.name || '') : (department?.name ?? '')}
                 placeholder="VD: Phòng Kỹ Thuật, Phòng Nhân Sự..."
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all focus:border-blue-500 text-black text-base"
               />

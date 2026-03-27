@@ -13,6 +13,9 @@ import {
   addHolidayAction,
   deleteHolidayAction,
 } from "@/server/actions/setting-actions";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
+import FormDraftNotice from "../common/FormDraftNotice";
+import { useEffect } from "react";
 
 interface Holiday {
   id: number;
@@ -107,6 +110,13 @@ function GeneralSettingsForm({
   workingDaysPerMonth: Record<number, number>;
   currentYear: number;
 }) {
+  const { savedData, saveFormData, clearSavedData, isRestored, isMounted } = 
+    useFormPersistence({ 
+      entity: "settings", 
+      action: "edit",
+      id: "global"
+    });
+
   const [loading, setLoading] = useState(false);
 
   // Parse Tax Brackets
@@ -136,9 +146,28 @@ function GeneralSettingsForm({
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     const res = await updateSettingsAction(formData);
+    if (res.success) {
+      clearSavedData();
+    }
     alert(res.message);
     setLoading(false);
   }
+
+  // Restore controlled states
+  useEffect(() => {
+    if (isRestored && savedData) {
+      if (savedData.weekend_days || savedData.tax_brackets) {
+        setTimeout(() => {
+          if (savedData.weekend_days) {
+            try { setWeekendDays(JSON.parse(savedData.weekend_days as string)); } catch { /* ignore */ }
+          }
+          if (savedData.tax_brackets) {
+            try { setTaxBrackets(JSON.parse(savedData.tax_brackets as string)); } catch { /* ignore */ }
+          }
+        }, 0);
+      }
+    }
+  }, [isRestored, savedData]);
 
   const DAYS_OF_WEEK = [
     { id: "1", label: "Thứ 2" },
@@ -151,7 +180,19 @@ function GeneralSettingsForm({
   ];
 
   return (
-    <form action={handleSubmit} className="space-y-10 divide-y divide-gray-200">
+    <div className="space-y-4">
+      <FormDraftNotice isVisible={isRestored} onClear={clearSavedData} />
+      
+      <form 
+        action={handleSubmit} 
+        className="space-y-10 divide-y divide-gray-200"
+        onChange={(e) => {
+          const fd = new FormData(e.currentTarget);
+          // Special handling for controlled states if they change
+          const data = Object.fromEntries(fd.entries());
+          saveFormData(data);
+        }}
+      >
       {/* 1. Working Time & Weekend */}
       <div className="pt-2 space-y-6">
         <div>
@@ -204,10 +245,11 @@ function GeneralSettingsForm({
             <label className="text-sm font-bold text-gray-900">
               Giờ vào làm (Start Time)
             </label>
-            <input
+             <input
               type="time"
               name="work_start_time"
-              defaultValue={settings["work_start_time"] || "08:00"}
+              key={`start-${isMounted}`}
+              defaultValue={isMounted ? (savedData?.work_start_time as string || (settings["work_start_time"] || "08:00")) : (settings["work_start_time"] || "08:00")}
               className={`w-full p-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-gray-900 ${readOnly ? "cursor-not-allowed opacity-70" : ""}`}
               disabled={readOnly}
             />
@@ -219,7 +261,8 @@ function GeneralSettingsForm({
             <input
               type="time"
               name="work_end_time"
-              defaultValue={settings["work_end_time"] || "17:00"}
+              key={`end-${isMounted}`}
+              defaultValue={isMounted ? (savedData?.work_end_time as string || (settings["work_end_time"] || "17:00")) : (settings["work_end_time"] || "17:00")}
               className={`w-full p-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-gray-900 ${readOnly ? "cursor-not-allowed opacity-70" : ""}`}
               disabled={readOnly}
             />
@@ -248,7 +291,8 @@ function GeneralSettingsForm({
               <input
                 type="number"
                 name="penalty_late"
-                defaultValue={settings["penalty_late"] || "50000"}
+                key={`late-${isMounted}`}
+                defaultValue={isMounted ? (savedData?.penalty_late as string || (settings["penalty_late"] || "50000")) : (settings["penalty_late"] || "50000")}
                 className={`w-full p-3 pl-4 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
                 placeholder="0"
                 disabled={readOnly}
@@ -266,7 +310,8 @@ function GeneralSettingsForm({
               <input
                 type="number"
                 name="penalty_absence"
-                defaultValue={settings["penalty_absence"] || "200000"}
+                key={`absence-${isMounted}`}
+                defaultValue={isMounted ? (savedData?.penalty_absence as string || (settings["penalty_absence"] || "200000")) : (settings["penalty_absence"] || "200000")}
                 className={`w-full p-3 pl-4 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
                 placeholder="0"
                 disabled={readOnly}
@@ -300,7 +345,8 @@ function GeneralSettingsForm({
               type="number"
               step="0.1"
               name="insurance_percent"
-              defaultValue={settings["insurance_percent"]}
+              key={`ins-${isMounted}`}
+              defaultValue={isMounted ? (savedData?.insurance_percent as string || settings["insurance_percent"]) : settings["insurance_percent"]}
               className={`w-full p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
               disabled={readOnly}
             />
@@ -352,7 +398,8 @@ function GeneralSettingsForm({
             <input
               type="number"
               name="personal_deduction"
-              defaultValue={settings["personal_deduction"]}
+              key={`personal-${isMounted}`}
+              defaultValue={isMounted ? (savedData?.personal_deduction as string || settings["personal_deduction"]) : settings["personal_deduction"]}
               className={`w-full p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
               disabled={readOnly}
             />
@@ -364,7 +411,8 @@ function GeneralSettingsForm({
             <input
               type="number"
               name="dependent_deduction"
-              defaultValue={settings["dependent_deduction"]}
+              key={`dependent-${isMounted}`}
+              defaultValue={isMounted ? (savedData?.dependent_deduction as string || settings["dependent_deduction"]) : settings["dependent_deduction"]}
               className={`w-full p-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-gray-900 shadow-sm ${readOnly ? "cursor-not-allowed opacity-70 bg-gray-50" : ""}`}
               disabled={readOnly}
             />
@@ -475,6 +523,7 @@ function GeneralSettingsForm({
         </div>
       )}
     </form>
+  </div>
   );
 }
 

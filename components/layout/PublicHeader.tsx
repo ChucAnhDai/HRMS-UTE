@@ -28,7 +28,7 @@ export default function PublicHeader({ user }: { user: CurrentUser | null }) {
               />
             </div>
             <h2 className="text-[#111318] text-xl font-bold leading-tight tracking-[-0.015em]">
-              HCMUTE <br /> HRM System
+              HCMUTE <br /> Hệ thống HRM
             </h2>
           </Link>
 
@@ -41,7 +41,7 @@ export default function PublicHeader({ user }: { user: CurrentUser | null }) {
                 )}
                 href="#"
               >
-                Features
+                Tính năng
               </Link>
               <Link
                 className={cn(
@@ -50,7 +50,7 @@ export default function PublicHeader({ user }: { user: CurrentUser | null }) {
                 )}
                 href="#"
               >
-                Pricing
+                Giá cả
               </Link>
               <Link
                 className={cn(
@@ -80,7 +80,7 @@ export default function PublicHeader({ user }: { user: CurrentUser | null }) {
                     className="flex items-center justify-center rounded-lg h-10 px-4 bg-[#0d59f2] text-white text-sm font-bold shadow-md hover:bg-blue-700 transition-colors"
                   >
                     <span className="truncate">
-                      {user.role === "EMPLOYEE" ? "Hồ sơ cá nhân" : "Dashboard"}
+                      {user.role === "EMPLOYEE" ? "Hồ sơ cá nhân" : "Bảng điều khiển"}
                     </span>
                   </Link>
                 </div>

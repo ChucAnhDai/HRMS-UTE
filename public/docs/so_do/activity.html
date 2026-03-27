@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Activity Diagram - Xin nghỉ phép</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#080c12; overflow:hidden; font-family:'Outfit',sans-serif; }
+svg { width:100vw; height:100vh; cursor:grab; }
+svg:active { cursor:grabbing; }
+.ui { position:fixed; top:16px; left:16px; background:rgba(8,12,18,0.92); border:1px solid #1a2740; border-radius:10px; padding:12px 18px; backdrop-filter:blur(12px); z-index:100; }
+.ui h1 { font-size:15px; font-weight:700; color:#34d399; }
+.ui p { font-size:10px; color:#475569; margin-top:3px; }
+.controls { position:fixed; bottom:20px; right:20px; display:flex; gap:6px; z-index:100; }
+.btn { background:#0d1117; border:1px solid #1a2740; color:#cbd5e1; padding:7px 13px; border-radius:6px; cursor:pointer; font-size:14px; transition:.2s; }
+.btn:hover { background:#1a2740; border-color:#34d399; color:#34d399; }
+</style>
+</head>
+<body>
+<div class="ui">
+  <h1>🔄 Activity Diagram — Quy trình Xin nghỉ phép</h1>
+  <p>Kéo để di chuyển · Scroll để zoom</p>
+</div>
+<div class="controls">
+  <button class="btn" onclick="resetView()">↺</button>
+  <button class="btn" onclick="z(1.2)">＋</button>
+  <button class="btn" onclick="z(0.83)">－</button>
+</div>
+<svg id="svg"></svg>
+<script>
+const LANES = [
+  { label:'👤 Nhân viên',   color:'#34d399', x:0,   w:280 },
+  { label:'⚙️ Hệ thống',   color:'#60a5fa', x:280, w:280 },
+  { label:'👔 HR Manager',  color:'#f472b6', x:560, w:280 },
+];
+const TOTAL_W = 840;
+const HEADER_H = 52;
+const CANVAS_H = 1600;
+
+// ─── Nodes ─────────────────────────────────────────────────────────
+// type: start|end|action|decision|fork|join|note
+// lane: 0=employee,1=system,2=hr
+// x relative to lane center
+const nodes = [
+  { id:'start', type:'start',  lane:0, y:100, label:'' },
+
+  { id:'a1', type:'action',    lane:0, y:190, label:'Điền form\nxin nghỉ phép',     color:'#34d399' },
+  { id:'a2', type:'action',    lane:0, y:330, label:'Chọn loại nghỉ\n& khoảng ngày', color:'#34d399' },
+  { id:'a3', type:'action',    lane:0, y:460, label:'Gửi đơn',                       color:'#34d399' },
+
+  { id:'b1', type:'action',    lane:1, y:560, label:'Kiểm tra\nquota còn lại',       color:'#60a5fa' },
+  { id:'d1', type:'decision',  lane:1, y:670, label:'Đủ quota?'  },
+
+  { id:'a4', type:'action',    lane:1, y:790, label:'Tạo leave_request\nstatus=Pending', color:'#60a5fa' },
+  { id:'a5', type:'action',    lane:1, y:910, label:'Gửi thông báo\ncho HR Manager', color:'#60a5fa' },
+
+  { id:'no1', type:'action',   lane:0, y:790, label:'Thông báo lỗi:\n"Không đủ ngày nghỉ"', color:'#ef4444', isErr:true },
+
+  { id:'c1', type:'action',    lane:2, y:1010, label:'Nhận thông báo\nxem đơn nghỉ',  color:'#f472b6' },
+  { id:'c2', type:'action',    lane:2, y:1130, label:'Xem xét đơn\nvà quyết định',    color:'#f472b6' },
+  { id:'d2', type:'decision',  lane:2, y:1250, label:'Duyệt?' },
+
+  { id:'b2', type:'action',    lane:1, y:1350, label:'Cập nhật status\n= Approved',   color:'#60a5fa' },
+  { id:'b3', type:'action',    lane:1, y:1350+120, label:'Trừ quota\nnghỉ phép',        color:'#60a5fa' },
+  { id:'b4', type:'action',    lane:1, y:1350+240, label:'Thông báo:\n"Đơn đã duyệt"',  color:'#60a5fa' },
+
+  { id:'b5', type:'action',    lane:2, y:1350, label:'Cập nhật status\n= Rejected\n+ lý do từ chối', color:'#ef4444', isErr:true },
+  { id:'b6', type:'action',    lane:1, y:1350+120, label:'Thông báo:\n"Đơn bị từ chối"', color:'#ef4444', isErr:true },
+
+  { id:'end1', type:'end',     lane:0, y:1730, label:'' },
+  { id:'end2', type:'end',     lane:0, y:790+90, label:'' },
+];
+
+// connections [from, to, label, style]
+const conns = [
+  ['start','a1',  '', 'normal'],
+  ['a1',   'a2',  '', 'normal'],
+  ['a2',   'a3',  '', 'normal'],
+  ['a3',   'b1',  '', 'normal'],
+  ['b1',   'd1',  '', 'normal'],
+  ['d1',   'a4',  'Có ✓', 'yes'],
+  ['d1',   'no1', 'Không ✗', 'no'],
+  ['no1',  'end2','', 'normal'],
+  ['a4',   'a5',  '', 'normal'],
+  ['a5',   'c1',  '', 'normal'],
+  ['c1',   'c2',  '', 'normal'],
+  ['c2',   'd2',  '', 'normal'],
+  ['d2',   'b2',  'Duyệt ✓', 'yes'],
+  ['d2',   'b5',  'Từ chối ✗', 'no'],
+  ['b2',   'b3',  '', 'normal'],
+  ['b3',   'b4',  '', 'normal'],
+  ['b4',   'end1','', 'normal'],
+  ['b5',   'b6',  '', 'normal'],
+  ['b6',   'end1','', 'normal'],
+];
+
+function laneX(lane){ return LANES[lane].x + LANES[lane].w/2; }
+
+function nodePos(n){
+  return { x: laneX(n.lane), y: n.y + HEADER_H };
+}
+
+function getNode(id){ return nodes.find(n=>n.id===id); }
+
+// ─── Draw ───────────────────────────────────────────────
+function drawLanes(){
+  let s = '';
+  LANES.forEach((l,i)=>{
+    const lc = l.color+'15';
+    const bc = l.color+'40';
+    s += `<rect x="${l.x}" y="${HEADER_H}" width="${l.w}" height="${CANVAS_H}" fill="${lc}" stroke="${bc}" stroke-width="1"/>`;
+    // header
+    s += `<rect x="${l.x}" y="0" width="${l.w}" height="${HEADER_H}" fill="${l.color}30" stroke="${bc}" stroke-width="1"/>`;
+    s += `<text x="${l.x+l.w/2}" y="${HEADER_H/2+6}" text-anchor="middle" fill="${l.color}" font-family="'Outfit',sans-serif" font-weight="700" font-size="13">${l.label}</text>`;
+  });
+  return s;
+}
+
+function drawNode(n){
+  const {x,y:ry} = nodePos(n);
+  const y = ry;
+  let s = '';
+  if(n.type==='start'){
+    s += `<circle cx="${x}" cy="${y}" r="14" fill="#34d399"/>`;
+    s += `<circle cx="${x}" cy="${y}" r="8" fill="#080c12"/>`;
+    s += `<circle cx="${x}" cy="${y}" r="5" fill="#34d399"/>`;
+  } else if(n.type==='end'){
+    s += `<circle cx="${x}" cy="${y}" r="14" fill="#94a3b8" opacity="0.5"/>`;
+    s += `<circle cx="${x}" cy="${y}" r="9" fill="#94a3b8"/>`;
+  } else if(n.type==='action'){
+    const W=200, H=52, rx=8;
+    const bx=x-W/2, by=y-H/2;
+    const bc = n.isErr ? '#ef444430' : (n.color||'#60a5fa')+'25';
+    const sc = n.isErr ? '#ef4444' : (n.color||'#60a5fa');
+    s += `<rect x="${bx+3}" y="${by+4}" width="${W}" height="${H}" rx="${rx}" fill="rgba(0,0,0,0.4)"/>`;
+    s += `<rect x="${bx}" y="${by}" width="${W}" height="${H}" rx="${rx}" fill="${bc}" stroke="${sc}" stroke-width="1.5"/>`;
+    const lines = n.label.split('\n');
+    lines.forEach((l,i)=>{
+      const lh = lines.length===1?0:(i-lines.length/2+0.5)*16;
+      s += `<text x="${x}" y="${y+5+lh}" text-anchor="middle" fill="#e2e8f0" font-family="'Outfit',sans-serif" font-size="11" font-weight="500">${l}</text>`;
+    });
+  } else if(n.type==='decision'){
+    const W=120, H=56;
+    s += `<polygon points="${x},${y-H/2} ${x+W/2},${y} ${x},${y+H/2} ${x-W/2},${y}" fill="#1a2040" stroke="#facc15" stroke-width="1.8"/>`;
+    s += `<text x="${x}" y="${y+5}" text-anchor="middle" fill="#facc15" font-family="'Outfit',sans-serif" font-weight="600" font-size="11">${n.label}</text>`;
+  }
+  return s;
+}
+
+function drawConn(c){
+  const [fid,tid,label,style] = c;
+  const fn = getNode(fid), tn = getNode(tid);
+  if(!fn||!tn) return '';
+  const fp = nodePos(fn), tp = nodePos(tn);
+  let x1=fp.x, y1=fp.y, x2=tp.x, y2=tp.y;
+  const isDecision = fn.type==='decision';
+
+  // Adjust start/end for node types
+  if(fn.type==='start'||fn.type==='end') y1+=14;
+  else if(fn.type==='action') y1+=26;
+  else if(fn.type==='decision') { y1=fp.y; }
+
+  if(tn.type==='end') y2-=14;
+  else if(tn.type==='action') y2-=26;
+  else if(tn.type==='decision') y2-=28;
+
+  const lc = style==='yes'?'#22c55e': style==='no'?'#ef4444':'#64748b';
+  const lw = style==='yes'||style==='no'?1.5:1.2;
+  const dash = fn.lane !== tn.lane ? '4,3' : 'none';
+
+  let path;
+  if(x1===x2){
+    path = `M${x1} ${y1} L${x2} ${y2}`;
+  } else {
+    const mx = (x1+x2)/2;
+    const dy = Math.abs(y2-y1);
+    if(isDecision && style==='no'){
+      // Route to left or right to avoid overlap
+      const ox = x2 < x1 ? x1+70 : x1-70;
+      path = `M${x1} ${fp.y} L${ox} ${fp.y} L${ox} ${y2} L${x2} ${y2}`;
+    } else {
+      path = `M${x1} ${y1} C${x1} ${(y1+y2)/2} ${x2} ${(y1+y2)/2} ${x2} ${y2}`;
+    }
+  }
+
+  // Arrow marker
+  const angle = Math.atan2(y2-y1,x2-x1);
+  const ah = 8;
+  const ax1 = x2-ah*Math.cos(angle-0.4), ay1 = y2-ah*Math.sin(angle-0.4);
+  const ax2 = x2-ah*Math.cos(angle+0.4), ay2 = y2-ah*Math.sin(angle+0.4);
+
+  let s = `<path d="${path}" fill="none" stroke="${lc}" stroke-width="${lw}" stroke-dasharray="${dash}" opacity="0.8"/>`;
+  s += `<polygon points="${x2},${y2} ${ax1},${ay1} ${ax2},${ay2}" fill="${lc}" opacity="0.8"/>`;
+  if(label){
+    const mx = (x1+x2)/2, my = (y1+y2)/2;
+    s += `<rect x="${mx-28}" y="${my-10}" width="56" height="18" rx="4" fill="#080c12" opacity="0.8"/>`;
+    s += `<text x="${mx}" y="${my+3}" text-anchor="middle" fill="${lc}" font-family="'Outfit',sans-serif" font-size="10" font-weight="600">${label}</text>`;
+  }
+  return s;
+}
+
+function render(){
+  const svg = document.getElementById('svg');
+  let html = `<defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0L0 0 0 40" fill="none" stroke="#0c1218" stroke-width="0.5"/></pattern>
+  </defs>
+  <rect width="4000" height="3000" x="-500" y="-200" fill="#080c12"/>
+  <rect width="4000" height="3000" x="-500" y="-200" fill="url(#grid)"/>`;
+
+  html += drawLanes();
+  html += `<g id="conns">`;
+  conns.forEach(c => html += drawConn(c));
+  html += `</g>`;
+  html += `<g id="nodes">`;
+  nodes.forEach(n => html += drawNode(n));
+  html += `</g>`;
+
+  // Label for start/end
+  html += `<text x="${laneX(0)+18}" y="${HEADER_H+100+5}" fill="#34d399" font-family="'Outfit',sans-serif" font-size="10" opacity="0.6">Bắt đầu</text>`;
+  html += `<text x="${laneX(0)+18}" y="${HEADER_H+1730+5}" fill="#94a3b8" font-family="'Outfit',sans-serif" font-size="10" opacity="0.6">Kết thúc</text>`;
+
+  svg.innerHTML = html;
+}
+
+// Pan & Zoom
+let vx=0,vy=0,vw=860,vh=1000,drag=false,lx,ly;
+const sv=document.getElementById('svg');
+function setV(){ sv.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`); }
+sv.addEventListener('mousedown',e=>{drag=true;lx=e.clientX;ly=e.clientY;e.preventDefault();});
+window.addEventListener('mousemove',e=>{
+  if(!drag) return;
+  vx-=(e.clientX-lx)*vw/window.innerWidth;
+  vy-=(e.clientY-ly)*vh/window.innerHeight;
+  lx=e.clientX;ly=e.clientY;setV();
+});
+window.addEventListener('mouseup',()=>drag=false);
+sv.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const f=e.deltaY>0?1.1:0.9;
+  const rx=(e.clientX/window.innerWidth)*vw, ry=(e.clientY/window.innerHeight)*vh;
+  vw*=f;vh*=f;vx+=rx-rx*f;vy+=ry-ry*f;setV();
+},{passive:false});
+function z(f){vw*=f;vh*=f;setV();}
+function resetView(){vx=0;vy=0;vw=860;vh=1000;setV();}
+
+render(); setV();
+</script>
+</body>
+</html>

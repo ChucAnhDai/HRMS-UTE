@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERD – HRMS Entity Relationship Diagram</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --border: #21262d;
+  --text: #c9d1d9;
+  --muted: #8b949e;
+  --c-core: #3b82f6;
+  --c-attend: #10b981;
+  --c-payroll: #f59e0b;
+  --c-recruit: #8b5cf6;
+  --c-contract: #ec4899;
+  --c-asset: #06b6d4;
+  --c-system: #64748b;
+}
+body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+
+/* TOP BAR */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 52px;
+  background: rgba(22,27,34,0.95);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 16px; z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+.topbar-title { font-size: 13px; font-weight: 700; letter-spacing: -0.3px; }
+.topbar-badge {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+  color: #3b82f6; padding: 3px 10px; border-radius: 20px; letter-spacing: 1px;
+}
+.topbar-sep { flex: 1; }
+.btn {
+  font-family: 'Be Vietnam Pro', sans-serif; font-size: 12px; font-weight: 500;
+  padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); cursor: pointer;
+  transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+}
+.btn:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+.btn.primary { background: #3b82f6; border-color: #3b82f6; color: white; }
+.btn.primary:hover { background: #2563eb; }
+
+/* LEGEND PANEL */
+.legend {
+  position: fixed; top: 64px; left: 12px;
+  background: rgba(22,27,34,0.95); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px; z-index: 999; width: 210px;
+  backdrop-filter: blur(10px); font-size: 12px;
+}
+.legend h3 { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.legend-group { margin-bottom: 12px; }
+.legend-group h4 { font-size: 10px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.5px; }
+.legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; color: var(--muted); font-size: 11px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.legend-chip {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  padding: 2px 6px; border-radius: 4px; border: 1px solid;
+}
+.chip-pk { background: rgba(251,191,36,0.15); border-color: rgba(251,191,36,0.4); color: #fbbf24; }
+.chip-fk { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.4); color: #60a5fa; }
+.chip-uq { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: #34d399; }
+.rel-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11px; color: var(--muted); }
+.rel-line { height: 2px; width: 28px; }
+
+/* CANVAS */
+#canvas {
+  position: fixed; top: 52px; left: 0; right: 0; bottom: 0;
+  overflow: hidden; cursor: grab;
+}
+#canvas:active { cursor: grabbing; }
+#world { position: absolute; transform-origin: 0 0; }
+
+/* SVG CONNECTIONS */
+#connections { position: absolute; top: 0; left: 0; pointer-events: none; }
+
+/* TABLE CARDS */
+.erd-table {
+  position: absolute;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  min-width: 200px;
+  max-width: 240px;
+  cursor: move;
+  user-select: none;
+  transition: box-shadow 0.2s;
+  font-size: 11.5px;
+}
+.erd-table:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  z-index: 100 !important;
+}
+.erd-table.dragging {
+  box-shadow: 0 16px 48px rgba(0,0,0,0.7);
+  z-index: 9999 !important;
+  opacity: 0.95;
+}
+.table-header {
+  padding: 9px 12px 8px;
+  border-radius: 8px 8px 0 0;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.table-header .icon { font-size: 13px; }
+.table-name { font-weight: 700; font-size: 12px; letter-spacing: -0.2px; flex: 1; }
+.table-module {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 1px; text-transform: uppercase;
+  opacity: 0.7; padding: 2px 6px; border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+}
+.table-body { padding: 4px 0; }
+.col-row {
+  display: flex; align-items: center; gap: 0;
+  padding: 3.5px 12px; gap: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+  cursor: default;
+}
+.col-row:hover { background: rgba(255,255,255,0.03); }
+.col-row:last-child { border-bottom: none; }
+.col-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; font-weight: 600;
+  padding: 1px 4px; border-radius: 3px;
+  width: 22px; text-align: center; flex-shrink: 0;
+}
+.col-name { flex: 1; color: var(--text); font-size: 11px; }
+.col-type { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); }
+
+/* EDIT MODAL */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 9998;
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: #1c2333; border: 1px solid #30363d;
+  border-radius: 14px; padding: 24px; width: 420px;
+  max-height: 80vh; overflow-y: auto;
+}
+.modal h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.modal label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; margin-top: 12px; }
+.modal input, .modal textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px; color: var(--text);
+  font-family: 'Be Vietnam Pro', sans-serif; font-size: 13px;
+  outline: none;
+}
+.modal input:focus, .modal textarea:focus { border-color: #3b82f6; }
+.modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+.col-edit-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.col-edit-row input { flex: 1; }
+.col-edit-row select {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); padding: 6px 8px; font-size: 11px;
+}
+.remove-col { background: none; border: 1px solid rgba(239,68,68,0.4); color: #ef4444;
+  border-radius: 6px; padding: 4px 8px; cursor: pointer; font-size: 11px; }
+
+/* ZOOM CTRL */
+.zoom-ctrl {
+  position: fixed; bottom: 20px; right: 20px;
+  display: flex; flex-direction: column; gap: 4px; z-index: 999;
+}
+.zoom-btn {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.zoom-btn:hover { background: rgba(255,255,255,0.1); }
+
+/* HOME BTN */
+.home-btn {
+  position: fixed; bottom: 20px; left: 20px;
+  z-index: 999;
+}
+
+.info-bar {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  background: rgba(22,27,34,0.9); border: 1px solid var(--border);
+  border-radius: 10px 10px 0 0; padding: 6px 20px;
+  font-size: 11px; color: var(--muted); z-index: 999;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px;
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="topbar-title">🗃️ ERD – Entity Relationship Diagram</span>
+  <span class="topbar-badge">HRMS v1.0</span>
+  <span class="topbar-sep"></span>
+  <button class="btn" onclick="fitView()">🎯 Fit View</button>
+  <button class="btn" onclick="resetLayout()">↺ Reset</button>
+  <a href="index.html" class="btn">← Trang chủ</a>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <h3>Chú giải</h3>
+  <div class="legend-group">
+    <h4>NHÓM MODULE</h4>
+    <div class="legend-row"><div class="legend-dot" style="background:#3b82f6"></div>Core (Lõi – Nhân sự)</div>
+    <div class="legend-row"><div class="legend-dot" style="background:#10b981"></div>Chấm công & Nghỉ phép</div>
+    <div class="legend-row"><div class="legend-dot" style="background:#f59e0b"></div>Lương & Thưởng phạt</div>
+    <div class="legend-row"><div class="legend-dot" style="background:#8b5cf6"></div>Tuyển dụng</div>
+    <div class="legend-row"><div class="legend-dot" style="background:#ec4899"></div>Hợp đồng / HR</div>
+    <div class="legend-row"><div class="legend-dot" style="background:#06b6d4"></div>Tài sản</div>
+    <div class="legend-row"><div class="legend-dot" style="background:#64748b"></div>Hệ thống & Log</div>
+  </div>
+  <div class="legend-group">
+    <h4>LOẠI KHÓA</h4>
+    <div class="legend-row"><span class="legend-chip chip-pk">PK</span>Primary Key – Khóa chính</div>
+    <div class="legend-row"><span class="legend-chip chip-fk">FK</span>Foreign Key – Khóa ngoại</div>
+    <div class="legend-row"><span class="legend-chip chip-uq">UQ</span>Unique – Duy nhất</div>
+  </div>
+  <div class="legend-group">
+    <h4>QUAN HỆ</h4>
+    <div class="rel-row"><div class="rel-line" style="background:#6366f1"></div>1 – 1 (Một – Một)</div>
+    <div class="rel-row"><div class="rel-line" style="background:#f59e0b; height:2px; background: repeating-linear-gradient(90deg,#f59e0b 0 6px,transparent 6px 10px)"></div>1 – N (Một – Nhiều)</div>
+    <div class="rel-row"><div class="rel-line" style="background:#10b981; height:2px; background: repeating-linear-gradient(90deg,#10b981 0 3px,transparent 3px 7px)"></div>N – N (qua bảng trung gian)</div>
+  </div>
+  <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border); font-size:10px; color:var(--muted)">
+    💡 Kéo thả bảng để sắp xếp<br>🖱️ Scroll để zoom<br>✏️ Click 2 lần để chỉnh sửa
+  </div>
+</div>
+
+<!-- CANVAS -->
+<div id="canvas">
+  <div id="world">
+    <svg id="connections"></svg>
+  </div>
+</div>
+
+<!-- ZOOM -->
+<div class="zoom-ctrl">
+  <button class="zoom-btn" onclick="zoomIn()">+</button>
+  <button class="zoom-btn" id="zoom-label" style="font-size:10px;font-family:monospace;cursor:default">100%</button>
+  <button class="zoom-btn" onclick="zoomOut()">−</button>
+</div>
+
+<!-- HOME -->
+<div class="home-btn">
+  <a href="index.html" class="btn">🏠 Trang chủ</a>
+</div>
+
+<div class="info-bar">Kéo canvas để di chuyển &nbsp;|&nbsp; Cuộn để zoom &nbsp;|&nbsp; Double-click bảng để chỉnh sửa &nbsp;|&nbsp; Kéo thả bảng để sắp xếp</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>✏️ Chỉnh sửa bảng</h2>
+    <label>Tên bảng</label>
+    <input type="text" id="edit-name" />
+    <label>Module</label>
+    <input type="text" id="edit-module" />
+    <label>Các cột</label>
+    <div id="edit-cols"></div>
+    <button class="btn" style="margin-top:8px; font-size:11px" onclick="addColRow()">+ Thêm cột</button>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal()">Hủy</button>
+      <button class="btn primary" onclick="saveEdit()">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const MODULES = {
+  core: { label: 'Core', color: '#3b82f6' },
+  attend: { label: 'Chấm công', color: '#10b981' },
+  payroll: { label: 'Lương', color: '#f59e0b' },
+  recruit: { label: 'Tuyển dụng', color: '#8b5cf6' },
+  contract: { label: 'HĐ / HR', color: '#ec4899' },
+  asset: { label: 'Tài sản', color: '#06b6d4' },
+  system: { label: 'Hệ thống', color: '#64748b' },
+};
+
+let tables = [
+  {
+    id: 'employees', name: 'employees', module: 'core', icon: '👤',
+    x: 350, y: 80,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'department_id', type: 'bigint', badge: 'FK' },
+      { name: 'user_id', type: 'bigint', badge: 'FK' },
+      { name: 'first_name', type: 'text', badge: '' },
+      { name: 'last_name', type: 'text', badge: '' },
+      { name: 'email', type: 'text', badge: 'UQ' },
+      { name: 'phone', type: 'text', badge: '' },
+      { name: 'hire_date', type: 'date', badge: '' },
+      { name: 'salary', type: 'numeric', badge: '' },
+      { name: 'employment_status', type: 'text', badge: '' },
+      { name: 'job_title', type: 'text', badge: '' },
+      { name: 'role', type: 'user_role', badge: '' },
+      { name: 'auth_user_id', type: 'uuid', badge: 'FK' },
+    ]
+  },
+  {
+    id: 'departments', name: 'departments', module: 'core', icon: '🏢',
+    x: 50, y: 80,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'name', type: 'text', badge: '' },
+      { name: 'created_at', type: 'timestamptz', badge: '' },
+    ]
+  },
+  {
+    id: 'users', name: 'users', module: 'system', icon: '🔑',
+    x: 680, y: 80,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'name', type: 'text', badge: '' },
+      { name: 'email', type: 'text', badge: 'UQ' },
+      { name: 'role', type: 'text', badge: '' },
+      { name: 'status', type: 'text', badge: '' },
+      { name: 'avatar', type: 'text', badge: '' },
+    ]
+  },
+  {
+    id: 'attendances', name: 'attendances', module: 'attend', icon: '📅',
+    x: 50, y: 340,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'employee_id', type: 'bigint', badge: 'FK' },
+      { name: 'date', type: 'date', badge: '' },
+      { name: 'check_in_time', type: 'time', badge: '' },
+      { name: 'check_out_time', type: 'time', badge: '' },
+      { name: 'status', type: 'text', badge: '' },
+    ]
+  },
+  {
+    id: 'leave_requests', name: 'leave_requests', module: 'attend', icon: '🌴',
+    x: 350, y: 440,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'employee_id', type: 'bigint', badge: 'FK' },
+      { name: 'leave_type', type: 'text', badge: '' },
+      { name: 'start_date', type: 'date', badge: '' },
+      { name: 'end_date', type: 'date', badge: '' },
+      { name: 'status', type: 'text', badge: '' },
+      { name: 'action_by_employee_id', type: 'bigint', badge: 'FK' },
+    ]
+  },
+  {
+    id: 'overtime_requests', name: 'overtime_requests', module: 'attend', icon: '⏱️',
+    x: 680, y: 340,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'employee_id', type: 'bigint', badge: 'FK' },
+      { name: 'date', type: 'date', badge: '' },
+      { name: 'hours', type: 'numeric', badge: '' },
+      { name: 'status', type: 'text', badge: '' },
+      { name: 'action_by_employee_id', type: 'bigint', badge: 'FK' },
+    ]
+  },
+  {
+    id: 'payrolls', name: 'payrolls', module: 'payroll', icon: '💰',
+    x: 50, y: 600,
+    cols: [
+      { name: 'id', type: 'uuid', badge: 'PK' },
+      { name: 'employee_id', type: 'bigint', badge: 'FK' },
+      { name: 'month', type: 'text', badge: '' },
+      { name: 'base_salary', type: 'numeric', badge: '' },
+      { name: 'bonus', type: 'numeric', badge: '' },
+      { name: 'deduction', type: 'numeric', badge: '' },
+      { name: 'total_salary', type: 'numeric', badge: '' },
+      { name: 'status', type: 'text', badge: '' },
+    ]
+  },
+  {
+    id: 'payslips', name: 'payslips', module: 'payroll', icon: '🧾',
+    x: 350, y: 680,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'employee_id', type: 'bigint', badge: 'FK' },
+      { name: 'month', type: 'integer', badge: '' },
+      { name: 'year', type: 'integer', badge: '' },
+      { name: 'salary', type: 'numeric', badge: '' },
+      { name: 'ot_hours', type: 'numeric', badge: '' },
+      { name: 'net_pay', type: 'numeric', badge: '' },
+      { name: 'status', type: 'text', badge: '' },
+    ]
+  },
+  {
+    id: 'rewards_penalties', name: 'rewards_penalties', module: 'payroll', icon: '🏆',
+    x: 680, y: 600,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'employee_id', type: 'bigint', badge: 'FK' },
+      { name: 'type', type: 'text', badge: '' },
+      { name: 'amount', type: 'numeric', badge: '' },
+      { name: 'reason', type: 'text', badge: '' },
+      { name: 'date', type: 'date', badge: '' },
+      { name: 'status', type: 'text', badge: '' },
+    ]
+  },
+  {
+    id: 'salary_advances', name: 'salary_advances', module: 'payroll', icon: '💳',
+    x: 980, y: 500,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'employee_id', type: 'bigint', badge: 'FK' },
+      { name: 'amount', type: 'numeric', badge: '' },
+      { name: 'request_date', type: 'date', badge: '' },
+      { name: 'status', type: 'text', badge: '' },
+      { name: 'approved_by', type: 'bigint', badge: 'FK' },
+    ]
+  },
+  {
+    id: 'salary_history', name: 'salary_history', module: 'payroll', icon: '📈',
+    x: 980, y: 680,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'employee_id', type: 'bigint', badge: 'FK' },
+      { name: 'old_salary', type: 'numeric', badge: '' },
+      { name: 'new_salary', type: 'numeric', badge: '' },
+      { name: 'change_date', type: 'date', badge: '' },
+      { name: 'changed_by_employee_id', type: 'bigint', badge: 'FK' },
+    ]
+  },
+  {
+    id: 'contracts', name: 'contracts', module: 'contract', icon: '📄',
+    x: 50, y: 850,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'employee_id', type: 'bigint', badge: 'FK' },
+      { name: 'contract_type', type: 'text', badge: '' },
+      { name: 'start_date', type: 'date', badge: '' },
+      { name: 'end_date', type: 'date', badge: '' },
+      { name: 'salary', type: 'numeric', badge: '' },
+    ]
+  },
+  {
+    id: 'job_openings', name: 'job_openings', module: 'recruit', icon: '📢',
+    x: 980, y: 80,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'department_id', type: 'bigint', badge: 'FK' },
+      { name: 'title', type: 'text', badge: '' },
+      { name: 'description', type: 'text', badge: '' },
+      { name: 'status', type: 'text', badge: '' },
+    ]
+  },
+  {
+    id: 'candidates', name: 'candidates', module: 'recruit', icon: '🧑‍💼',
+    x: 1260, y: 80,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'job_opening_id', type: 'bigint', badge: 'FK' },
+      { name: 'first_name', type: 'text', badge: '' },
+      { name: 'last_name', type: 'text', badge: '' },
+      { name: 'email', type: 'text', badge: '' },
+      { name: 'status', type: 'text', badge: '' },
+    ]
+  },
+  {
+    id: 'assets', name: 'assets', module: 'asset', icon: '💻',
+    x: 1260, y: 340,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'name', type: 'text', badge: '' },
+      { name: 'asset_tag', type: 'text', badge: 'UQ' },
+      { name: 'purchase_date', type: 'date', badge: '' },
+      { name: 'purchase_cost', type: 'numeric', badge: '' },
+      { name: 'status', type: 'text', badge: '' },
+      { name: 'assigned_to', type: 'integer', badge: 'FK' },
+    ]
+  },
+  {
+    id: 'asset_assignments', name: 'asset_assignments', module: 'asset', icon: '🔗',
+    x: 1260, y: 560,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'asset_id', type: 'bigint', badge: 'FK' },
+      { name: 'employee_id', type: 'bigint', badge: 'FK' },
+      { name: 'assigned_date', type: 'date', badge: '' },
+      { name: 'returned_date', type: 'date', badge: '' },
+    ]
+  },
+  {
+    id: 'holidays', name: 'holidays', module: 'attend', icon: '🎉',
+    x: 350, y: 850,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'name', type: 'text', badge: '' },
+      { name: 'date', type: 'date', badge: 'UQ' },
+    ]
+  },
+  {
+    id: 'activity_logs', name: 'activity_logs', module: 'system', icon: '📋',
+    x: 680, y: 850,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'employee_id', type: 'bigint', badge: 'FK' },
+      { name: 'action', type: 'text', badge: '' },
+      { name: 'entity_type', type: 'text', badge: '' },
+      { name: 'entity_id', type: 'bigint', badge: '' },
+      { name: 'details', type: 'text', badge: '' },
+    ]
+  },
+  {
+    id: 'settings', name: 'settings', module: 'system', icon: '⚙️',
+    x: 980, y: 850,
+    cols: [
+      { name: 'id', type: 'bigint', badge: 'PK' },
+      { name: 'key', type: 'text', badge: 'UQ' },
+      { name: 'value', type: 'text', badge: '' },
+    ]
+  },
+];
+
+// Relations: [from, to, type] type: '1-n', '1-1', 'n-n'
+const relations = [
+  ['employees', 'departments', '1-n'],
+  ['employees', 'users', '1-1'],
+  ['attendances', 'employees', '1-n'],
+  ['leave_requests', 'employees', '1-n'],
+  ['overtime_requests', 'employees', '1-n'],
+  ['payrolls', 'employees', '1-n'],
+  ['payslips', 'employees', '1-n'],
+  ['rewards_penalties', 'employees', '1-n'],
+  ['salary_advances', 'employees', '1-n'],
+  ['salary_history', 'employees', '1-n'],
+  ['contracts', 'employees', '1-n'],
+  ['job_openings', 'departments', '1-n'],
+  ['candidates', 'job_openings', '1-n'],
+  ['assets', 'employees', '1-n'],
+  ['asset_assignments', 'assets', '1-n'],
+  ['asset_assignments', 'employees', '1-n'],
+  ['activity_logs', 'employees', '1-n'],
+];
+
+// ===================== STATE =====================
+let scale = 0.72, panX = 0, panY = 0;
+let isPanning = false, panStart = { x: 0, y: 0 }, panOrigin = { x: 0, y: 0 };
+let editingTable = null;
+
+// ===================== RENDER =====================
+function getBadgeStyle(badge) {
+  if (badge === 'PK') return 'background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.4);color:#fbbf24';
+  if (badge === 'FK') return 'background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.4);color:#60a5fa';
+  if (badge === 'UQ') return 'background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#34d399';
+  return 'background:rgba(255,255,255,0.0);border:1px solid transparent;color:transparent';
+}
+
+function renderAll() {
+  const world = document.getElementById('world');
+  // Remove old tables
+  world.querySelectorAll('.erd-table').forEach(e => e.remove());
+
+  tables.forEach(t => {
+    const mod = MODULES[t.module] || MODULES.system;
+    const div = document.createElement('div');
+    div.className = 'erd-table';
+    div.id = 'tbl-' + t.id;
+    div.style.cssText = `left:${t.x}px;top:${t.y}px;border-color:${mod.color}33;`;
+
+    div.innerHTML = `
+      <div class="table-header" style="background:${mod.color}18;">
+        <span class="icon">${t.icon}</span>
+        <span class="table-name">${t.name}</span>
+        <span class="table-module" style="color:${mod.color}">${mod.label}</span>
+      </div>
+      <div class="table-body">
+        ${t.cols.map(c => `
+          <div class="col-row">
+            <span class="col-badge" style="${getBadgeStyle(c.badge)}">${c.badge || '&nbsp;&nbsp;'}</span>
+            <span class="col-name">${c.name}</span>
+            <span class="col-type">${c.type}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    // Drag
+    makeDraggable(div, t);
+    // Double click edit
+    div.addEventListener('dblclick', (e) => { e.stopPropagation(); openEdit(t); });
+
+    world.appendChild(div);
+  });
+
+  renderConnections();
+  updateTransform();
+}
+
+function getTableCenter(tId) {
+  const el = document.getElementById('tbl-' + tId);
+  if (!el) return null;
+  const t = tables.find(x => x.id === tId);
+  if (!t) return null;
+  return { x: t.x + el.offsetWidth / 2, y: t.y + el.offsetHeight / 2, w: el.offsetWidth, h: el.offsetHeight };
+}
+
+function renderConnections() {
+  // Set SVG size large enough
+  const svg = document.getElementById('connections');
+  svg.setAttribute('width', 3000);
+  svg.setAttribute('height', 3000);
+  svg.innerHTML = '';
+
+  // Defs for arrowheads
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  const colors = { '1-n': '#f59e0b', '1-1': '#6366f1', 'n-n': '#10b981' };
+  Object.entries(colors).forEach(([type, color]) => {
+    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    marker.setAttribute('id', 'arrow-' + type);
+    marker.setAttribute('viewBox', '0 0 10 10');
+    marker.setAttribute('refX', '9'); marker.setAttribute('refY', '5');
+    marker.setAttribute('markerWidth', '6'); marker.setAttribute('markerHeight', '6');
+    marker.setAttribute('orient', 'auto');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+    path.setAttribute('fill', color);
+    marker.appendChild(path);
+    defs.appendChild(marker);
+  });
+  svg.appendChild(defs);
+
+  relations.forEach(([from, to, type]) => {
+    const fc = getTableCenter(from);
+    const tc = getTableCenter(to);
+    if (!fc || !tc) return;
+
+    const color = { '1-n': '#f59e0b', '1-1': '#6366f1', 'n-n': '#10b981' }[type] || '#555';
+    const dash = type === '1-1' ? 'none' : type === 'n-n' ? '4 4' : 'none';
+
+    // Smart routing: find best edge
+    let x1 = fc.x, y1 = fc.y, x2 = tc.x, y2 = tc.y;
+    // Adjust to edges
+    const dx = tc.x - fc.x, dy = tc.y - fc.y;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      x1 = dx > 0 ? fc.x + fc.w / 2 : fc.x - fc.w / 2;
+      x2 = dx > 0 ? tc.x - tc.w / 2 : tc.x + tc.w / 2;
+    } else {
+      y1 = dy > 0 ? fc.y + fc.h / 2 : fc.y - fc.h / 2;
+      y2 = dy > 0 ? tc.y - tc.h / 2 : tc.y + tc.h / 2;
+    }
+
+    const mx = (x1 + x2) / 2;
+    const pathD = `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', pathD);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-width', '1.5');
+    path.setAttribute('stroke-dasharray', dash);
+    path.setAttribute('stroke-opacity', '0.6');
+    path.setAttribute('marker-end', `url(#arrow-${type})`);
+    svg.appendChild(path);
+
+    // Label
+    const mid = { x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', mid.x); label.setAttribute('y', mid.y - 4);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('fill', color); label.setAttribute('font-size', '9');
+    label.setAttribute('font-family', 'JetBrains Mono, monospace');
+    label.setAttribute('opacity', '0.8');
+    label.textContent = type === '1-n' ? '1 : N' : type === '1-1' ? '1 : 1' : 'N : N';
+    svg.appendChild(label);
+  });
+}
+
+// ===================== DRAG =====================
+function makeDraggable(el, tableData) {
+  let startX, startY, startTableX, startTableY;
+
+  el.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    startX = e.clientX; startY = e.clientY;
+    startTableX = tableData.x; startTableY = tableData.y;
+    el.classList.add('dragging');
+
+    const onMove = (e2) => {
+      const dx = (e2.clientX - startX) / scale;
+      const dy = (e2.clientY - startY) / scale;
+      tableData.x = startTableX + dx;
+      tableData.y = startTableY + dy;
+      el.style.left = tableData.x + 'px';
+      el.style.top = tableData.y + 'px';
+      renderConnections();
+    };
+    const onUp = () => {
+      el.classList.remove('dragging');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
+// ===================== PAN =====================
+const canvas = document.getElementById('canvas');
+canvas.addEventListener('mousedown', (e) => {
+  if (e.button === 0 && !e.target.closest('.erd-table')) {
+    isPanning = true;
+    panStart = { x: e.clientX, y: e.clientY };
+    panOrigin = { x: panX, y: panY };
+  }
+});
+document.addEventListener('mousemove', (e) => {
+  if (!isPanning) return;
+  panX = panOrigin.x + (e.clientX - panStart.x);
+  panY = panOrigin.y + (e.clientY - panStart.y);
+  updateTransform();
+});
+document.addEventListener('mouseup', () => { isPanning = false; });
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.1 : 0.9;
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const wx = (mx - panX) / scale, wy = (my - panY) / scale;
+  scale = Math.min(2, Math.max(0.2, scale * factor));
+  panX = mx - wx * scale;
+  panY = my - wy * scale;
+  updateTransform();
+}, { passive: false });
+
+function updateTransform() {
+  document.getElementById('world').style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  document.getElementById('zoom-label').textContent = Math.round(scale * 100) + '%';
+}
+
+function zoomIn() { scale = Math.min(2, scale * 1.15); updateTransform(); }
+function zoomOut() { scale = Math.max(0.2, scale / 1.15); updateTransform(); }
+function fitView() {
+  scale = 0.55; panX = 240; panY = 10; updateTransform();
+}
+function resetLayout() { location.reload(); }
+
+// ===================== EDIT MODAL =====================
+function openEdit(t) {
+  editingTable = t;
+  document.getElementById('edit-name').value = t.name;
+  document.getElementById('edit-module').value = t.module;
+  renderEditCols(t.cols);
+  document.getElementById('editModal').classList.add('open');
+}
+
+function renderEditCols(cols) {
+  const container = document.getElementById('edit-cols');
+  container.innerHTML = '';
+  cols.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.className = 'col-edit-row';
+    row.innerHTML = `
+      <input type="text" value="${c.name}" placeholder="Tên cột" onchange="editingTable.cols[${i}].name=this.value" />
+      <input type="text" value="${c.type}" placeholder="Kiểu" style="max-width:90px" onchange="editingTable.cols[${i}].type=this.value" />
+      <select onchange="editingTable.cols[${i}].badge=this.value">
+        <option value="" ${!c.badge ? 'selected' : ''}>–</option>
+        <option value="PK" ${c.badge==='PK' ? 'selected' : ''}>PK</option>
+        <option value="FK" ${c.badge==='FK' ? 'selected' : ''}>FK</option>
+        <option value="UQ" ${c.badge==='UQ' ? 'selected' : ''}>UQ</option>
+      </select>
+      <button class="remove-col" onclick="removeCol(${i})">✕</button>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function removeCol(i) {
+  editingTable.cols.splice(i, 1);
+  renderEditCols(editingTable.cols);
+}
+
+function addColRow() {
+  editingTable.cols.push({ name: 'new_col', type: 'text', badge: '' });
+  renderEditCols(editingTable.cols);
+}
+
+function saveEdit() {
+  editingTable.name = document.getElementById('edit-name').value;
+  editingTable.module = document.getElementById('edit-module').value;
+  closeModal();
+  renderAll();
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingTable = null;
+}
+
+// ===================== INIT =====================
+window.addEventListener('load', () => {
+  renderAll();
+  setTimeout(fitView, 100);
+});
+</script>
+</body>
+</html>

@@ -9,6 +9,7 @@ import {
   CandidateFormValues,
 } from "@/lib/schemas/recruitment.schema";
 import { ZodError } from "zod";
+import { activityService } from "@/server/services/activity-service";
 
 export type ActionState = {
   success?: boolean;
@@ -38,6 +39,8 @@ export async function createJobAction(
       status: validatedData.status,
       description: validatedData.description,
     });
+
+    await activityService.logActivity('THÊM MỚI', 'Tuyển dụng', undefined, `Đăng tin tuyển dụng mới: ${validatedData.title}`);
 
     revalidatePath("/recruitment");
     return { success: true };
@@ -78,6 +81,8 @@ export async function updateJobAction(
       description: validatedData.description,
     });
 
+    await activityService.logActivity('CẬP NHẬT', 'Tuyển dụng', id, `Cập nhật tin tuyển dụng: ${validatedData.title}`);
+
     revalidatePath("/recruitment");
     return { success: true };
   } catch (error) {
@@ -98,6 +103,7 @@ export async function updateJobAction(
 export async function deleteJobAction(id: number): Promise<ActionState> {
   try {
     await recruitmentRepo.deleteJobOpening(id);
+    await activityService.logActivity('XÓA', 'Tuyển dụng', id, `Đã xóa tin tuyển dụng ID ${id}`);
     revalidatePath("/recruitment");
     return { success: true };
   } catch (error) {
