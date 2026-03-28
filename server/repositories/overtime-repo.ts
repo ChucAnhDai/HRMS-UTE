@@ -41,7 +41,8 @@ export const overtimeRepo = {
     // Filter theo tháng/năm nếu cần
     if (filters?.month && filters?.year) {
         const startDate = `${filters.year}-${filters.month.toString().padStart(2, '0')}-01`
-        const endDate = `${filters.year}-${filters.month.toString().padStart(2, '0')}-31`
+        const lastDay = new Date(filters.year, filters.month, 0).getDate()
+        const endDate = `${filters.year}-${filters.month.toString().padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
         query = query.gte('date', startDate).lte('date', endDate)
     }
 
@@ -88,7 +89,8 @@ export const overtimeRepo = {
   async getMonthlyApprovedHours(employeeId: number, month: number, year: number) {
       const supabase = await createClient()
       const startDate = `${year}-${month.toString().padStart(2, '0')}-01`
-      const endDate = `${year}-${month.toString().padStart(2, '0')}-31`
+      const lastDay = new Date(year, month, 0).getDate()
+      const endDate = `${year}-${month.toString().padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
 
       const { data, error } = await supabase
           .from('overtime_requests')

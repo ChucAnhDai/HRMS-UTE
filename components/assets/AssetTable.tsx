@@ -19,6 +19,8 @@ import {
 import { useActionState } from "react";
 
 import { Asset, Employee } from "@/types";
+import { toast } from "@/hooks/use-toast";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 const initialState = { success: false, error: "" };
 
@@ -38,6 +40,8 @@ export default function AssetTable({ assets }: { assets: AssetWithDetails[] }) {
     saveAssetAction,
     initialState,
   );
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [assetToDeleteId, setAssetToDeleteId] = useState<number | null>(null);
 
   const filteredAssets = assets.filter(
     (a) =>
@@ -93,21 +97,45 @@ export default function AssetTable({ assets }: { assets: AssetWithDetails[] }) {
   // Đóng form khi thêm/sửa thành công
   useEffect(() => {
     if (state?.success) {
+      toast({
+        title: "Thành công",
+        description: "Đã lưu thông tin thiết bị",
+      });
       const timer = setTimeout(() => {
         setShowForm(false);
         setEditingAsset(null);
       }, 0);
       return () => clearTimeout(timer);
+    } else if (state?.error) {
+      toast({
+        title: "Lỗi",
+        description: state.error || "Không thể lưu thiết bị",
+        variant: "destructive",
+      });
     }
-  }, [state?.success]);
+  }, [state?.success, state?.error]);
 
-  const handleDelete = async (id: number) => {
-    if (confirm("Bạn có chắc chắn muốn xóa tài sản này?")) {
-      const res = await deleteAssetAction(id);
-      if (!res.success) {
-        alert(res.error || "Không thể xóa tài sản");
-      }
+  const handleDelete = (id: number) => {
+    setAssetToDeleteId(id);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (assetToDeleteId === null) return;
+    const res = await deleteAssetAction(assetToDeleteId);
+    if (res.success) {
+      toast({
+        title: "Thành công",
+        description: "Đã xóa thiết bị thành công",
+      });
+    } else {
+      toast({
+        title: "Lỗi",
+        description: res.error || "Không thể xóa tài sản",
+        variant: "destructive",
+      });
     }
+    setAssetToDeleteId(null);
   };
 
   const handleEdit = (asset: AssetWithDetails) => {
@@ -121,248 +149,260 @@ export default function AssetTable({ assets }: { assets: AssetWithDetails[] }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h3 className="text-xl font-bold text-gray-800">
-          Quản lý Tài sản & Thiết bị
-        </h3>
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Tìm tên hoặc mã..."
-              className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black text-sm w-64"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+    <>
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h3 className="text-xl font-bold text-gray-800">
+            Quản lý Tài sản & Thiết bị
+          </h3>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Tìm tên hoặc mã..."
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black text-sm w-64"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            </div>
+            <button
+              onClick={handleAddNew}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-bold shadow-lg shadow-blue-600/20"
+            >
+              <Plus className="w-4 h-4" /> Thêm thiết bị
+            </button>
           </div>
-          <button
-            onClick={handleAddNew}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-bold shadow-lg shadow-blue-600/20"
-          >
-            <Plus className="w-4 h-4" /> Thêm thiết bị
-          </button>
         </div>
-      </div>
 
-      {showForm && (
-        <div className="bg-white p-6 rounded-xl border border-blue-100 shadow-sm animate-in slide-in-from-top-2">
-          <h4 className="font-bold text-gray-800 mb-4">
-            {editingAsset ? "Cập nhật thiết bị" : "Thêm thiết bị mới"}
-          </h4>
-          {state?.error && (
-            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-              {state.error}
-            </div>
-          )}
-          <form
-            action={formAction}
-            className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
-          >
-            {editingAsset && (
-              <input type="hidden" name="id" value={editingAsset.id} />
+        {showForm && (
+          <div className="bg-white p-6 rounded-xl border border-blue-100 shadow-sm animate-in slide-in-from-top-2">
+            <h4 className="font-bold text-gray-800 mb-4">
+              {editingAsset ? "Cập nhật thiết bị" : "Thêm thiết bị mới"}
+            </h4>
+            {state?.error && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                {state.error}
+              </div>
             )}
+            <form
+              action={formAction}
+              className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
+            >
+              {editingAsset && (
+                <input type="hidden" name="id" value={editingAsset.id} />
+              )}
 
-            <div className="md:col-span-2 space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Tên thiết bị
-              </label>
-              <input
-                name="name"
-                defaultValue={editingAsset?.name}
-                required
-                placeholder="VD: Macbook Pro M1"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Mã tài sản
-              </label>
-              <input
-                name="asset_tag"
-                defaultValue={editingAsset?.asset_tag}
-                required
-                placeholder="AST-001"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Ngày mua
-              </label>
-              <input
-                type="date"
-                name="purchase_date"
-                defaultValue={editingAsset?.purchase_date}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                Giá trị (VNĐ)
-              </label>
-              <input
-                type="number"
-                name="purchase_cost"
-                defaultValue={editingAsset?.purchase_cost}
-                required
-                placeholder="0"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">
-                {editingAsset ? "Trạng thái" : "Trạng thái Ban đầu"}
-              </label>
-              <select
-                name="status"
-                defaultValue={editingAsset?.status || "Available"}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-              >
-                <option value="Available">Available (Sẵn sàng)</option>
-                <option value="In Use">In Use (Đang sử dụng)</option>
-                <option value="Broken">Broken (Hỏng)</option>
-                <option value="Lost">Lost (Mất)</option>
-                <option value="Liquidated">Liquidated (Thanh lý)</option>
-              </select>
-            </div>
+              <div className="md:col-span-2 space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">
+                  Tên thiết bị
+                </label>
+                <input
+                  name="name"
+                  defaultValue={editingAsset?.name}
+                  required
+                  placeholder="VD: Macbook Pro M1"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">
+                  Mã tài sản
+                </label>
+                <input
+                  name="asset_tag"
+                  defaultValue={editingAsset?.asset_tag}
+                  required
+                  placeholder="AST-001"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">
+                  Ngày mua
+                </label>
+                <input
+                  type="date"
+                  name="purchase_date"
+                  defaultValue={editingAsset?.purchase_date}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">
+                  Giá trị (VNĐ)
+                </label>
+                <input
+                  type="number"
+                  name="purchase_cost"
+                  defaultValue={editingAsset?.purchase_cost}
+                  required
+                  placeholder="0"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">
+                  {editingAsset ? "Trạng thái" : "Trạng thái Ban đầu"}
+                </label>
+                <select
+                  name="status"
+                  defaultValue={editingAsset?.status || "Available"}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                >
+                  <option value="Available">Available (Sẵn sàng)</option>
+                  <option value="In Use">In Use (Đang sử dụng)</option>
+                  <option value="Broken">Broken (Hỏng)</option>
+                  <option value="Lost">Lost (Mất)</option>
+                  <option value="Liquidated">Liquidated (Thanh lý)</option>
+                </select>
+              </div>
 
-            <div className="md:col-span-12 flex justify-end gap-2 mt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  setEditingAsset(null);
-                }}
-                className="px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 rounded-lg"
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 shadow-sm disabled:opacity-70"
-              >
-                {isPending
-                  ? "Đang lưu..."
-                  : editingAsset
-                    ? "Cập nhật"
-                    : "Lưu thiết bị"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+              <div className="md:col-span-12 flex justify-end gap-2 mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingAsset(null);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 rounded-lg"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 shadow-sm disabled:opacity-70"
+                >
+                  {isPending
+                    ? "Đang lưu..."
+                    : editingAsset
+                      ? "Cập nhật"
+                      : "Lưu thiết bị"}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
-                Thiết bị
-              </th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
-                Mã TS
-              </th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
-                Ngày mua
-              </th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
-                Giá trị
-              </th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
-                Trạng thái
-              </th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
-                Nhân viên được cấp
-              </th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {filteredAssets.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <table className="w-full text-left">
+            <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <td colSpan={7} className="text-center py-8 text-gray-500">
-                  Chưa có thiết bị nào
-                </td>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
+                  Thiết bị
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
+                  Mã TS
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
+                  Ngày mua
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
+                  Giá trị
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
+                  Trạng thái
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">
+                  Nhân viên được cấp
+                </th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right"></th>
               </tr>
-            ) : (
-              filteredAssets.map((asset) => {
-                const Icon = getIcon(asset.name);
-                return (
-                  <tr
-                    key={asset.id}
-                    className="hover:bg-gray-50 transition-colors group"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <span className="font-bold text-gray-800 text-sm">
-                          {asset.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-mono text-gray-600">
-                      {asset.asset_tag}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {asset.PurchaseDateFormatted}
-                    </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-800">
-                      {asset.CostFormatted}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(asset.status)}`}
-                      >
-                        {getStatusLabel(asset.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {asset.employees ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
-                            <User className="w-3 h-3 text-gray-500" />
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredAssets.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-8 text-gray-500">
+                    Chưa có thiết bị nào
+                  </td>
+                </tr>
+              ) : (
+                filteredAssets.map((asset) => {
+                  const Icon = getIcon(asset.name);
+                  return (
+                    <tr
+                      key={asset.id}
+                      className="hover:bg-gray-50 transition-colors group"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                            <Icon className="w-5 h-5" />
                           </div>
-                          <span className="font-medium text-gray-700">
-                            {asset.employees.last_name}{" "}
-                            {asset.employees.first_name}
+                          <span className="font-bold text-gray-800 text-sm">
+                            {asset.name}
                           </span>
                         </div>
-                      ) : (
-                        <span className="text-gray-400 italic">--</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button
-                          onClick={() => handleEdit(asset)}
-                          className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
-                          title="Sửa"
+                      </td>
+                      <td className="px-6 py-4 text-sm font-mono text-gray-600">
+                        {asset.asset_tag}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {asset.PurchaseDateFormatted}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-gray-800">
+                        {asset.CostFormatted}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(asset.status)}`}
                         >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(asset.id)}
-                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                          title="Xóa"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                          {getStatusLabel(asset.status)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {asset.employees ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
+                              <User className="w-3 h-3 text-gray-500" />
+                            </div>
+                            <span className="font-medium text-gray-700">
+                              {asset.employees.last_name}{" "}
+                              {asset.employees.first_name}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 italic">--</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                          <button
+                            onClick={() => handleEdit(asset)}
+                            className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+                            title="Sửa"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(asset.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            title="Xóa"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa thiết bị"
+        description="Bạn có chắc chắn muốn xóa tài sản này? Thao tác này sẽ xóa vĩnh viễn dữ liệu thiết bị khỏi hệ thống."
+        onConfirm={confirmDelete}
+        variant="danger"
+        confirmText="Xác nhận xóa"
+      />
+    </>
   );
 }

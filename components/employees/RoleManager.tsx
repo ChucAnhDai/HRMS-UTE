@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Shield, Crown, User, Check } from 'lucide-react'
 import { updateEmployeeRoleAction } from '@/server/actions/update-role'
+import { toast } from '@/hooks/use-toast'
 
 type UserRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
 
@@ -44,6 +45,11 @@ export default function RoleManager({ employeeId, currentRole, employeeName }: P
 
   async function handleSubmit() {
     if (selectedRole === currentRole) {
+      toast({
+        title: "Cảnh báo",
+        description: "Vui lòng chọn role khác",
+        variant: "destructive",
+      });
       setMessage({ type: 'error', text: 'Vui lòng chọn role khác' })
       return
     }
@@ -55,12 +61,21 @@ export default function RoleManager({ employeeId, currentRole, employeeName }: P
     setIsLoading(false)
 
     if (result.success) {
+      toast({
+        title: "Thành công",
+        description: result.message || "Cập nhật quyền thành công",
+      });
       setMessage({ type: 'success', text: result.message || 'Cập nhật thành công!' })
       setTimeout(() => {
         setIsOpen(false)
         window.location.reload()
       }, 1500)
     } else {
+      toast({
+        title: "Lỗi",
+        description: result.error || "Không thể cập nhật quyền",
+        variant: "destructive",
+      });
       setMessage({ type: 'error', text: result.error || 'Có lỗi xảy ra' })
     }
   }

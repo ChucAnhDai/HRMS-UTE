@@ -89,6 +89,11 @@ export default function SalaryAdvanceTable({ advances, currentUser }: Props) {
       rejectionReason,
     );
     if (res.error) {
+      toast({
+        title: "Lỗi",
+        description: res.error,
+        variant: "destructive",
+      });
       setRejectError(res.error);
     } else {
       toast({ title: "Thành công", description: "Đã từ chối yêu cầu." });

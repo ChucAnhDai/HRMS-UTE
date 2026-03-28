@@ -14,11 +14,12 @@ export const dashboardService = {
       .in('employment_status', ['Active', 'Probation'])
 
     // 2. Số người đã Check-in hôm nay
-    const nowInVN = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
-    const year = nowInVN.getFullYear();
-    const month = String(nowInVN.getMonth() + 1).padStart(2, '0');
-    const day = String(nowInVN.getDate()).padStart(2, '0');
-    const today = `${year}-${month}-${day}`;
+    const nowInVNStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
+    const todayDate = new Date(nowInVNStr);
+    const today = todayDate.getFullYear() + '-' + 
+                  String(todayDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                  String(todayDate.getDate()).padStart(2, '0');
+    
     const { count: checkInCount } = await supabase
       .from('attendances')
       .select('*', { count: 'exact', head: true })
@@ -68,7 +69,6 @@ export const dashboardService = {
     // Group by department
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const deptStatsVal = (employees || []).reduce((acc: Record<string, number>, curr: any) => {
-        // Handle explicit type issue where departments might be array or object
         const dept = curr.departments
         let deptName = 'Unknown'
         
@@ -88,14 +88,25 @@ export const dashboardService = {
         color: ['#a855f7', '#ef4444', '#eab308', '#14b8a6', '#3b82f6'][index % 5]
     }))
 
-    // 6. Nghỉ phép sắp tới (Upcoming Leads)
-    const { data: upcomingLeaves } = await supabase
+    // 6. Nghỉ phép sắp tới (Upcoming Leaves) - Sử dụng FK hint để tránh ambiguity
+    const { data: upcomingLeaves, error: leaveError } = await supabase
       .from('leave_requests')
-      .select('*, employees(first_name, last_name, avatar)')
+      .select(`
+        *,
+        employees!leave_requests_employee_id_fkey (
+          first_name,
+          last_name,
+          avatar
+        )
+      `)
       .eq('status', 'Approved')
       .gte('start_date', today)
       .limit(5)
       .order('start_date', { ascending: true })
+
+    if (leaveError) {
+      console.error('Upcoming Leaves Fetch Error:', leaveError);
+    }
 
     // 8. Hoạt động gần đây
     interface ActivityLog {
@@ -110,7 +121,14 @@ export const dashboardService = {
     try {
       const { data, error: actError } = await supabase
         .from('activity_logs')
-        .select('*, employees(first_name, last_name, avatar)')
+        .select(`
+          *,
+          employees!activity_logs_employee_id_fkey (
+            first_name,
+            last_name,
+            avatar
+          )
+        `)
         .order('created_at', { ascending: false })
         .limit(4);
       if (!actError && data) {

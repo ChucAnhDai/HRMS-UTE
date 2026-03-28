@@ -4,6 +4,8 @@ import { Monitor, Calendar, DollarSign, XCircle } from "lucide-react";
 import { unassignAssetAction } from "@/server/actions/asset-assignment-actions";
 import { useState } from "react";
 import { Asset } from "@/types";
+import { toast } from "@/hooks/use-toast";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface EmployeeAsset extends Asset {
   AssignedDateFormatted?: string;
@@ -20,19 +22,35 @@ export default function EmployeeAssetList({
   employeeId,
 }: EmployeeAssetListProps) {
   const [loading, setLoading] = useState<number | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [assetToUnassignId, setAssetToUnassignId] = useState<number | null>(null);
 
-  const handleUnassign = async (assetId: number) => {
-    if (!confirm("Bạn có chắc muốn thu hồi tài sản này?")) return;
+  const handleUnassignRequest = (assetId: number) => {
+    setAssetToUnassignId(assetId);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmUnassign = async () => {
+    if (assetToUnassignId === null) return;
+    const assetId = assetToUnassignId;
 
     setLoading(assetId);
     const result = await unassignAssetAction(assetId, employeeId);
     setLoading(null);
 
     if (result.success) {
-      alert(result.message);
+      toast({
+        title: "Thành công",
+        description: result.message || "Đã thu hồi tài sản thành công",
+      });
     } else {
-      alert("Lỗi: " + result.error);
+      toast({
+        title: "Lỗi",
+        description: result.error || "Không thể thu hồi tài sản",
+        variant: "destructive",
+      });
     }
+    setAssetToUnassignId(null);
   };
 
   if (!assets || assets.length === 0) {
@@ -47,6 +65,7 @@ export default function EmployeeAssetList({
   }
 
   return (
+    <>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {assets.map((asset) => (
         <div
@@ -66,7 +85,7 @@ export default function EmployeeAssetList({
               </div>
             </div>
             <button
-              onClick={() => handleUnassign(asset.id)}
+              onClick={() => handleUnassignRequest(asset.id)}
               disabled={loading === asset.id}
               className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
               title="Thu hồi tài sản"
@@ -94,5 +113,16 @@ export default function EmployeeAssetList({
         </div>
       ))}
     </div>
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận thu hồi tài sản"
+        description="Bạn có chắc chắn muốn thu hồi tài sản này từ nhân viên? Thao tác này sẽ cập nhật trạng thái tài sản thành sẵn dùng."
+        onConfirm={confirmUnassign}
+        variant="danger"
+        confirmText="Xác nhận thu hồi"
+      />
+    </>
   );
 }

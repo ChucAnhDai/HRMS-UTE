@@ -72,7 +72,8 @@ export const payrollService = {
 
     // 4. Lưu xuống DB
     if (payslips.length > 0) {
-      return (await payrollRepo.replaceMonthlyPayroll(month, year, payslips as Partial<Payslip>[])) as Payslip[]
+      await payrollRepo.upsertPayslips(payslips as Partial<Payslip>[])
+      return payslips as Payslip[]
     }
 
     return [] as Payslip[]

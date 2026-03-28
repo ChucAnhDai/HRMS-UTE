@@ -81,3 +81,37 @@ export async function rejectLeaveAction(id: number, rejectionReason: string) {
   }
 }
 
+export async function updateLeaveRequestAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const currentUser = await getCurrentUser()
+    if (!currentUser || !currentUser.employeeId) {
+      return { error: 'Bạn chưa đăng nhập hoặc không có quyền thực hiện thao tác này' }
+    }
+
+    const id = Number(formData.get('leave_id'))
+    if (!id) {
+      return { error: 'Thiếu thông tin đơn nghỉ phép' }
+    }
+
+    // 1. Validate bằng Zod
+    const { LeaveRequestSchema } = await import('@/lib/schemas/leave.schema');
+    const rawData = Object.fromEntries(formData.entries());
+    const result = LeaveRequestSchema.safeParse(rawData);
+    
+    if (!result.success) {
+      const errorMessages = result.error.issues.map(issue => issue.message).join(', ');
+      return { error: errorMessages };
+    }
+
+    // 2. Gọi service xử lý
+    await leaveService.updateLeaveRequest(id, formData, currentUser.employeeId)
+
+    revalidatePath('/leave')
+    revalidatePath('/profile')
+    return { success: true, message: 'Cập nhật đơn xin nghỉ thành công!' }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Lỗi khi cập nhật đơn'
+    return { error: message }
+  }
+}
+

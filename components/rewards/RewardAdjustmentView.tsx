@@ -7,6 +7,7 @@ import { Employee, Department } from "@/types";
 import { useFormPersistence } from "@/hooks/use-form-persistence";
 import FormDraftNotice from "../common/FormDraftNotice";
 import { useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
 
 interface Reward {
   id: number;
@@ -271,9 +272,11 @@ function RewardModal({
       const selectedYear = selectedDate.getFullYear();
 
       if (selectedMonth !== month || selectedYear !== year) {
-        alert(
-          `Thời gian chọn không hợp lệ. Vui lòng chọn ngày trong tháng hiện tại (Tháng ${month}/${year}).`
-        );
+        toast({
+          title: "Lỗi",
+          description: `Thời gian chọn không hợp lệ. Vui lòng chọn ngày trong tháng hiện tại (Tháng ${month}/${year}).`,
+          variant: "destructive",
+        });
         setLoading(false);
         return;
       }
@@ -281,11 +284,19 @@ function RewardModal({
 
     const res = await createRewardPenaltyAction(formData);
     if (res.success) {
+      toast({
+        title: "Thành công",
+        description: "Đã thêm khoản điều chỉnh thành công",
+      });
       clearSavedData();
       close();
       window.location.reload();
     } else {
-      alert(res.message);
+      toast({
+        title: "Lỗi",
+        description: res.message || "Không thể thêm khoản điều chỉnh",
+        variant: "destructive",
+      });
     }
     setLoading(false);
   }

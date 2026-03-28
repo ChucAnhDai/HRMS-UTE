@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Key, Loader2, X, Lock } from 'lucide-react'
 import { createEmployeeAccountAction, updateEmployeePasswordAction } from '@/server/actions/admin-auth-actions'
+import { toast } from '@/hooks/use-toast'
 
 interface Props {
   employeeId: number
@@ -31,12 +32,22 @@ export default function GrantAccountButton({ employeeId, email, hasAccount }: Pr
     }
 
     if (result.success) {
-      setSuccess(hasAccount ? 'Đã đổi mật khẩu thành công!' : 'Đã cấp tài khoản thành công!')
+      const successMsg = hasAccount ? 'Đã đổi mật khẩu thành công!' : 'Đã cấp tài khoản thành công!'
+      toast({
+        title: "Thành công",
+        description: successMsg,
+      });
+      setSuccess(successMsg)
       setTimeout(() => {
           setIsOpen(false)
           window.location.reload() // Reload để cập nhật UI
       }, 1500)
     } else {
+      toast({
+        title: "Lỗi",
+        description: result.error || 'Có lỗi xảy ra',
+        variant: "destructive",
+      });
       setError(result.error || 'Có lỗi xảy ra')
     }
     

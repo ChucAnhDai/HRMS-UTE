@@ -28,7 +28,8 @@ export const attendanceRepo = {
     
     // Tạo ngày bắt đầu và kết thúc tháng
     const startDate = `${year}-${month.toString().padStart(2, '0')}-01`
-    const endDate = `${year}-${month.toString().padStart(2, '0')}-31` // Lấy dư ra chút cũng không sao
+    const lastDay = new Date(year, month, 0).getDate()
+    const endDate = `${year}-${month.toString().padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
 
     let query = supabase
       .from('attendances')
