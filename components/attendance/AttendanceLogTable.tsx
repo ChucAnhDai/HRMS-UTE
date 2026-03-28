@@ -20,6 +20,8 @@ import {
   adminCreateAttendanceAction,
   adminDeleteAttendanceAction,
 } from "@/server/actions/attendance-actions";
+import { toast } from "@/hooks/use-toast";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 // ---- Interfaces ----
 interface AttendanceLog {
@@ -84,6 +86,8 @@ export default function AttendanceLogTable({
   // Create modal filter state
   const [selectedDeptId, setSelectedDeptId] = useState<string>("");
   const [selectedEmpId, setSelectedEmpId] = useState<string>("");
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [logToDelete, setLogToDelete] = useState<AttendanceLog | null>(null);
 
   const isAdmin = userRole === "ADMIN" || userRole === "MANAGER";
 
@@ -114,6 +118,10 @@ export default function AttendanceLogTable({
   async function handleEditSubmit(formData: FormData) {
     const result = await adminUpdateAttendanceAction(formData);
     if (result.success) {
+      toast({
+        title: "Thành công",
+        description: result.message || "Đã cập nhật chấm công",
+      });
       setEditMessage({ type: "success", text: result.message });
       setTimeout(() => {
         setEditingLog(null);
@@ -121,6 +129,11 @@ export default function AttendanceLogTable({
         router.refresh();
       }, 1500);
     } else {
+      toast({
+        title: "Lỗi",
+        description: result.message || "Không thể cập nhật chấm công",
+        variant: "destructive",
+      });
       setEditMessage({ type: "error", text: result.message });
     }
   }
@@ -128,6 +141,10 @@ export default function AttendanceLogTable({
   async function handleCreateSubmit(formData: FormData) {
     const result = await adminCreateAttendanceAction(formData);
     if (result.success) {
+      toast({
+        title: "Thành công",
+        description: result.message || "Đã tạo bản ghi chấm công",
+      });
       setCreateMessage({ type: "success", text: result.message });
       setTimeout(() => {
         setShowCreateModal(false);
@@ -135,6 +152,11 @@ export default function AttendanceLogTable({
         router.refresh();
       }, 1500);
     } else {
+      toast({
+        title: "Lỗi",
+        description: result.message || "Không thể tạo chấm công",
+        variant: "destructive",
+      });
       setCreateMessage({ type: "error", text: result.message });
     }
   }
@@ -342,21 +364,9 @@ export default function AttendanceLogTable({
                             <Pencil className="w-3.5 h-3.5" /> Sửa
                           </button>
                           <button
-                            onClick={async () => {
-                              if (
-                                !confirm(
-                                  `Bạn có chắc muốn xóa bản ghi chấm công của "${log.employeeName}" ngày ${new Date(log.date).toLocaleDateString("vi-VN")}?`,
-                                )
-                              )
-                                return;
-                              const result = await adminDeleteAttendanceAction(
-                                log.id,
-                              );
-                              if (result.success) {
-                                router.refresh();
-                              } else {
-                                alert(result.message);
-                              }
+                            onClick={() => {
+                              setLogToDelete(log);
+                              setIsConfirmOpen(true);
                             }}
                             className="inline-flex items-center gap-1 text-sm text-red-500 hover:text-red-700 font-medium"
                           >
@@ -374,6 +384,33 @@ export default function AttendanceLogTable({
           </table>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa chấm công"
+        description={`Bạn có chắc chắn muốn xóa bản ghi chấm công của nhân viên "${logToDelete?.employeeName}" ngày ${logToDelete ? new Date(logToDelete.date).toLocaleDateString("vi-VN") : ""}?`}
+        onConfirm={async () => {
+          if (!logToDelete) return;
+          const result = await adminDeleteAttendanceAction(logToDelete.id);
+          if (result.success) {
+            toast({
+              title: "Thành công",
+              description: result.message || "Đã xóa bản ghi chấm công",
+            });
+            router.refresh();
+          } else {
+            toast({
+              title: "Lỗi",
+              description: result.message || "Không thể xóa chấm công",
+              variant: "destructive",
+            });
+          }
+          setLogToDelete(null);
+        }}
+        variant="danger"
+        confirmText="Xác nhận xóa"
+      />
 
       {/* ===== EDIT MODAL ===== */}
       {editingLog && (

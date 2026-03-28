@@ -130,5 +130,48 @@ export const leaveService = {
       throw new Error('Vui lòng nhập lý do từ chối')
     }
     return await leaveRepo.updateLeaveStatus(id, 'Rejected', actionByEmployeeId, rejectionReason)
+  },
+
+  // NEW: Cập nhật đơn nghỉ phép (chỉ khi Pending)
+  async updateLeaveRequest(id: number, formData: FormData, currentEmployeeId: number) {
+    const leave_type = formData.get('leave_type') as string
+    const start_date = formData.get('start_date') as string
+    const end_date = formData.get('end_date') as string
+    const reason = formData.get('reason') as string
+
+    // 1. Validate cơ bản
+    if (!leave_type || !start_date || !end_date) {
+      throw new Error('Thiếu thông tin bắt buộc')
+    }
+
+    const start = new Date(start_date)
+    const end = new Date(end_date)
+
+    if (end < start) {
+      throw new Error('Ngày kết thúc không được nhỏ hơn ngày bắt đầu')
+    }
+
+    // 2. Kiểm tra nghiệp vụ & Bảo mật
+    const existingLeave = await leaveRepo.getLeaveRequestById(id)
+    if (!existingLeave) {
+      throw new Error('Không tìm thấy đơn nghỉ phép')
+    }
+
+    // Bảo mật: Đảm bảo nhân viên chỉ sửa đơn của chính mình
+    if (existingLeave.employee_id !== currentEmployeeId) {
+      throw new Error('Bạn không có quyền chỉnh sửa đơn này')
+    }
+
+    // Nghiệp vụ: Chỉ cho phép sửa khi chưa duyệt (Pending)
+    if (existingLeave.status !== 'Pending') {
+      throw new Error('Chỉ có thể chỉnh sửa đơn ở trạng thái "Chờ duyệt"')
+    }
+
+    return await leaveRepo.updateLeaveRequest(id, {
+      leave_type,
+      start_date,
+      end_date,
+      reason
+    })
   }
 }

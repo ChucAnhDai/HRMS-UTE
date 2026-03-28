@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { X, Edit2, AlertCircle, Calculator } from "lucide-react";
 import { updatePayslipAction } from "@/server/actions/payroll-actions";
 import { Payslip, PayslipUpdateDTO } from "@/types";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   payslip: Payslip;
@@ -87,8 +88,17 @@ export default function EditPayslipModal({ payslip, onClose }: Props) {
       if (!res.success) {
         // TypeScript narrowing workaround for Server Actions
         const errorMsg = "error" in res ? res.error : "Có lỗi xảy ra";
+        toast({
+          title: "Lỗi",
+          description: errorMsg || "Không thể cập nhật phiếu lương",
+          variant: "destructive",
+        });
         throw new Error(errorMsg);
       }
+      toast({
+        title: "Thành công",
+        description: "Đã cập nhật phiếu lương thành công",
+      });
       onClose();
     } catch (err: unknown) {
       if (err instanceof Error) {

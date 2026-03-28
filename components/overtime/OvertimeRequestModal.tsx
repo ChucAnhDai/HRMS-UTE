@@ -6,6 +6,7 @@ import { createOvertimeRequestAction } from "@/server/actions/overtime-actions";
 import { useFormPersistence } from "@/hooks/use-form-persistence";
 import FormDraftNotice from "../common/FormDraftNotice";
 import { useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
 
 import { Employee } from "@/types";
 
@@ -47,11 +48,13 @@ export default function OvertimeRequestModal({
 
   useEffect(() => {
     if (isRestored && savedData) {
-      setFormData(prev => ({
-        ...prev,
-        ...savedData,
-        employee_id: savedData.employee_id ? Number(savedData.employee_id) : prev.employee_id
-      }));
+      setTimeout(() => {
+        setFormData(prev => ({
+          ...prev,
+          ...savedData,
+          employee_id: savedData.employee_id ? Number(savedData.employee_id) : prev.employee_id
+        }));
+      }, 0);
     }
   }, [isRestored, savedData]);
 
@@ -131,6 +134,10 @@ export default function OvertimeRequestModal({
     });
 
     if (res.success) {
+      toast({
+        title: "Thành công",
+        description: "Đã gửi yêu cầu làm thêm giờ",
+      });
       clearSavedData();
       onSuccess?.();
       onClose();
@@ -143,6 +150,11 @@ export default function OvertimeRequestModal({
         reason: "",
       });
     } else {
+      toast({
+        title: "Lỗi",
+        description: res.error || "Không thể gửi yêu cầu",
+        variant: "destructive",
+      });
       setError(res.error);
     }
     setLoading(false);

@@ -2,11 +2,13 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Grid, List, Filter, Plus, Edit2, Trash2, Search } from "lucide-react";
+import { Grid, List, Plus, Edit2, Trash2, Search } from "lucide-react";
 import UserAvatar from "@/components/common/UserAvatar";
 import { cn, getUserAvatarUrl } from "@/lib/utils";
 import { deleteEmployeeAction } from "@/server/actions/delete-employee";
 import { useRouter } from "next/navigation";
+import { toast } from "@/hooks/use-toast";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 import { CurrentUser } from "@/types/auth";
 
@@ -36,21 +38,38 @@ export default function EmployeeTableView({
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [searchTerm, setSearchTerm] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const isManager =
     currentUser?.role === "ADMIN" || currentUser?.role === "MANAGER";
 
-  const handleDelete = async (id: number) => {
-    if (
-      !confirm(
-        "Bạn có chắc chắn muốn xóa nhân viên này? Hành động này không thể hoàn tác.",
-      )
-    )
-      return;
+  const handleDelete = (id: number) => {
+    setSelectedId(id);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (selectedId === null) return;
+    const id = selectedId;
     setDeletingId(id);
-    await deleteEmployeeAction(id);
+    const result = await deleteEmployeeAction(id);
     setDeletingId(null);
-    router.refresh();
+    setSelectedId(null);
+
+    if (result && result.success) {
+      toast({
+        title: "Thành công",
+        description: "Đã xóa nhân viên thành công",
+      });
+      router.refresh();
+    } else {
+      toast({
+        title: "Lỗi",
+        description: result?.error || "Không thể xóa nhân viên",
+        variant: "destructive",
+      });
+    }
   };
 
   // Filter employees
@@ -117,9 +136,7 @@ export default function EmployeeTableView({
             <Grid className="w-5 h-5" />
           </button>
 
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium text-sm">
-            <Filter className="w-4 h-4" /> Bộ lọc
-          </button>
+          {/* Hợp nhất search vào đây hoặc để trống nếu chỉ xóa button */}
           {isManager && (
             <Link
               href="/employees/create"
@@ -321,6 +338,16 @@ export default function EmployeeTableView({
           ))}
         </div>
       )}
+      {/* Global Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa nhân viên"
+        description="Bạn có chắc chắn muốn xóa nhân viên này? Hành động này không thể hoàn tác và toàn bộ dữ liệu liên quan sẽ bị xóa."
+        onConfirm={confirmDelete}
+        variant="danger"
+        confirmText="Xác nhận xóa"
+      />
     </div>
   );
 }

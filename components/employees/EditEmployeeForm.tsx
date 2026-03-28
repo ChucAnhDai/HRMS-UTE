@@ -4,11 +4,12 @@ import { updateEmployeeAction } from "@/server/actions/update-employee";
 import { useActionState } from "react";
 import { Save, ArrowLeft, Edit } from "lucide-react";
 import Link from "next/link";
-import { Department, EmploymentStatus } from "@/types";
+import { EmploymentStatus } from "@/types";
 import EmployeeFormSections from "./EmployeeFormSections";
 import { useFormPersistence } from "@/hooks/use-form-persistence";
 import FormDraftNotice from "../common/FormDraftNotice";
 import { useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   departments: { id: number; name: string }[];
@@ -55,9 +56,19 @@ export default function EditEmployeeForm({ departments, employee }: Props) {
 
   useEffect(() => {
     if (state?.success) {
+      toast({
+        title: "Thành công",
+        description: "Đã cập nhật thông tin nhân viên thành công",
+      });
       clearSavedData();
+    } else if (state?.error) {
+      toast({
+        title: "Lỗi",
+        description: state.error || "Không thể cập nhật thông tin nhân viên",
+        variant: "destructive",
+      });
     }
-  }, [state?.success, clearSavedData]);
+  }, [state?.success, state?.error, clearSavedData]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">

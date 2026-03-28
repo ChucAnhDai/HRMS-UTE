@@ -7,6 +7,7 @@ import { Employee, Department } from "@/types";
 import { useState, useMemo, useEffect } from "react";
 import { useFormPersistence } from "@/hooks/use-form-persistence";
 import FormDraftNotice from "../common/FormDraftNotice";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   employees: Employee[];
@@ -54,13 +55,27 @@ export default function LeaveRequestForm({
 
   useEffect(() => {
     if (state?.success) {
+      toast({
+        title: "Thành công",
+        description: state.message || "Gửi đơn nghỉ phép thành công",
+      });
       setTimeout(() => {
         clearSavedData();
         setSelectedDepartmentId("");
         setSelectedEmployeeId("");
+        // Close modal
+        const el = document.getElementById("leave-form-modal");
+        el?.classList.add("hidden");
+        el?.classList.remove("flex");
       }, 0);
+    } else if (state?.error) {
+      toast({
+        title: "Lỗi",
+        description: state.error,
+        variant: "destructive",
+      });
     }
-  }, [state?.success, clearSavedData]);
+  }, [state, clearSavedData]);
 
   const isEmployee = currentUser?.role === "EMPLOYEE";
   const currentEmployeeId = currentUser?.employeeId;

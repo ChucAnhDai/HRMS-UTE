@@ -9,6 +9,7 @@ import {
 } from "@/server/actions/overtime-actions";
 import OvertimeRequestModal from "./OvertimeRequestModal";
 import { TruncatedTextWithView } from "@/components/ui/ContentViewerModal";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   initialRequests: OvertimeRequest[];
@@ -34,10 +35,6 @@ export default function OvertimeClientView({
   >(null);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
-  const [actionMessage, setActionMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
 
   const handleSuccess = () => {
     window.location.reload();
@@ -46,14 +43,12 @@ export default function OvertimeClientView({
   const handleApproveClick = (id: number) => {
     setConfirmingId(id);
     setConfirmAction("approve");
-    setActionMessage(null);
   };
 
   const handleRejectClick = (id: number) => {
     setConfirmingId(id);
     setConfirmAction("reject");
     setRejectReason("");
-    setActionMessage(null);
   };
 
   const handleCancelConfirm = () => {
@@ -65,24 +60,28 @@ export default function OvertimeClientView({
   const handleConfirmAction = async () => {
     if (!confirmingId || !confirmAction) return;
     setProcessingId(confirmingId);
-    setActionMessage(null);
-
     try {
       if (confirmAction === "approve") {
         const res = await approveOvertimeRequestAction(confirmingId);
         if (res.success) {
-          setActionMessage({
-            type: "success",
-            text: "\u0110\u00e3 duy\u1ec7t y\u00eau c\u1ea7u th\u00e0nh c\u00f4ng!",
+          toast({
+            title: "Thành công",
+            description: "Đã duyệt yêu cầu thành công!",
           });
+          setTimeout(() => window.location.reload(), 1000);
         } else {
-          setActionMessage({ type: "error", text: res.error });
+          toast({
+            title: "Lỗi",
+            description: res.error || "Không thể duyệt yêu cầu",
+            variant: "destructive",
+          });
         }
       } else {
         if (!rejectReason.trim()) {
-          setActionMessage({
-            type: "error",
-            text: "Vui l\u00f2ng nh\u1eadp l\u00fd do t\u1eeb ch\u1ed1i.",
+          toast({
+            title: "Cảnh báo",
+            description: "Vui lòng nhập lý do từ chối.",
+            variant: "destructive",
           });
           setProcessingId(null);
           return;
@@ -92,18 +91,24 @@ export default function OvertimeClientView({
           rejectReason.trim(),
         );
         if (res.success) {
-          setActionMessage({
-            type: "success",
-            text: "\u0110\u00e3 t\u1eeb ch\u1ed1i y\u00eau c\u1ea7u th\u00e0nh c\u00f4ng!",
+          toast({
+            title: "Thành công",
+            description: "Đã từ chối yêu cầu thành công!",
           });
+          setTimeout(() => window.location.reload(), 1000);
         } else {
-          setActionMessage({ type: "error", text: res.error });
+          toast({
+            title: "Lỗi",
+            description: res.error || "Không thể từ chối yêu cầu",
+            variant: "destructive",
+          });
         }
       }
     } catch {
-      setActionMessage({
-        type: "error",
-        text: "\u0110\u00e3 x\u1ea3y ra l\u1ed7i kh\u00f4ng x\u00e1c \u0111\u1ecbnh.",
+      toast({
+        title: "Lỗi",
+        description: "Đã xảy ra lỗi không xác định.",
+        variant: "destructive",
       });
     }
 
@@ -164,53 +169,10 @@ export default function OvertimeClientView({
         ))}
       </div>
 
-      {/* Action Message Modal Popup */}
-      {actionMessage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center border border-gray-200">
-            <div
-              className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
-                actionMessage.type === "success"
-                  ? "bg-green-50 border-2 border-green-200"
-                  : "bg-red-50 border-2 border-red-200"
-              }`}
-            >
-              {actionMessage.type === "success" ? (
-                <Check className="w-8 h-8 text-green-500" />
-              ) : (
-                <X className="w-8 h-8 text-red-500" />
-              )}
-            </div>
-            <p
-              className={`text-lg font-semibold mb-6 ${
-                actionMessage.type === "success"
-                  ? "text-gray-900"
-                  : "text-red-700"
-              }`}
-            >
-              {actionMessage.text}
-            </p>
-            <button
-              onClick={() => {
-                setActionMessage(null);
-                if (actionMessage.type === "success") {
-                  window.location.reload();
-                }
-              }}
-              className={`px-8 py-2 rounded-lg font-medium transition-colors ${
-                actionMessage.type === "success"
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "bg-red-600 text-white hover:bg-red-700"
-              }`}
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Approve Confirmation Modal */}
-      {confirmAction === "approve" && confirmingId && !actionMessage && (
+      {confirmAction === "approve" && confirmingId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 text-center border border-gray-200">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-green-50 border-2 border-green-200">
@@ -240,7 +202,7 @@ export default function OvertimeClientView({
       )}
 
       {/* Reject Reason Modal */}
-      {confirmAction === "reject" && confirmingId && !actionMessage && (
+      {confirmAction === "reject" && confirmingId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl p-6 max-w-xl w-full mx-4 border border-gray-200">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">

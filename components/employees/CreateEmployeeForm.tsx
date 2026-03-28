@@ -9,6 +9,7 @@ import { Department } from "@/types";
 import { useFormPersistence } from "@/hooks/use-form-persistence";
 import FormDraftNotice from "../common/FormDraftNotice";
 import { useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   departments: Department[];
@@ -34,9 +35,19 @@ export default function CreateEmployeeForm({ departments }: Props) {
 
   useEffect(() => {
     if (state?.success) {
+      toast({
+        title: "Thành công",
+        description: "Đã thêm nhân viên mới thành công",
+      });
       clearSavedData();
+    } else if (state?.error) {
+      toast({
+        title: "Lỗi",
+        description: state.error || "Không thể thêm nhân viên mới",
+        variant: "destructive",
+      });
     }
-  }, [state?.success, clearSavedData]);
+  }, [state?.success, state?.error, clearSavedData]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">

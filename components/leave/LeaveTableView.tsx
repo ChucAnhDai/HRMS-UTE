@@ -9,6 +9,7 @@ import {
   Check,
   X,
   Loader2,
+  Edit,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -16,11 +17,13 @@ import { cn } from "@/lib/utils";
 import {
   approveLeaveAction,
   rejectLeaveAction,
+  updateLeaveRequestAction,
 } from "@/server/actions/leave-actions";
 import { useRouter } from "next/navigation";
 import LeaveRequestForm from "@/components/leave/LeaveRequestForm";
 import { Employee, LeaveRequest, Department } from "@/types";
 import { TruncatedTextWithView } from "@/components/ui/ContentViewerModal";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   leaves: LeaveRequest[];
@@ -42,6 +45,10 @@ export default function LeaveTableView({
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<number | null>(null);
 
+  // Search & Filter state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
   // State cho modal duyệt
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [approvingLeaveId, setApprovingLeaveId] = useState<number | null>(null);
@@ -59,6 +66,39 @@ export default function LeaveTableView({
     null
   );
 
+  // State cho modal chỉnh sửa
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingLeave, setEditingLeave] = useState<LeaveRequest | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState("");
+
+  // Logic lọc dữ liệu (Search & Status Filter)
+  const filteredLeaves = React.useMemo(() => {
+    let result = leaves;
+
+    // 1. Lọc theo trạng thái
+    if (statusFilter !== "all") {
+      result = result.filter((l) => l.status === statusFilter);
+    }
+
+    // 2. Lọc theo từ khóa tìm kiếm
+    if (searchTerm.trim()) {
+      const keyword = searchTerm.toLowerCase().trim();
+      result = result.filter((l) => {
+        const employeeName = `${l.employees?.last_name || ""} ${l.employees?.first_name || ""}`.toLowerCase();
+        const leaveType = (l.leave_type || "").toLowerCase();
+        const reason = (l.reason || "").toLowerCase();
+        return (
+          employeeName.includes(keyword) ||
+          leaveType.includes(keyword) ||
+          reason.includes(keyword)
+        );
+      });
+    }
+
+    return result;
+  }, [leaves, searchTerm, statusFilter]);
+
   // Kiểm tra quyền duyệt đơn - Chỉ ADMIN, MANAGER mới được duyệt/từ chối
   const canApprove =
     currentUser?.role && ["ADMIN", "MANAGER"].includes(currentUser.role);
@@ -66,7 +106,11 @@ export default function LeaveTableView({
   // Mở modal duyệt
   const openApproveModal = (id: number) => {
     if (!canApprove) {
-      alert("Bạn không có quyền duyệt đơn nghỉ phép!");
+      toast({
+        title: "Cảnh báo",
+        description: "Bạn không có quyền duyệt đơn nghỉ phép!",
+        variant: "destructive",
+      });
       return;
     }
     setApprovingLeaveId(id);
@@ -90,6 +134,19 @@ export default function LeaveTableView({
       return;
     }
 
+    if (result.success) {
+      toast({
+        title: "Thành công",
+        description: result.message || "Đã duyệt đơn nghỉ phép",
+      });
+    } else {
+      toast({
+        title: "Lỗi",
+        description: result.error || "Không thể duyệt đơn",
+        variant: "destructive",
+      });
+    }
+
     setApproveModalOpen(false);
     setApprovingLeaveId(null);
     router.refresh();
@@ -100,8 +157,21 @@ export default function LeaveTableView({
     if (!expiredWarningLeaveId) return;
 
     setLoadingId(expiredWarningLeaveId);
-    await approveLeaveAction(expiredWarningLeaveId, true); // forceApprove = true
+    const result = await approveLeaveAction(expiredWarningLeaveId, true); // forceApprove = true
     setLoadingId(null);
+
+    if (result.success) {
+      toast({
+        title: "Thành công",
+        description: result.message || "Đã duyệt đơn nghỉ phép thành công",
+      });
+    } else {
+      toast({
+        title: "Lỗi",
+        description: result.error || "Không thể duyệt đơn",
+        variant: "destructive",
+      });
+    }
 
     setExpiredWarningOpen(false);
     setExpiredWarningLeaveId(null);
@@ -112,7 +182,11 @@ export default function LeaveTableView({
   // Mở modal từ chối
   const openRejectModal = (id: number) => {
     if (!canApprove) {
-      alert("Bạn không có quyền từ chối đơn nghỉ phép!");
+      toast({
+        title: "Cảnh báo",
+        description: "Bạn không có quyền từ chối đơn nghỉ phép!",
+        variant: "destructive",
+      });
       return;
     }
     setRejectingLeaveId(id);
@@ -140,9 +214,46 @@ export default function LeaveTableView({
     }
 
     // Đóng modal và refresh
+    toast({
+      title: "Thành công",
+      description: result.message || "Đã từ chối đơn nghỉ phép",
+    });
+
     setRejectModalOpen(false);
     setRejectingLeaveId(null);
     setRejectionReason("");
+    router.refresh();
+  };
+
+  // Xử lý cập nhật đơn
+  const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingLeave) return;
+
+    setEditLoading(true);
+    setEditError("");
+
+    const formData = new FormData(e.currentTarget);
+    const result = await updateLeaveRequestAction(
+      { success: false, message: "" },
+      formData
+    );
+
+    setEditLoading(false);
+
+    if (result.error) {
+      setEditError(result.error);
+      return;
+    }
+
+    // Thành công
+    toast({
+      title: "Thành công",
+      description: result.message || "Đã cập nhật đơn nghỉ phép",
+    });
+
+    setEditModalOpen(false);
+    setEditingLeave(null);
     router.refresh();
   };
 
@@ -175,12 +286,12 @@ export default function LeaveTableView({
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex gap-4">
-          <button className="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-sm">
+          {/* <button className="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-sm">
             Danh sách đơn
           </button>
           <button className="px-4 py-2 text-sm font-semibold rounded-lg bg-white text-gray-600 border border-gateway-100 hover:bg-gray-50 flex items-center gap-2">
             Báo cáo nghỉ phép
-          </button>
+          </button> */}
         </div>
         <button
           onClick={() => {
@@ -197,19 +308,36 @@ export default function LeaveTableView({
       {/* Leave Table */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
         <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <h4 className="text-lg font-bold text-gray-800">Danh sách đơn từ</h4>
+          <div className="flex items-center gap-3">
+            <h4 className="text-lg font-bold text-gray-800">Danh sách đơn từ</h4>
+            <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-bold rounded-full">
+              {filteredLeaves.length}/{leaves.length} đơn
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Tìm kiếm..."
+                placeholder="Tìm tên, loại nghỉ, lý do..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 w-48 sm:w-64"
               />
             </div>
-            <button className="p-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-400 hover:text-blue-600 transition-colors">
-              <Filter className="h-4 w-4" />
-            </button>
+            <div className="relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="pl-3 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none cursor-pointer text-gray-600"
+              >
+                <option value="all">Tất cả trạng thái</option>
+                <option value="Pending">Chờ duyệt</option>
+                <option value="Approved">Đã duyệt</option>
+                <option value="Rejected">Từ chối</option>
+              </select>
+              <Filter className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+            </div>
           </div>
         </div>
 
@@ -244,17 +372,17 @@ export default function LeaveTableView({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {leaves.length === 0 ? (
+              {filteredLeaves.length === 0 ? (
                 <tr>
                   <td
                     colSpan={8}
                     className="text-center py-8 text-sm text-gray-500"
                   >
-                    Chưa có dữ liệu nghỉ phép
+                    Không tìm thấy dữ liệu phù hợp
                   </td>
                 </tr>
               ) : (
-                leaves.map((leave: LeaveRequest) => (
+                filteredLeaves.map((leave: LeaveRequest) => (
                   <tr
                     key={leave.id}
                     className="hover:bg-gray-50 transition-colors group"
@@ -328,42 +456,57 @@ export default function LeaveTableView({
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {/* Chỉ ADMIN, MANAGER mới thấy nút duyệt/từ chối */}
-                      {canApprove && leave.status === "Pending" ? (
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => openApproveModal(leave.id)}
-                            disabled={loadingId === leave.id}
-                            className="p-1.5 bg-green-50 text-green-600 rounded hover:bg-green-100 disabled:opacity-50"
-                            title="Duyệt"
-                          >
-                            {loadingId === leave.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Check className="w-4 h-4" />
-                            )}
+                      <div className="flex items-center justify-end gap-2">
+                        {/* Nút sửa - Hiển thị khi đơn Pending và thuộc về chính nhân viên đó */}
+                        {leave.status === "Pending" &&
+                          leave.employee_id === currentUser?.employeeId && (
+                            <button
+                              onClick={() => {
+                                setEditingLeave(leave);
+                                setEditError("");
+                                setEditModalOpen(true);
+                              }}
+                              className="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
+                              title="Chỉnh sửa đơn"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                          )}
+
+                        {/* Chỉ ADMIN, MANAGER mới thấy nút duyệt/từ chối */}
+                        {canApprove && leave.status === "Pending" ? (
+                          <>
+                            <button
+                              onClick={() => openApproveModal(leave.id)}
+                              disabled={loadingId === leave.id}
+                              className="p-1.5 bg-green-50 text-green-600 rounded hover:bg-green-100 disabled:opacity-50"
+                              title="Duyệt"
+                            >
+                              {loadingId === leave.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Check className="w-4 h-4" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => openRejectModal(leave.id)}
+                              disabled={loadingId === leave.id}
+                              className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 disabled:opacity-50"
+                              title="Từ chối"
+                            >
+                              {loadingId === leave.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <X className="w-4 h-4" />
+                              )}
+                            </button>
+                          </>
+                        ) : (
+                          <button className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                            <MoreHorizontal className="h-4 w-4" />
                           </button>
-                          <button
-                            onClick={() => openRejectModal(leave.id)}
-                            disabled={loadingId === leave.id}
-                            className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 disabled:opacity-50"
-                            title="Từ chối"
-                          >
-                            {loadingId === leave.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <X className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
-                      ) : canApprove ? (
-                        <button className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </button>
-                      ) : (
-                        // Nhân viên thường chỉ thấy trạng thái, không có nút thao tác
-                        <span className="text-xs text-gray-400">---</span>
-                      )}
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -380,7 +523,119 @@ export default function LeaveTableView({
         currentUser={currentUser}
       />
 
-      {/* Modal xác nhận duyệt đơn nghỉ */}
+      {/* Modal Chỉnh sửa đơn nghỉ */}
+      {editModalOpen && editingLeave && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-lg m-4 overflow-hidden relative animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-gray-100 bg-blue-50/30">
+              <h3 className="font-bold text-gray-800 flex items-center gap-2 text-lg">
+                <Edit className="w-5 h-5 text-blue-600" />
+                Chỉnh sửa đơn nghỉ phép
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Cập nhật thông tin cho đơn nghỉ của bạn (Chỉ đơn chờ duyệt)
+              </p>
+            </div>
+
+            <form onSubmit={handleEdit} className="p-6 space-y-4">
+              {editError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                  {editError}
+                </div>
+              )}
+
+              <input type="hidden" name="leave_id" value={editingLeave.id} />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    Loại nghỉ
+                  </label>
+                  <select
+                    name="leave_type"
+                    defaultValue={editingLeave.leave_type}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm"
+                  >
+                    <option value="Annual Leave">Nghỉ phép năm</option>
+                    <option value="Sick Leave">Nghỉ ốm</option>
+                    <option value="Unpaid Leave">Nghỉ không lương</option>
+                    <option value="Maternity Leave">Nghỉ thai sản</option>
+                    <option value="Other">Khác</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    Từ ngày
+                  </label>
+                  <input
+                    type="date"
+                    name="start_date"
+                    defaultValue={editingLeave.start_date}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    Đến ngày
+                  </label>
+                  <input
+                    type="date"
+                    name="end_date"
+                    defaultValue={editingLeave.end_date}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                  Lý do nghỉ
+                </label>
+                <textarea
+                  name="reason"
+                  defaultValue={editingLeave.reason || ""}
+                  required
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm"
+                  placeholder="Nhập lý do chi tiết..."
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditModalOpen(false);
+                    setEditingLeave(null);
+                  }}
+                  className="px-6 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={editLoading}
+                  className="px-6 py-2 text-sm font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-70 flex items-center gap-2"
+                >
+                  {editLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                  {editLoading ? "Đang lưu..." : "Cập nhật đơn"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal xác nhận duyệt đơn nghỉ phép */}
       {approveModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md m-4 overflow-hidden">
@@ -423,7 +678,7 @@ export default function LeaveTableView({
         </div>
       )}
 
-      {/* Modal từ chối đơn nghỉ */}
+      {/* Modal từ chối đơn nghỉ phép */}
       {rejectModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md m-4 overflow-hidden">

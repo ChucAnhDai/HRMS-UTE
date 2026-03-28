@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { generatePayrollAction, markPayrollAsPaidAction } from '@/server/actions/payroll-actions'
 import { Loader2, Calculator } from 'lucide-react'
+import { toast } from '@/hooks/use-toast'
+import ConfirmDialog from '@/components/common/ConfirmDialog'
 
 export default function PayrollHeader() {
   const router = useRouter()
@@ -17,6 +19,8 @@ export default function PayrollHeader() {
   const [year, setYear] = useState(currentYear)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isPaying, setIsPaying] = useState(false)
+  const [confirmType, setConfirmType] = useState<'generate' | 'pay' | null>(null)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
 
   // Xử lý filter
   const handleFilter = () => {
@@ -24,38 +28,56 @@ export default function PayrollHeader() {
   }
 
   // Xử lý tính lương (Tạo phiếu)
-  const handleGenerate = async () => {
-    if (!confirm(`Bạn có chắc chắn muốn TẠO LẠI phiếu lương tháng ${month}/${year}? Dữ liệu cũ (nếu chưa thanh toán) sẽ bị ghi đè.`)) {
-        return
-    }
+  const handleGenerate = () => {
+    setConfirmType('generate')
+    setIsConfirmOpen(true)
+  }
 
+  const confirmGenerate = async () => {
+    setConfirmType(null)
     setIsGenerating(true)
     const res = await generatePayrollAction(month, year)
     setIsGenerating(false)
 
     if (res.success) {
-        alert(res.message)
+        toast({
+          title: "Thành công",
+          description: res.message || "Đã tạo phiếu lương thành công",
+        });
         router.refresh()
     } else {
-        alert(res.error)
+        toast({
+          title: "Lỗi",
+          description: res.error || "Không thể tạo phiếu lương",
+          variant: "destructive",
+        });
     }
   }
 
   // Xử lý thanh toán
-  const handlePay = async () => {
-    if (!confirm(`Xác nhận THANH TOÁN toàn bộ lương tháng ${month}/${year}? \n\nLƯU Ý: Trạng thái sẽ chuyển sang 'Paid' và KHÔNG THỂ CHỈNH SỬA nữa.`)) {
-        return
-    }
+  const handlePay = () => {
+    setConfirmType('pay')
+    setIsConfirmOpen(true)
+  }
 
+  const confirmPay = async () => {
+    setConfirmType(null)
     setIsPaying(true)
     const res = await markPayrollAsPaidAction(month, year)
     setIsPaying(false)
 
     if (res.success) {
-        alert("Đã cập nhật trạng thái đã thanh toán thành công!")
+        toast({
+          title: "Thành công",
+          description: "Đã cập nhật trạng thái đã thanh toán thành công!",
+        });
         router.refresh()
     } else {
-        alert(res.error)
+        toast({
+          title: "Lỗi",
+          description: res.error || "Không thể thanh toán lương",
+          variant: "destructive",
+        });
     }
   }
 
@@ -115,6 +137,21 @@ export default function PayrollHeader() {
             {isGenerating ? 'Đang tạo...' : 'Tạo phiếu lương'}
         </button>
       </div>
+
+      {/* Confirmation Dialogs */}
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title={confirmType === 'generate' ? "Xác nhận tạo phiếu lương" : "Xác nhận thanh toán"}
+        description={
+          confirmType === 'generate' 
+            ? `Bạn có chắc chắn muốn TẠO LẠI phiếu lương tháng ${month}/${year}? Dữ liệu cũ (nếu chưa thanh toán) sẽ bị ghi đè.`
+            : `Xác nhận THANH TOÁN toàn bộ lương tháng ${month}/${year}? LƯU Ý: Trạng thái sẽ chuyển sang 'Paid' và KHÔNG THỂ CHỈNH SỬA nữa.`
+        }
+        onConfirm={confirmType === 'generate' ? confirmGenerate : confirmPay}
+        variant={confirmType === 'generate' ? "warning" : "primary"}
+        confirmText={confirmType === 'generate' ? "Tạo phiếu" : "Xác nhận thanh toán"}
+      />
     </div>
   )
 }

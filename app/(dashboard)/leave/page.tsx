@@ -12,11 +12,14 @@ export const dynamic = "force-dynamic";
 
 export default async function LeavePage() {
   const currentUser = await getCurrentUser();
+  const isAdminOrManager = currentUser?.role && ["ADMIN", "MANAGER"].includes(currentUser.role);
 
   const [leavesData, rawEmployees, departments] = await Promise.all([
-    leaveRepo.getLeaveRequests(),
-    employeeRepo.getEmployees(),
-    employeeRepo.getDepartments(),
+    isAdminOrManager
+      ? leaveRepo.getLeaveRequests()
+      : leaveRepo.getLeavesByEmployeeId(currentUser?.employeeId || 0),
+    isAdminOrManager ? employeeRepo.getEmployees() : Promise.resolve([]),
+    isAdminOrManager ? employeeRepo.getDepartments() : Promise.resolve([]),
   ]);
 
   // Ensure employees data matches expected type (handle array/object for departments if needed)

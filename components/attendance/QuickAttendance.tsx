@@ -5,6 +5,7 @@ import {
   checkInAction,
   checkOutAction,
 } from "@/server/actions/quick-attendance";
+import { toast } from "@/hooks/use-toast";
 
 interface AttendanceStatus {
   check_in_time?: string | null;
@@ -31,16 +32,30 @@ export default function QuickAttendance({ initialStatus }: Props) {
 
     if (result.success) {
       if (result.status === "Late") {
+        toast({
+          title: "Đi muộn",
+          description: `Check In thành công nhưng bạn đã đi muộn! (${new Date().toLocaleTimeString("vi-VN")})`,
+          variant: "destructive", // Warning-like
+        });
         setMessage({
           type: "error",
           text: `Check In thành công nhưng bạn đã đi muộn! (${new Date().toLocaleTimeString("vi-VN")})`,
         });
       } else if (result.forgotCheckout) {
+        toast({
+          title: "Cảnh báo",
+          description: "Check In thành công. Cảnh báo: Bạn đã quên Checkout ngày hôm trước!",
+          variant: "destructive",
+        });
         setMessage({
           type: "error",
           text: "Check In thành công. Cảnh báo: Bạn đã quên Checkout ngày hôm trước!",
         });
       } else {
+        toast({
+          title: "Thành công",
+          description: result.message || "Check In thành công!",
+        });
         setMessage({
           type: "success",
           text: result.message || "Check In thành công!",
@@ -48,6 +63,11 @@ export default function QuickAttendance({ initialStatus }: Props) {
       }
       setTimeout(() => window.location.reload(), 2500);
     } else {
+      toast({
+        title: "Lỗi",
+        description: result.error || "Có lỗi xảy ra",
+        variant: "destructive",
+      });
       setMessage({ type: "error", text: result.error || "Có lỗi xảy ra" });
     }
   }
@@ -61,11 +81,20 @@ export default function QuickAttendance({ initialStatus }: Props) {
 
     if (result.success) {
       if (result.warning) {
+        toast({
+          title: "Check Out thành công",
+          description: result.warning,
+          variant: "destructive",
+        });
         setMessage({
           type: "error",
           text: `Check Out thành công. ${result.warning}`,
         });
       } else {
+        toast({
+          title: "Thành công",
+          description: result.message || "Check Out thành công!",
+        });
         setMessage({
           type: "success",
           text: result.message || "Check Out thành công!",
@@ -73,6 +102,11 @@ export default function QuickAttendance({ initialStatus }: Props) {
       }
       setTimeout(() => window.location.reload(), 2500);
     } else {
+      toast({
+        title: "Lỗi",
+        description: result.error || "Có lỗi xảy ra",
+        variant: "destructive",
+      });
       setMessage({ type: "error", text: result.error || "Có lỗi xảy ra" });
     }
   }

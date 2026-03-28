@@ -8,6 +8,8 @@ import JobOpeningForm from "./JobOpeningForm";
 import CandidatesListModal from "./CandidatesListModal";
 import { deleteJobAction } from "@/server/actions/recruitment-actions";
 import { JobOpening, Department } from "@/types/database";
+import { toast } from "@/hooks/use-toast";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface JobOpeningWithDetails extends JobOpening {
   departments: { name: string } | null;
@@ -26,15 +28,34 @@ export default function JobOpeningsTable({ jobs, departments }: Props) {
   const [viewCandidatesJob, setViewCandidatesJob] = useState<JobOpening | null>(
     null,
   );
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [jobToDeleteId, setJobToDeleteId] = useState<number | null>(null);
 
   const filteredJobs = jobs.filter((job) =>
     job.title.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const handleDelete = async (id: number) => {
-    if (confirm("Bạn có chắc muốn xóa tin tuyển dụng này?")) {
-      await deleteJobAction(id);
+  const handleDelete = (id: number) => {
+    setJobToDeleteId(id);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (jobToDeleteId === null) return;
+    const res = await deleteJobAction(jobToDeleteId);
+    if (res.success) {
+      toast({
+        title: "Thành công",
+        description: "Đã xóa tin tuyển dụng",
+      });
+    } else {
+      toast({
+        title: "Lỗi",
+        description: res.error || "Không thể xóa tin tuyển dụng",
+        variant: "destructive",
+      });
     }
+    setJobToDeleteId(null);
   };
 
   return (
@@ -199,6 +220,16 @@ export default function JobOpeningsTable({ jobs, departments }: Props) {
           onClose={() => setViewCandidatesJob(null)}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa bản tin"
+        description="Bạn có chắc chắn muốn xóa tin tuyển dụng này? Toàn bộ hồ sơ ứng viên liên quan sẽ bị ảnh hưởng."
+        onConfirm={confirmDelete}
+        variant="danger"
+        confirmText="Xác nhận xóa"
+      />
     </div>
   );
 }

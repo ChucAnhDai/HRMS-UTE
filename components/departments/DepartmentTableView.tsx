@@ -15,6 +15,8 @@ import {
 import Link from "next/link";
 import { deleteDepartmentAction } from "@/server/actions/department-actions";
 import { useRouter } from "next/navigation";
+import { toast } from "@/hooks/use-toast";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface Department {
   id: number;
@@ -33,15 +35,17 @@ export default function DepartmentTableView({ departments, canManage }: Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [departmentToDelete, setDepartmentToDelete] = useState<{ id: number; name: string } | null>(null);
 
-  const handleDelete = async (id: number, name: string) => {
-    if (
-      !confirm(
-        `Bạn có chắc chắn muốn xóa phòng ban "${name}"? Hành động này không thể hoàn tác.`,
-      )
-    ) {
-      return;
-    }
+  const handleDelete = (id: number, name: string) => {
+    setDepartmentToDelete({ id, name });
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!departmentToDelete) return;
+    const { id, name } = departmentToDelete;
 
     setDeleteError(null);
     setDeletingId(id);
@@ -51,10 +55,19 @@ export default function DepartmentTableView({ departments, canManage }: Props) {
     setDeletingId(null);
 
     if (result.error) {
+      toast({
+        title: "Lỗi",
+        description: result.error || "Không thể xóa phòng ban",
+        variant: "destructive",
+      });
       setDeleteError(result.error);
       return;
     }
 
+    toast({
+      title: "Thành công",
+      description: `Đã xóa phòng ban "${name}" thành công`,
+    });
     router.refresh();
   };
 
@@ -227,6 +240,16 @@ export default function DepartmentTableView({ departments, canManage }: Props) {
           </span>
         </div>
       </div>
+      {/* Global Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa phòng ban"
+        description={`Bạn có chắc chắn muốn xóa phòng ban "${departmentToDelete?.name}"? Hành động này không thể hoàn tác và toàn bộ dữ liệu liên quan sẽ bị ảnh hưởng.`}
+        onConfirm={confirmDelete}
+        variant="danger"
+        confirmText="Xác nhận xóa"
+      />
     </div>
   );
 }

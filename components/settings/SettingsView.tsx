@@ -16,6 +16,8 @@ import {
 import { useFormPersistence } from "@/hooks/use-form-persistence";
 import FormDraftNotice from "../common/FormDraftNotice";
 import { useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface Holiday {
   id: number;
@@ -39,6 +41,36 @@ export default function SettingsView({
   currentYear,
 }: SettingsPageProps) {
   const [activeTab, setActiveTab] = useState<"general" | "holidays">("general");
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [holidayToDeleteId, setHolidayToDeleteId] = useState<number | null>(null);
+  const [, startTransition] = useTransition();
+
+  const handleOpenConfirm = (id: number) => {
+    setHolidayToDeleteId(id);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDeleteHoliday = async () => {
+    if (holidayToDeleteId === null) return;
+    const id = holidayToDeleteId;
+
+    startTransition(async () => {
+      const res = await deleteHolidayAction(id);
+      if (res.success) {
+        toast({
+          title: "Thành công",
+          description: "Đã xóa ngày lễ",
+        });
+      } else {
+        toast({
+          title: "Lỗi",
+          description: res.message || "Không thể xóa ngày lễ",
+          variant: "destructive",
+        });
+      }
+      setHolidayToDeleteId(null);
+    });
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -82,12 +114,30 @@ export default function SettingsView({
             currentYear={currentYear}
           />
         ) : (
-          <HolidaysManager holidays={holidays} readOnly={readOnly} />
+          <HolidaysManager 
+            holidays={holidays} 
+            readOnly={readOnly} 
+            onDelete={handleOpenConfirm}
+          />
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title="Xác nhận xóa ngày lễ"
+        description="Bạn có chắc chắn muốn xóa ngày lễ này? Thao tác này không thể hoàn tác."
+        onConfirm={confirmDeleteHoliday}
+        variant="danger"
+        confirmText="Xác nhận xóa"
+      />
     </div>
   );
 }
+
+// Move these states to the main component for the dialog to work
+import { useTransition } from "react"; // Need useTransition for better UX during deletion
+
 
 const DEFAULT_TAX_BRACKETS = [
   { limit: 5000000, rate: 5 },
@@ -147,9 +197,18 @@ function GeneralSettingsForm({
     setLoading(true);
     const res = await updateSettingsAction(formData);
     if (res.success) {
+      toast({
+        title: "Thành công",
+        description: "Đã cập nhật cấu hình hệ thống",
+      });
       clearSavedData();
+    } else {
+      toast({
+        title: "Lỗi",
+        description: res.message || "Không thể cập nhật cấu hình",
+        variant: "destructive",
+      });
     }
-    alert(res.message);
     setLoading(false);
   }
 
@@ -530,17 +589,14 @@ function GeneralSettingsForm({
 function HolidaysManager({
   holidays,
   readOnly,
+  onDelete,
 }: {
   holidays: Holiday[];
   readOnly?: boolean;
+  onDelete: (id: number) => void;
 }) {
   // Basic optimistic add roughly implemented via revalidatePath in action
 
-  async function handleDelete(id: number) {
-    if (confirm("Bạn có chắc chắn muốn xóa ngày lễ này?")) {
-      await deleteHolidayAction(id);
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -584,7 +640,7 @@ function HolidaysManager({
                 </div>
                 {!readOnly && (
                   <button
-                    onClick={() => handleDelete(h.id)}
+                    onClick={() => onDelete(h.id)}
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -605,7 +661,19 @@ function HolidayAddForm() {
   return (
     <form
       action={async (formData) => {
-        await addHolidayAction(formData);
+        const res = await addHolidayAction(formData);
+        if (res.success) {
+          toast({
+            title: "Thành công",
+            description: "Đã thêm ngày lễ mới",
+          });
+        } else {
+          toast({
+            title: "Lỗi",
+            description: res.message || "Không thể thêm ngày lễ",
+            variant: "destructive",
+          });
+        }
       }}
       className="flex gap-4 items-end bg-blue-50/50 p-4 rounded-xl border border-blue-100"
     >

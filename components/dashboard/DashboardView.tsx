@@ -43,7 +43,10 @@ interface DashboardProps {
     upcomingLeaves: {
       id: number;
       start_date: string;
-      employees: { first_name: string; last_name: string } | null;
+      end_date: string;
+      leave_type: string;
+      status: string;
+      employees: { first_name: string; last_name: string; avatar: string | null } | null;
     }[];
     recentActivities: {
       id: number;
@@ -51,7 +54,11 @@ interface DashboardProps {
       entity_type: string;
       details: string;
       created_at: string;
-      employees: { first_name: string; last_name: string; avatar: string | null } | null;
+      employees: {
+        first_name: string;
+        last_name: string;
+        avatar: string | null;
+      } | null;
     }[];
     salaryData: { name: string; received: number; pending: number }[];
     departmentCount: number;
@@ -93,13 +100,13 @@ export default function DashboardView({ stats, userName }: DashboardProps) {
         <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800">
           <div className="relative w-10 h-10 rounded-full overflow-hidden border border-gray-200">
             <Image
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName || 'Admin')}&background=random`}
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName || "Admin")}&background=random`}
               alt="profile"
               fill
               className="object-cover"
             />
           </div>
-          Xin chào: {userName || 'Admin'}
+          Xin chào: {userName || "Admin"}
         </h2>
         <p className="text-sm text-gray-500">
           {new Date().toLocaleDateString("vi-VN", {
@@ -195,7 +202,7 @@ export default function DashboardView({ stats, userName }: DashboardProps) {
         {/* Total Salary Chart */}
         <div className="bg-white p-6 rounded-2xl shadow-sm flex flex-col h-[400px] border border-gray-100">
           <h4 className="text-lg font-bold mb-6 text-gray-800 uppercase tracking-wide">
-            Biến động quỹ lương (Demo)
+            Biến động quỹ lương
           </h4>
           <div className="flex-1 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -221,7 +228,12 @@ export default function DashboardView({ stats, userName }: DashboardProps) {
                   tickLine={false}
                   tick={{ fill: "#9CA3AF", fontSize: 12 }}
                   width={50}
-                  tickFormatter={(value) => new Intl.NumberFormat('vi-VN', { notation: "compact", compactDisplay: "short" }).format(value)}
+                  tickFormatter={(value) =>
+                    new Intl.NumberFormat("vi-VN", {
+                      notation: "compact",
+                      compactDisplay: "short",
+                    }).format(value)
+                  }
                 />
                 <Tooltip
                   cursor={{ fill: "#F3F4F6" }}
@@ -230,7 +242,12 @@ export default function DashboardView({ stats, userName }: DashboardProps) {
                     border: "none",
                     boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
                   }}
-                  formatter={(value: number | string | undefined) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0))}
+                  formatter={(value: number | string | undefined) =>
+                    new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(Number(value || 0))
+                  }
                 />
                 <Legend
                   verticalAlign="bottom"
@@ -305,7 +322,9 @@ export default function DashboardView({ stats, userName }: DashboardProps) {
           </h4>
           <div className="space-y-6">
             {stats.recentActivities.length === 0 ? (
-               <p className="text-sm text-gray-500 text-center py-4">Chưa có hoạt động nào.</p>
+              <p className="text-sm text-gray-500 text-center py-4">
+                Chưa có hoạt động nào.
+              </p>
             ) : (
               stats.recentActivities.map((act) => (
                 <div key={act.id} className="flex gap-4">
@@ -313,7 +332,7 @@ export default function DashboardView({ stats, userName }: DashboardProps) {
                     <Image
                       src={
                         act.employees?.avatar ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(act.employees?.last_name || 'System')}&background=random`
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(act.employees?.last_name || "System")}&background=random`
                       }
                       alt="avatar"
                       fill
@@ -322,10 +341,17 @@ export default function DashboardView({ stats, userName }: DashboardProps) {
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-gray-800 font-medium leading-tight">
-                      <span className="font-bold">{act.employees?.last_name || 'Hệ thống'}</span> đã {act.action.toLowerCase()}
+                      <span className="font-bold">
+                        {act.employees?.last_name || "Hệ thống"}
+                      </span>{" "}
+                      đã {act.action.toLowerCase()}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                       {act.details} • {new Date(act.created_at).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })}
+                      {act.details} •{" "}
+                      {new Date(act.created_at).toLocaleString("vi-VN", {
+                        dateStyle: "short",
+                        timeStyle: "short",
+                      })}
                     </p>
                   </div>
                 </div>
@@ -348,17 +374,42 @@ export default function DashboardView({ stats, userName }: DashboardProps) {
             ) : (
               stats.upcomingLeaves.map((leave) => (
                 <div key={leave.id} className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
-                    <Briefcase className="h-4 w-4" />
+                  {/* Avatar nhân viên */}
+                  <div className="relative w-9 h-9 rounded-full overflow-hidden border border-gray-200 shrink-0">
+                    <Image
+                      src={
+                        leave.employees?.avatar ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          (leave.employees?.last_name || "") +
+                            " " +
+                            (leave.employees?.first_name || "")
+                        )}&background=random`
+                      }
+                      alt="avatar"
+                      fill
+                      className="object-cover"
+                    />
                   </div>
-                  <div>
-                    <span className="block text-sm font-medium text-gray-800">
-                      {new Date(leave.start_date).toLocaleDateString("vi-VN")}
-                    </span>
-                    <span className="text-xs text-gray-500">
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-sm font-medium text-gray-800 truncate">
                       {leave.employees?.last_name} {leave.employees?.first_name}
                     </span>
+                    <span className="text-xs text-gray-500">
+                      {leave.leave_type} •{" "}
+                      {new Date(leave.start_date).toLocaleDateString("vi-VN")}{" "}
+                      → {new Date(leave.end_date).toLocaleDateString("vi-VN")}
+                    </span>
                   </div>
+                  {/* Badge trạng thái */}
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
+                      leave.status === "Approved"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-orange-100 text-orange-700"
+                    }`}
+                  >
+                    {leave.status === "Approved" ? "Đã duyệt" : "Chờ duyệt"}
+                  </span>
                 </div>
               ))
             )}

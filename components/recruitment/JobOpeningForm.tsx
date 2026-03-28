@@ -12,6 +12,7 @@ import {
 import { JobOpening, Department } from "@/types/database";
 import { useFormPersistence } from "@/hooks/use-form-persistence";
 import FormDraftNotice from "../common/FormDraftNotice";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   onClose: () => void;
@@ -55,9 +56,18 @@ export default function JobOpeningForm({
     setIsPending(false);
 
     if (res.success) {
+      toast({
+        title: "Thành công",
+        description: jobToEdit ? "Đã cập nhật tin tuyển dụng" : "Đã đăng tin tuyển dụng mới",
+      });
       clearSavedData();
       onClose();
     } else {
+      toast({
+        title: "Lỗi",
+        description: res.error || "Không thể thực hiện thao tác",
+        variant: "destructive",
+      });
       setError(res.error || "Có lỗi xảy ra");
       if (res.fieldErrors) {
         setFieldErrors(res.fieldErrors);

@@ -8,6 +8,7 @@ import { submitApplicationAction } from "@/server/actions/recruitment-actions";
 import { CheckCircle, AlertCircle, UploadCloud } from "lucide-react";
 import { useFormPersistence } from "@/hooks/use-form-persistence";
 import FormDraftNotice from "../common/FormDraftNotice";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   jobId: number;
@@ -32,16 +33,23 @@ export default function ApplicationForm({ jobId }: Props) {
     const res = await submitApplicationAction(prevState, formData);
 
     if (res.success) {
+      toast({
+        title: "Thành công",
+        description: "Đã nộp đơn ứng tuyển thành công",
+      });
       clearSavedData();
       setSuccess(true);
     } else {
-      if (res.fieldErrors) {
-        // Simple way to show field errors for now, could be improved
-        const messages = Object.values(res.fieldErrors).flat().join(", ");
-        setError(messages);
-      } else {
-        setError(res.error || "Có lỗi xảy ra khi nộp đơn.");
-      }
+      const msg = res.fieldErrors 
+        ? Object.values(res.fieldErrors).flat().join(", ")
+        : (res.error || "Có lỗi xảy ra khi nộp đơn.");
+      
+      toast({
+        title: "Lỗi",
+        description: msg,
+        variant: "destructive",
+      });
+      setError(msg);
     }
   };
 

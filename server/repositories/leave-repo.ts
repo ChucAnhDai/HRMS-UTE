@@ -57,6 +57,52 @@ export const leaveRepo = {
     return request
   },
 
+  // NEW: Cập nhật đơn nghỉ phép (chỉ khi status = Pending)
+  async updateLeaveRequest(
+    id: number,
+    data: {
+      leave_type?: string
+      start_date?: string
+      end_date?: string
+      reason?: string
+    }
+  ) {
+    const supabase = await createClient()
+
+    // 1. Kiểm tra trạng thái hiện tại
+    const { data: existing, error: fetchError } = await supabase
+      .from('leave_requests')
+      .select('status')
+      .eq('id', id)
+      .single()
+
+    if (fetchError) throw new Error(fetchError.message)
+    if (!existing) throw new Error('Không tìm thấy đơn nghỉ phép')
+    
+    // Bảo mật BE: Chỉ cho phép sửa nếu đang ở trạng thái Pending
+    if (existing.status !== 'Pending') {
+      throw new Error('Chỉ có thể chỉnh sửa đơn ở trạng thái "Chờ duyệt"')
+    }
+
+    // 2. Thực hiện cập nhật
+    const { data: updated, error } = await supabase
+      .from('leave_requests')
+      .update(data)
+      .eq('id', id)
+      .select(`
+        *,
+        employees!leave_requests_employee_id_fkey (
+          first_name,
+          last_name,
+          avatar
+        )
+      `)
+      .single()
+
+    if (error) throw new Error(error.message)
+    return updated
+  },
+
   // Cập nhật trạng thái đơn (Duyệt / Từ chối)
   async updateLeaveStatus(
     id: number, 
@@ -102,7 +148,8 @@ export const leaveRepo = {
   async getApprovedLeaves(month: number, year: number, employeeId: number) {
     const supabase = await createClient()
     const startDate = `${year}-${month.toString().padStart(2, '0')}-01`
-    const endDate = `${year}-${month.toString().padStart(2, '0')}-31`
+    const lastDay = new Date(year, month, 0).getDate()
+    const endDate = `${year}-${month.toString().padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
 
     const { data, error } = await supabase
       .from('leave_requests')
@@ -120,7 +167,14 @@ export const leaveRepo = {
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('leave_requests')
-      .select('*')
+      .select(`
+        *,
+        employees!leave_requests_employee_id_fkey (
+          first_name,
+          last_name,
+          avatar
+        )
+      `)
       .eq('employee_id', employeeId)
       .order('created_at', { ascending: false })
 
