@@ -19,6 +19,19 @@ export async function createRewardPenaltyAction(formData: FormData) {
     return { success: false, message: 'Vui lòng điền đầy đủ thông tin' }
   }
 
+  // Validate loại điều chỉnh hợp lệ (Security check)
+  const VALID_TYPES = ['Reward', 'Penalty'] as const
+  if (!VALID_TYPES.includes(type as typeof VALID_TYPES[number])) {
+    return { success: false, message: `Loại không hợp lệ: "${type}". Chỉ cho phép: Thưởng (Reward) hoặc Phạt (Penalty).` }
+  }
+
+  // Validate nhân viên tồn tại trong hệ thống
+  const { employeeRepo } = await import('@/server/repositories/employee-repo')
+  const employee = await employeeRepo.getEmployeeById(employee_id)
+  if (!employee) {
+    return { success: false, message: 'Nhân viên không tồn tại trong hệ thống' }
+  }
+
   // Server-side validation: ensure date matches the management context
   if (viewMonth && viewYear) {
     const selectedDate = new Date(date)

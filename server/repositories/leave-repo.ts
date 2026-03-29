@@ -137,10 +137,16 @@ export const leaveRepo = {
       .from('leave_requests')
       .update(updateData)
       .eq('id', id)
+      .eq('status', 'Pending')
       .select()
       .single()
 
-    if (error) throw new Error(error.message)
+    if (error) {
+      if (error.code === 'PGRST116') {
+        throw new Error('Đơn nghỉ phép này đã được xử lý trước đó (đã duyệt hoặc từ chối). Vui lòng tải lại trang.')
+      }
+      throw new Error(error.message)
+    }
     return data
   },
 

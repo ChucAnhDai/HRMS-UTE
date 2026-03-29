@@ -14,6 +14,18 @@ export const salaryAdvanceRepo = {
     return newRequest
   },
 
+  async getRequestById(id: number) {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('salary_advances')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) throw new Error(error.message)
+    return data as unknown as SalaryAdvance
+  },
+
   async getRequests(filters?: {
     employeeId?: number
     month?: number
@@ -81,13 +93,21 @@ export const salaryAdvanceRepo = {
         updateData.rejection_reason = rejectionReason
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('salary_advances')
       .update(updateData)
       .eq('id', id)
+      .eq('status', 'Pending')
+      .select()
+      .single()
 
-    if (error) throw new Error(error.message)
-    return true
+    if (error) {
+        if (error.code === 'PGRST116') {
+            throw new Error('Đơn tạm ứng này đã được xử lý trước đó. Vui lòng tải lại trang.')
+        }
+        throw new Error(error.message)
+    }
+    return data
   },
 
   async getTotalApprovedAdvances(employeeId: number, month: number, year: number) {

@@ -50,6 +50,13 @@ export async function approveSalaryAdvanceAction(requestId: number) {
              throw new Error('Không tìm thấy thông tin nhân viên (Employee ID)')
         }
 
+        // Guard: Check current status
+        const request = await salaryAdvanceRepo.getRequestById(requestId)
+        if (!request) throw new Error('Không tìm thấy đơn tạm ứng')
+        if (request.status !== 'Pending') {
+            throw new Error('Đơn tạm ứng này đã được xử lý rồi.')
+        }
+
         await salaryAdvanceRepo.updateStatus(requestId, 'Approved', user.employeeId)
         revalidatePath('/salary-advances')
         return { success: true }
@@ -66,6 +73,13 @@ export async function rejectSalaryAdvanceAction(requestId: number, reason: strin
         }
         if (!user.employeeId) {
              throw new Error('Không tìm thấy thông tin nhân viên (Employee ID)')
+        }
+
+        // Guard: Check current status
+        const request = await salaryAdvanceRepo.getRequestById(requestId)
+        if (!request) throw new Error('Không tìm thấy đơn tạm ứng')
+        if (request.status !== 'Pending') {
+            throw new Error('Đơn tạm ứng này đã được xử lý rồi.')
         }
 
         await salaryAdvanceRepo.updateStatus(requestId, 'Rejected', user.employeeId, reason)

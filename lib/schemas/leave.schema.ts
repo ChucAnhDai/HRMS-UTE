@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const LeaveRequestSchema = z.object({
   employee_id: z.coerce.number().optional(), // Có thể lấy tự động từ session
-  leave_type: z.string().min(1, "Loại nghỉ phép là bắt buộc"),
+  leave_type: z.enum(["Annual Leave", "Sick Leave", "Unpaid Leave", "Maternity Leave", "Other"]),
   start_date: z.string().min(1, "Ngày bắt đầu là bắt buộc"),
   end_date: z.string().min(1, "Ngày kết thúc là bắt buộc"),
   reason: z.string().optional(),
