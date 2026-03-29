@@ -110,6 +110,34 @@ export const recruitmentRepo = {
 
   async updateCandidateStatus(id: number, status: string) {
     const supabase = await createClient();
+
+    // 1. Lấy trạng thái hiện tại trước
+    const { data: current, error: fetchError } = await supabase
+      .from("candidates")
+      .select("status")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !current) throw new Error('Ứng viên không tồn tại hoặc lỗi lấy dữ liệu');
+
+    // 2. Validate state transition is valid
+    const VALID_TRANSITIONS: Record<string, string[]> = {
+      'Applied': ['Screening', 'Rejected'],
+      'Screening': ['Interview', 'Rejected'],
+      'Interview': ['Offered', 'Rejected'],
+      'Offered': ['Hired', 'Rejected'],
+      'Hired': [],      // Terminal state
+      'Rejected': [],   // Terminal state
+    }
+    
+    // Nếu trạng thái mới giống trạng thái cũ thì skip (idempotent)
+    if (current.status === status) return;
+
+    const allowedNextStatuses = VALID_TRANSITIONS[current.status]
+    if (!allowedNextStatuses || !allowedNextStatuses.includes(status)) {
+      throw new Error(`Không thể chuyển trạng thái ứng viên từ "${current.status}" sang "${status}" (Có thể dữ liệu đã được cập nhật ở tab khác)`);
+    }
+
     const { error } = await supabase
       .from("candidates")
       .update({ status })

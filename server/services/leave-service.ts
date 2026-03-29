@@ -32,6 +32,12 @@ export const leaveService = {
     const end_date = formData.get('end_date') as string
     const reason = formData.get('reason') as string
 
+    // Validate loại nghỉ phép hợp lệ (Defense-in-depth)
+    const VALID_LEAVE_TYPES = ['Annual Leave', 'Sick Leave', 'Unpaid Leave', 'Maternity Leave', 'Other'] as const
+    if (!VALID_LEAVE_TYPES.includes(leave_type as typeof VALID_LEAVE_TYPES[number])) {
+      throw new Error(`Loại nghỉ phép không hợp lệ: "${leave_type}"`)
+    }
+
     // Validate
     if (!employee_id || !leave_type || !start_date || !end_date) {
       throw new Error('Thiếu thông tin bắt buộc')
@@ -129,6 +135,16 @@ export const leaveService = {
     if (!rejectionReason || rejectionReason.trim().length === 0) {
       throw new Error('Vui lòng nhập lý do từ chối')
     }
+
+    // Defense-in-depth: Kiểm tra trạng thái trước khi từ chối
+    const leaveRequest = await leaveRepo.getLeaveRequestById(id)
+    if (!leaveRequest) {
+      throw new Error('Không tìm thấy đơn nghỉ phép')
+    }
+    if (leaveRequest.status !== 'Pending') {
+      throw new Error('Chỉ có thể từ chối đơn ở trạng thái "Chờ duyệt"')
+    }
+
     return await leaveRepo.updateLeaveStatus(id, 'Rejected', actionByEmployeeId, rejectionReason)
   },
 
@@ -138,6 +154,12 @@ export const leaveService = {
     const start_date = formData.get('start_date') as string
     const end_date = formData.get('end_date') as string
     const reason = formData.get('reason') as string
+
+    // Validate loại nghỉ phép hợp lệ (Defense-in-depth)
+    const VALID_LEAVE_TYPES = ['Annual Leave', 'Sick Leave', 'Unpaid Leave', 'Maternity Leave', 'Other'] as const
+    if (!VALID_LEAVE_TYPES.includes(leave_type as typeof VALID_LEAVE_TYPES[number])) {
+      throw new Error(`Loại nghỉ phép không hợp lệ: "${leave_type}"`)
+    }
 
     // 1. Validate cơ bản
     if (!leave_type || !start_date || !end_date) {

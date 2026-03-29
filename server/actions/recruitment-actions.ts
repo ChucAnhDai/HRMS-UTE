@@ -176,6 +176,11 @@ export async function getJobCandidatesAction(jobId: number) {
 
 export async function updateCandidateStatusAction(id: number, status: string) {
   try {
+    // Validate trạng thái ứng viên hợp lệ
+    const VALID_STATUSES = ['Applied', 'Screening', 'Interview', 'Offered', 'Hired', 'Rejected'] as const
+    if (!VALID_STATUSES.includes(status as typeof VALID_STATUSES[number])) {
+        return { success: false, error: `Trạng thái không hợp lệ: "${status}"` }
+    }
     await recruitmentRepo.updateCandidateStatus(id, status);
     revalidatePath("/recruitment"); // Revalidate to update counts if needed
     return { success: true };

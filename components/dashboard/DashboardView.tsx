@@ -177,20 +177,11 @@ export default function DashboardView({ stats, userName }: DashboardProps) {
                     boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
                   }}
                 />
-                <Legend
-                  verticalAlign="bottom"
-                  height={36}
-                  iconType="circle"
-                  formatter={(value) => (
-                    <span className="text-sm font-medium text-gray-600 ml-2">
-                      {value}
-                    </span>
-                  )}
-                />
+
               </PieChart>
             </ResponsiveContainer>
             {/* Center Label */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-6 text-center">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
               <p className="text-xs text-gray-400 font-bold">Tổng</p>
               <p className="text-3xl font-black text-gray-800">
                 {stats.totalEmployees}

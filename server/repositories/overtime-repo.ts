@@ -78,10 +78,16 @@ export const overtimeRepo = {
       .from('overtime_requests')
       .update(updateData)
       .eq('id', id)
+      .eq('status', 'Pending')
       .select()
       .single()
 
-    if (error) throw new Error(error.message)
+    if (error) {
+      if (error.code === 'PGRST116') {
+        throw new Error('Đơn tăng ca này đã được xử lý trước đó. Vui lòng tải lại trang.')
+      }
+      throw new Error(error.message)
+    }
     return data as OvertimeRequest
   },
 

@@ -33,6 +33,13 @@ export async function createOvertimeRequestAction(data: Partial<OvertimeRequest>
              data.status = 'Pending' // Vẫn cần duyệt hoặc auto approve tùy ý. Để Pending cho an toàn.
         }
 
+        // Validate: Kiểm tra nhân viên tồn tại
+        const { employeeRepo } = await import('@/server/repositories/employee-repo')
+        const employee = await employeeRepo.getEmployeeById(data.employee_id!)
+        if (!employee) {
+            return { success: false, error: 'Nhân viên không tồn tại trong hệ thống' }
+        }
+
         // Validate: Giới hạn độ dài lý do (tối đa 500 ký tự)
         const MAX_REASON_LENGTH = 500
         if (data.reason && data.reason.length > MAX_REASON_LENGTH) {
@@ -98,6 +105,11 @@ export async function approveOvertimeRequestAction(id: number): Promise<{ succes
         const request = await overtimeRepo.getRequestById(id)
         if (!request) throw new Error('Không tìm thấy đơn đăng ký OT')
 
+        // Guard: Chỉ duyệt đơn Pending
+        if (request.status !== 'Pending') {
+            return { success: false, error: 'Đơn tăng ca này đã được xử lý (đã duyệt hoặc từ chối).' }
+        }
+
         const requestDate = new Date(request.date)
         const year = requestDate.getFullYear()
         
@@ -156,6 +168,13 @@ export async function rejectOvertimeRequestAction(id: number, rejectionReason: s
 
         if (rejectionReason.length > 500) {
             return { success: false, error: `Lý do từ chối không được vượt quá 500 ký tự. Hiện tại: ${rejectionReason.length} ký tự.` }
+        }
+
+        // Guard: Kiểm tra đơn còn Pending hay đã xử lý
+        const request = await overtimeRepo.getRequestById(id)
+        if (!request) return { success: false, error: 'Không tìm thấy đơn tăng ca' }
+        if (request.status !== 'Pending') {
+            return { success: false, error: 'Đơn tăng ca này đã được xử lý trước đó.' }
         }
 
         await overtimeRepo.updateStatus(id, 'Rejected', Number(currentUser.id), rejectionReason.trim())
